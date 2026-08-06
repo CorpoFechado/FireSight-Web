@@ -1,0 +1,55 @@
+import { Link } from '@inertiajs/react';
+import AppLogoIcon from '@/components/app-logo-icon';
+import { AuroraBackground } from '@/components/aurora-background';
+import { home } from '@/routes';
+import type { AuthLayoutProps } from '@/types';
+
+export default function AuthSimpleLayout({
+    children,
+    title,
+    description,
+}: AuthLayoutProps) {
+    return (
+        <div
+            className="relative isolate flex min-h-svh flex-col items-center justify-center overflow-hidden p-6 md:p-10"
+            style={{
+                background: 'linear-gradient(165deg, #1d3557 0%, #16294a 55%, #10192e 100%)',
+            }}
+        >
+            <AuroraBackground variant="dark" className="!fixed inset-0" />
+
+            <div className="relative z-10 w-full max-w-sm">
+                <div className="flex flex-col gap-8">
+                    <div className="flex flex-col items-center gap-4">
+                        <Link
+                            href={home()}
+                            className="flex flex-col items-center gap-3 font-medium"
+                        >
+                            <div
+                                className="flex size-16 items-center justify-center rounded-2xl bg-white"
+                                style={{ boxShadow: 'var(--shadow-soft-lg)' }}
+                            >
+                                <AppLogoIcon className="size-9 fill-current text-brand-navy" />
+                            </div>
+                            <span className="sr-only">{title}</span>
+                        </Link>
+
+                        <div className="space-y-1.5 text-center">
+                            <h1 className="text-xl font-semibold text-white">{title}</h1>
+                            <p className="text-center text-sm text-white/60">
+                                {description}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        className="dark surface-glass-dark animate-fade-up rounded-3xl p-6 text-foreground"
+                        style={{ boxShadow: 'var(--shadow-soft-lg)' }}
+                    >
+                        {children}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
