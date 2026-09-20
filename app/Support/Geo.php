@@ -10,8 +10,8 @@ class Geo
      * @param  float  $lat  Point latitude
      * @param  float  $lng  Point longitude
      * @param  array<int, array{0: float, 1: float}>  $polygon  Ring of
-     *         [longitude, latitude] pairs (GeoJSON order), as stored in
-     *         `barangay.boundary`.
+     *                                                          [longitude, latitude] pairs (GeoJSON order), as stored in
+     *                                                          `barangay.boundary`.
      */
     public static function pointInPolygon(float $lat, float $lng, array $polygon): bool
     {

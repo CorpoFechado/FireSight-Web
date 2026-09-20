@@ -15,8 +15,13 @@ class IncidentActionController extends Controller
 {
     /**
      * Turns a pending report into an official incident: creates the
-     * incident_record and flips the report to `verified`. bfp_admin only —
-     * gated by the `bfp.admin` middleware on the route.
+     * incident_record (barangay only — the assessment details are filled
+     * in later, at the Complete step, once the fire is out) and flips the
+     * report to `verified`. bfp_admin only — gated by the `bfp.admin`
+     * middleware on the route.
+     *
+     * NOTE: this is a manual stand-in for the AI verification step, which
+     * a separate group workstream will implement here later.
      */
     public function verify(Request $request, CommunityReport $report): RedirectResponse
     {
@@ -24,11 +29,6 @@ class IncidentActionController extends Controller
 
         $data = $request->validate([
             'barangay_id' => ['required', 'integer', 'exists:barangay,barangay_id'],
-            'incident_type' => ['required', Rule::in(['structural', 'grass', 'electrical', 'vehicular', 'other'])],
-            'severity_level' => ['required', Rule::in(['low', 'moderate', 'high', 'critical'])],
-            'cause_of_fire' => ['nullable', 'string', 'max:150'],
-            'casualties' => ['nullable', 'integer', 'min:0'],
-            'notes' => ['nullable', 'string'],
         ]);
 
         DB::transaction(function () use ($report, $data) {
@@ -36,11 +36,6 @@ class IncidentActionController extends Controller
                 'report_id' => $report->report_id,
                 'barangay_id' => $data['barangay_id'],
                 'data_time' => now(),
-                'incident_type' => $data['incident_type'],
-                'severity_level' => $data['severity_level'],
-                'cause_of_fire' => $data['cause_of_fire'] ?? null,
-                'casualties' => $data['casualties'] ?? 0,
-                'notes' => $data['notes'] ?? null,
             ]);
 
             $report->update(['status' => CommunityReport::STATUS_VERIFIED]);
@@ -97,6 +92,46 @@ class IncidentActionController extends Controller
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'Status updated to '.ucfirst($data['status']).'.',
+        ]);
+    }
+
+    /**
+     * Final step of the workflow: resolved -> completed. This is where the
+     * BFP assessment details (incident type, severity, cause, casualties,
+     * notes) are recorded, per BFP Lian's process — they're only known
+     * once the fire has been extinguished. Open to any bfp staff, same as
+     * updateStatus, since it's a continuation of the dispatch/resolve
+     * flow rather than an admin verification call.
+     */
+    public function complete(Request $request, CommunityReport $report): RedirectResponse
+    {
+        $this->assertStatus($report, CommunityReport::STATUS_RESOLVED, 'complete');
+
+        $data = $request->validate([
+            'incident_type' => ['required', Rule::in(['structural', 'grass', 'electrical', 'vehicular', 'other'])],
+            'severity_level' => ['required', Rule::in(['low', 'moderate', 'high', 'critical'])],
+            'cause_of_fire' => ['nullable', 'string', 'max:150'],
+            'casualties' => ['nullable', 'integer', 'min:0'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        DB::transaction(function () use ($report, $data) {
+            $report->incidentRecord()->update([
+                'incident_type' => $data['incident_type'],
+                'severity_level' => $data['severity_level'],
+                'cause_of_fire' => $data['cause_of_fire'] ?? null,
+                'casualties' => $data['casualties'] ?? 0,
+                'notes' => $data['notes'] ?? null,
+            ]);
+
+            $report->update(['status' => CommunityReport::STATUS_COMPLETED]);
+        });
+
+        $this->notifyReporter($report, 'The fire incident you reported has been marked as complete.');
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Report marked as complete.',
         ]);
     }
 

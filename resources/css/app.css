@@ -210,6 +210,49 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+/* Light frosted glass auth card — high-contrast visible borders for inputs and checkboxes */
+.auth-card-light {
+    --border: #94a3b8;
+    --input: #94a3b8;
+    --ring: #1d3557;
+}
+
+.auth-card-light input[data-slot="input"],
+.auth-card-light [data-slot="input"] {
+    background-color: #ffffff;
+    border-color: #94a3b8;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-card-light input[data-slot="input"]:hover,
+.auth-card-light [data-slot="input"]:hover {
+    border-color: #64748b;
+}
+
+.auth-card-light input[data-slot="input"]:focus-visible,
+.auth-card-light [data-slot="input"]:focus-visible {
+    border-color: #1d3557;
+    box-shadow: 0 0 0 3px rgba(29, 53, 87, 0.15);
+}
+
+.auth-card-light [data-slot="checkbox"] {
+    background-color: #ffffff;
+    border: 1.5px solid #94a3b8;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-card-light [data-slot="checkbox"]:hover {
+    border-color: #64748b;
+}
+
+.auth-card-light [data-slot="checkbox"][data-state="checked"] {
+    background-color: #1d3557;
+    border-color: #1d3557;
+    color: #ffffff;
+}
+
 /* Gentle press-down micro-interaction for buttons/cards/nav items. */
 .press-scale {
     transition:

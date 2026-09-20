@@ -96,7 +96,7 @@ export default function Dashboard({
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr style={{ background: '#FAFBFC' }}>
-                                        {['Reference ID', 'Barangay', 'Type', 'Status', 'Date / Time'].map((h) => (
+                                        {['Barangay', 'Type', 'Status', 'Date / Time'].map((h) => (
                                             <th
                                                 key={h}
                                                 className="px-4 py-2.5 text-left text-xs font-semibold tracking-wider text-brand-muted uppercase"
@@ -109,21 +109,18 @@ export default function Dashboard({
                                 <tbody>
                                     {recentIncidents.length === 0 && (
                                         <tr>
-                                            <td colSpan={5} className="px-4 py-6 text-center text-xs text-brand-muted">
+                                            <td colSpan={4} className="px-4 py-6 text-center text-xs text-brand-muted">
                                                 No incident records yet.
                                             </td>
                                         </tr>
                                     )}
                                     {recentIncidents.map((inc) => (
                                         <tr
-                                            key={inc.reference}
+                                            key={inc.report_id}
                                             onClick={() => router.visit(showIncident(inc.report_id))}
                                             className="cursor-pointer border-t transition-colors hover:bg-gray-50"
                                             style={{ borderColor: 'rgba(43,45,66,0.06)' }}
                                         >
-                                            <td className="px-4 py-3 font-mono text-xs font-medium text-brand-blue">
-                                                {inc.reference}
-                                            </td>
                                             <td className="px-4 py-3 text-xs text-brand-navy">{inc.barangay}</td>
                                             <td className="px-4 py-3 text-xs text-brand-navy">{inc.type}</td>
                                             <td className="px-4 py-3">

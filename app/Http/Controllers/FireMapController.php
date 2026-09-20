@@ -25,7 +25,7 @@ class FireMapController extends Controller
             ->map(fn (CommunityReport $report) => [
                 'report_id' => $report->report_id,
                 'reference' => sprintf('INC-%s-%04d', $report->created_at->format('Y'), $report->report_id),
-                'type' => $report->incidentRecord ? ucfirst($report->incidentRecord->incident_type) : null,
+                'type' => $report->incidentRecord?->incident_type ? ucfirst($report->incidentRecord->incident_type) : null,
                 'severity' => $report->incidentRecord?->severity_level,
                 'status' => $report->status,
                 'barangay' => $report->incidentRecord?->barangay?->barangay_name,

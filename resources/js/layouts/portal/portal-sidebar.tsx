@@ -1,6 +1,6 @@
 import { Link, router } from '@inertiajs/react';
-import { Flame, LogOut } from 'lucide-react';
-import { logout } from '@/routes';
+import { LogOut } from 'lucide-react';
+import { dashboard, logout } from '@/routes';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { BfpRole } from '@/types/auth';
 import { navItemsForRole } from './nav-config';
@@ -23,24 +23,21 @@ export function PortalSidebar({
             }}
         >
             {/* Logo */}
-            <div
-                className="flex items-center gap-3 border-b px-4 py-4"
+            <Link
+                href={dashboard()}
+                className="flex items-center gap-3 border-b px-4 py-3.5 transition-colors hover:bg-white/5"
                 style={{ borderColor: 'rgba(255,255,255,0.08)', minHeight: 64 }}
             >
-                <div
-                    className="flex size-9 flex-shrink-0 items-center justify-center rounded-xl"
-                    style={{
-                        background: 'linear-gradient(135deg, var(--color-brand-orange) 0%, #e8670a 100%)',
-                        boxShadow: 'var(--shadow-glow-orange)',
-                    }}
-                >
-                    <Flame size={16} className="text-white" />
-                </div>
+                <img
+                    src="/images/firesight-logo.png"
+                    alt="FireSight Logo"
+                    className="h-10 w-auto object-contain flex-shrink-0 drop-shadow-sm"
+                />
                 <div className="overflow-hidden">
                     <p className="text-sm leading-none font-bold text-white">FireSight</p>
                     <p className="mt-1 text-xs leading-none text-white/45">BFP Lian</p>
                 </div>
-            </div>
+            </Link>
 
             {/* Role badge */}
             <div className="surface-glass-dark mx-3 mt-3 mb-1 rounded-xl px-3 py-2">

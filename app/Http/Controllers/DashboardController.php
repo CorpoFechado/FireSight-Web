@@ -12,6 +12,16 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    /**
+     * A report counts as "resolved" for KPI purposes once the fire is out,
+     * whether or not the post-incident assessment (Complete step) has
+     * happened yet.
+     */
+    private const RESOLVED_STATUSES = [
+        CommunityReport::STATUS_RESOLVED,
+        CommunityReport::STATUS_COMPLETED,
+    ];
+
     public function index(): Response
     {
         $today = Date::today();
@@ -44,7 +54,9 @@ class DashboardController extends Controller
         $weekStart = $today->copy()->startOfWeek();
         $weekEnd = $today->copy()->endOfWeek();
         $totalThisWeek = CommunityReport::whereBetween('created_at', [$weekStart, $weekEnd])->count();
-        $resolvedThisWeek = CommunityReport::where('status', CommunityReport::STATUS_RESOLVED)
+        // "Resolved" here means the fire is out, which covers both `resolved`
+        // and `completed` (completed is just resolved + assessment details).
+        $resolvedThisWeek = CommunityReport::whereIn('status', self::RESOLVED_STATUSES)
             ->whereBetween('created_at', [$weekStart, $weekEnd])->count();
         $resolutionRate = $totalThisWeek > 0 ? (int) round($resolvedThisWeek / $totalThisWeek * 100) : 0;
 
@@ -73,7 +85,7 @@ class DashboardController extends Controller
                 'report_id' => $incident->report_id,
                 'reference' => sprintf('INC-%s-%04d', $incident->data_time->format('Y'), $incident->report_id),
                 'barangay' => $incident->barangay->barangay_name,
-                'type' => ucfirst($incident->incident_type),
+                'type' => $incident->incident_type ? ucfirst($incident->incident_type) : 'Unclassified',
                 'status' => $incident->report->status,
                 'dateTime' => $incident->data_time->format('Y-m-d H:i'),
             ])
@@ -94,7 +106,7 @@ class DashboardController extends Controller
 
                 $total = IncidentRecord::whereBetween('data_time', [$start, $end])->count();
                 $resolved = IncidentRecord::whereBetween('data_time', [$start, $end])
-                    ->whereHas('report', fn ($q) => $q->where('status', CommunityReport::STATUS_RESOLVED))
+                    ->whereHas('report', fn ($q) => $q->whereIn('status', self::RESOLVED_STATUSES))
                     ->count();
 
                 return [

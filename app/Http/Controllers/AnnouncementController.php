@@ -16,16 +16,37 @@ class AnnouncementController extends Controller
     /** @var array<int, string> */
     private const TYPES = ['general', 'advisory', 'emergency', 'fire_safety_tip'];
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = $request->string('search')->trim()->value();
+        $category = $request->string('category', $request->string('type')->value())->trim()->lower()->value();
+
         $announcements = Announcement::query()
             ->with('creator:id,first_name,last_name')
+            ->when($category !== '' && $category !== 'all' && in_array($category, self::TYPES, true), function ($q) use ($category) {
+                $q->where('announcement_type', $category);
+            })
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%")
+                        ->orWhereHas('creator', function ($q) use ($search) {
+                            $q->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->latest('created_at')
             ->get()
             ->map(fn (Announcement $announcement) => $this->toRow($announcement));
 
         return Inertia::render('announcements/index', [
             'announcements' => $announcements,
+            'filters' => [
+                'search' => $search,
+                'category' => $category ?: 'all',
+            ],
+            'totalCount' => Announcement::count(),
         ]);
     }
 

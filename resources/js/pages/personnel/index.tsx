@@ -196,7 +196,6 @@ export default function PersonnelIndex({
                                     }}
                                 >
                                     {[
-                                        'Employee No.',
                                         'Name',
                                         'Rank',
                                         'Role',
@@ -217,7 +216,7 @@ export default function PersonnelIndex({
                                 {personnel.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan={7}
+                                            colSpan={6}
                                             className="px-4 py-8 text-center text-xs text-brand-muted"
                                         >
                                             No personnel match these filters.
@@ -232,9 +231,6 @@ export default function PersonnelIndex({
                                             borderColor: 'rgba(43,45,66,0.06)',
                                         }}
                                     >
-                                        <td className="px-4 py-3 font-mono text-xs font-medium text-brand-blue">
-                                            {p.employee_number ?? '—'}
-                                        </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2.5">
                                                 <span

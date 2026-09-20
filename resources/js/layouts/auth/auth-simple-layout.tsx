@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
-import AppLogoIcon from '@/components/app-logo-icon';
 import { AuroraBackground } from '@/components/aurora-background';
-import { home } from '@/routes';
+import { login } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
 export default function AuthSimpleLayout({
@@ -22,15 +21,14 @@ export default function AuthSimpleLayout({
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         <Link
-                            href={home()}
+                            href={login()}
                             className="flex flex-col items-center gap-3 font-medium"
                         >
-                            <div
-                                className="flex size-16 items-center justify-center rounded-2xl bg-white"
-                                style={{ boxShadow: 'var(--shadow-soft-lg)' }}
-                            >
-                                <AppLogoIcon className="size-9 fill-current text-brand-navy" />
-                            </div>
+                            <img
+                                src="/images/firesight-logo.png"
+                                alt="FireSight Logo"
+                                className="h-16 w-auto object-contain drop-shadow-lg"
+                            />
                             <span className="sr-only">{title}</span>
                         </Link>
 
@@ -43,8 +41,15 @@ export default function AuthSimpleLayout({
                     </div>
 
                     <div
-                        className="dark surface-glass-dark animate-fade-up rounded-3xl p-6 text-foreground"
-                        style={{ boxShadow: 'var(--shadow-soft-lg)' }}
+                        className="auth-card-light animate-fade-up rounded-3xl p-6"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.92)',
+                            backdropFilter: 'blur(24px) saturate(160%)',
+                            WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+                            border: '1px solid rgba(255, 255, 255, 0.6)',
+                            boxShadow: 'var(--shadow-soft-lg)',
+                            color: '#1d3557',
+                        }}
                     >
                         {children}
                     </div>

@@ -6,7 +6,7 @@
  */
 
 export type ReportStatus =
-    'pending' | 'verified' | 'rejected' | 'dispatched' | 'resolved';
+    'pending' | 'verified' | 'rejected' | 'dispatched' | 'resolved' | 'completed';
 export type SeverityLevel = 'low' | 'moderate' | 'high' | 'critical';
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'severe';
 export type AnnouncementType =
@@ -40,6 +40,12 @@ export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
         text: '#4B5563',
         border: '#9CA3AF',
         label: 'Resolved',
+    },
+    completed: {
+        bg: '#DCFCE7',
+        text: '#15803D',
+        border: '#22C55E',
+        label: 'Completed',
     },
     rejected: {
         bg: '#FDE8EA',

@@ -16,13 +16,19 @@ class IncidentController extends Controller
         CommunityReport::STATUS_VERIFIED,
         CommunityReport::STATUS_DISPATCHED,
         CommunityReport::STATUS_RESOLVED,
+        CommunityReport::STATUS_COMPLETED,
         CommunityReport::STATUS_REJECTED,
     ];
 
     public function index(Request $request): Response
     {
-        $status = $request->string('status')->lower()->value();
+        $status = $request->string('status')->lower()->value() ?: CommunityReport::STATUS_PENDING;
         $search = $request->string('search')->trim()->value();
+        $dateFrom = $request->string('date_from')->trim()->value();
+        $dateTo = $request->string('date_to')->trim()->value();
+        $barangayId = $request->integer('barangay_id') ?: null;
+        $incidentType = $request->string('incident_type')->trim()->value();
+        $severityLevel = $request->string('severity_level')->trim()->value();
 
         $reports = CommunityReport::query()
             ->with(['incidentRecord.barangay'])
@@ -34,6 +40,11 @@ class IncidentController extends Controller
                         ->orWhereHas('incidentRecord.barangay', fn ($q) => $q->where('barangay_name', 'like', "%{$search}%"));
                 });
             })
+            ->when($dateFrom !== '', fn ($q) => $q->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo !== '', fn ($q) => $q->whereDate('created_at', '<=', $dateTo))
+            ->when($barangayId !== null, fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('barangay_id', $barangayId)))
+            ->when($incidentType !== '', fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('incident_type', $incidentType)))
+            ->when($severityLevel !== '', fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('severity_level', $severityLevel)))
             ->latest('created_at')
             ->paginate(15)
             ->withQueryString()
@@ -41,7 +52,16 @@ class IncidentController extends Controller
 
         return Inertia::render('incidents/index', [
             'reports' => $reports,
-            'filters' => ['status' => $status ?: 'all', 'search' => $search],
+            'filters' => [
+                'status' => $status,
+                'search' => $search,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'barangay_id' => $barangayId ? (string) $barangayId : '',
+                'incident_type' => $incidentType,
+                'severity_level' => $severityLevel,
+            ],
+            'barangays' => Barangay::orderBy('barangay_name')->get(['barangay_id', 'barangay_name']),
             'totalCount' => CommunityReport::count(),
         ]);
     }
@@ -131,7 +151,7 @@ class IncidentController extends Controller
             'reporter_name' => $report->reporter_name,
             'contact_number' => $report->contact_number,
             'barangay' => $report->incidentRecord?->barangay?->barangay_name,
-            'type' => $report->incidentRecord ? ucfirst($report->incidentRecord->incident_type) : null,
+            'type' => $report->incidentRecord?->incident_type ? ucfirst($report->incidentRecord->incident_type) : null,
             'severity' => $report->incidentRecord?->severity_level,
             'status' => $report->status,
             'dateTime' => $report->created_at->format('Y-m-d H:i'),

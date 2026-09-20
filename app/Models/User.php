@@ -146,4 +146,12 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(Notification::class, 'user_id');
     }
+
+    /**
+     * Duty shifts assigned to this personnel member.
+     */
+    public function dutySchedules(): HasMany
+    {
+        return $this->hasMany(DutySchedule::class, 'user_id');
+    }
 }

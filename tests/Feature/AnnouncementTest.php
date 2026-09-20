@@ -89,3 +89,98 @@ test('bfp admin can delete an announcement', function () {
     $response->assertRedirect();
     $this->assertDatabaseMissing('announcement', ['announcement_id' => $announcement->announcement_id]);
 });
+
+test('announcements can be filtered by category', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $this->actingAs($admin);
+
+    Announcement::create([
+        'created_by' => $admin->id,
+        'announcement_type' => 'advisory',
+        'title' => 'Advisory Alert',
+        'content' => 'First content',
+    ]);
+    Announcement::create([
+        'created_by' => $admin->id,
+        'announcement_type' => 'emergency',
+        'title' => 'Emergency Alert',
+        'content' => 'Second content',
+    ]);
+
+    $response = $this->get(route('announcements', ['category' => 'emergency']));
+    $response->assertOk();
+    $response->assertInertia(
+        fn ($page) => $page
+            ->component('announcements/index')
+            ->where('filters.category', 'emergency')
+            ->has('announcements', 1)
+            ->where('announcements.0.title', 'Emergency Alert')
+    );
+});
+
+test('announcements can be searched by title or content', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $this->actingAs($admin);
+
+    Announcement::create([
+        'created_by' => $admin->id,
+        'announcement_type' => 'general',
+        'title' => 'Water Interruption Schedule',
+        'content' => 'Water service temporarily interrupted.',
+    ]);
+    Announcement::create([
+        'created_by' => $admin->id,
+        'announcement_type' => 'fire_safety_tip',
+        'title' => 'Electrical Safety',
+        'content' => 'Inspect frayed cables carefully.',
+    ]);
+
+    $response = $this->get(route('announcements', ['search' => 'Electrical']));
+    $response->assertOk();
+    $response->assertInertia(
+        fn ($page) => $page
+            ->where('filters.search', 'Electrical')
+            ->has('announcements', 1)
+            ->where('announcements.0.title', 'Electrical Safety')
+    );
+
+    $responseContent = $this->get(route('announcements', ['search' => 'interrupted']));
+    $responseContent->assertOk();
+    $responseContent->assertInertia(
+        fn ($page) => $page
+            ->has('announcements', 1)
+            ->where('announcements.0.title', 'Water Interruption Schedule')
+    );
+});
+
+test('announcements can be filtered by both category and search', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $this->actingAs($admin);
+
+    Announcement::create([
+        'created_by' => $admin->id,
+        'announcement_type' => 'advisory',
+        'title' => 'Typhoon Signal Warning',
+        'content' => 'Advisory about storm.',
+    ]);
+    Announcement::create([
+        'created_by' => $admin->id,
+        'announcement_type' => 'emergency',
+        'title' => 'Typhoon Evacuation Notice',
+        'content' => 'Immediate evacuation.',
+    ]);
+
+    $response = $this->get(route('announcements', [
+        'category' => 'emergency',
+        'search' => 'Typhoon',
+    ]));
+
+    $response->assertOk();
+    $response->assertInertia(
+        fn ($page) => $page
+            ->where('filters.category', 'emergency')
+            ->where('filters.search', 'Typhoon')
+            ->has('announcements', 1)
+            ->where('announcements.0.title', 'Typhoon Evacuation Notice')
+    );
+});

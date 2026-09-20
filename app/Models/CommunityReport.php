@@ -19,6 +19,8 @@ class CommunityReport extends Model
 
     public const STATUS_RESOLVED = 'resolved';
 
+    public const STATUS_COMPLETED = 'completed';
+
     protected $table = 'community_report';
 
     protected $primaryKey = 'report_id';

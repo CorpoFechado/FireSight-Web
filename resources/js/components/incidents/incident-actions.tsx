@@ -1,10 +1,11 @@
 import { router } from '@inertiajs/react';
-import { CheckCircle, Navigation, XCircle } from 'lucide-react';
+import { CheckCircle, ClipboardCheck, Navigation, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { reject, updateStatus } from '@/routes/incidents';
 import type { BfpRole } from '@/types/auth';
 import type { ReportStatus } from '@/lib/fire-status';
+import { CompleteReportModal } from './complete-report-modal';
 import { VerifyReportModal } from './verify-report-modal';
 
 type Barangay = { barangay_id: number; barangay_name: string };
@@ -23,6 +24,7 @@ export function IncidentActions({
     suggestedBarangayId: number | null;
 }) {
     const [verifyOpen, setVerifyOpen] = useState(false);
+    const [completeOpen, setCompleteOpen] = useState(false);
     const [confirming, setConfirming] = useState<'reject' | 'dispatch' | 'resolve' | null>(null);
     const [processing, setProcessing] = useState(false);
 
@@ -52,7 +54,7 @@ export function IncidentActions({
         });
     };
 
-    if (status === 'resolved' || status === 'rejected') {
+    if (status === 'completed' || status === 'rejected') {
         return null;
     }
 
@@ -140,6 +142,23 @@ export function IncidentActions({
                 >
                     <CheckCircle size={14} /> Mark as Resolved
                 </button>
+            )}
+
+            {status === 'resolved' && (
+                <>
+                    <button
+                        onClick={() => setCompleteOpen(true)}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white"
+                        style={{ background: '#2A9D8F' }}
+                    >
+                        <ClipboardCheck size={14} /> Mark as Complete
+                    </button>
+                    <CompleteReportModal
+                        reportId={reportId}
+                        open={completeOpen}
+                        onOpenChange={setCompleteOpen}
+                    />
+                </>
             )}
         </div>
     );

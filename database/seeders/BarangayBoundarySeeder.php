@@ -37,6 +37,7 @@ class BarangayBoundarySeeder extends Seeder
 
             if (! $barangay) {
                 $this->command?->warn("No barangay row matches boundary name \"{$name}\" — skipped.");
+
                 continue;
             }
 

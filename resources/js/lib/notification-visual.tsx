@@ -27,7 +27,7 @@ export function getNotificationVisual(
     }
 
     if (type === 'status_update') {
-        if (text.includes('resolved')) {
+        if (text.includes('resolved') || text.includes('complete')) {
             return { Icon: CheckCircle2, bg: '#E0F5F3', color: '#1B7A72' };
         }
         if (text.includes('dispatch')) {

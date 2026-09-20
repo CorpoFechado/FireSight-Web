@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DutyScheduleController;
 use App\Http\Controllers\FireMapController;
 use App\Http\Controllers\IncidentActionController;
 use App\Http\Controllers\IncidentController;
@@ -11,7 +12,7 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\RiskAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -20,6 +21,8 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
     Route::get('incidents/{report}', [IncidentController::class, 'show'])->name('incidents.show');
     Route::patch('incidents/{report}/status', [IncidentActionController::class, 'updateStatus'])
         ->name('incidents.updateStatus');
+    Route::post('incidents/{report}/complete', [IncidentActionController::class, 'complete'])
+        ->name('incidents.complete');
 
     Route::get('map', [FireMapController::class, 'index'])->name('map');
     Route::get('fire-prone', [RiskAnalyticsController::class, 'index'])->name('fireProne');
@@ -78,6 +81,11 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
         Route::patch('announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
         Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+
+        Route::get('duty-schedule', [DutyScheduleController::class, 'index'])->name('dutySchedule');
+        Route::post('duty-schedule', [DutyScheduleController::class, 'store'])->name('dutySchedule.store');
+        Route::patch('duty-schedule/{schedule}', [DutyScheduleController::class, 'update'])->name('dutySchedule.update');
+        Route::delete('duty-schedule/{schedule}', [DutyScheduleController::class, 'destroy'])->name('dutySchedule.destroy');
     });
 });
 

@@ -2,6 +2,7 @@ import type { InertiaLinkProps } from '@inertiajs/react';
 import {
     BarChart3,
     Bell,
+    CalendarClock,
     FileText,
     Home,
     Layers,
@@ -16,6 +17,7 @@ import {
     analytics,
     announcements,
     dashboard,
+    dutySchedule,
     fireProne,
     map as fireMap,
     notifications,
@@ -48,6 +50,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
     { title: 'Response Tracking', href: response(), icon: Navigation },
     { title: 'Analytics & Reports', href: analytics(), icon: BarChart3, roles: ['bfp_admin'] },
     { title: 'Personnel Accounts', href: personnel(), icon: Users, roles: ['bfp_admin'] },
+    { title: 'Duty Schedule', href: dutySchedule(), icon: CalendarClock, roles: ['bfp_admin'] },
     { title: 'Announcements', href: announcements(), icon: Megaphone, roles: ['bfp_admin'] },
     { title: 'Notifications', href: notifications(), icon: Bell },
     { title: 'Profile', href: profileEdit(), icon: User },
