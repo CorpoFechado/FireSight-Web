@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
+use App\Support\DateRange;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,7 +26,7 @@ class AnalyticsController extends Controller
     ];
 
     /** @var array<string, string> */
-    private const TYPE_LABELS = [
+    public const TYPE_LABELS = [
         'structural' => 'Structure Fire',
         'grass' => 'Grass/Vegetation',
         'vehicular' => 'Vehicle Fire',
@@ -35,7 +35,7 @@ class AnalyticsController extends Controller
     ];
 
     /** @var array<string, string> */
-    private const TYPE_COLORS = [
+    public const TYPE_COLORS = [
         'structural' => '#E63946',
         'grass' => '#F77F00',
         'vehicular' => '#F4A261',
@@ -44,7 +44,7 @@ class AnalyticsController extends Controller
     ];
 
     /** @var array<string, string> */
-    private const SEVERITY_COLORS = [
+    public const SEVERITY_COLORS = [
         'critical' => '#E63946',
         'high' => '#F77F00',
         'moderate' => '#F4A261',
@@ -65,7 +65,7 @@ class AnalyticsController extends Controller
         $dateFrom = $request->string('date_from')->trim()->value();
         $dateTo = $request->string('date_to')->trim()->value();
 
-        [$rangeStart, $rangeEnd] = $this->resolveRange($period, $dateFrom, $dateTo, $now);
+        [$rangeStart, $rangeEnd] = DateRange::resolve($period, $dateFrom, $dateTo, $now);
 
         // --- Trend chart control ---
         $trendYear = $request->integer('trend_year');
@@ -78,7 +78,7 @@ class AnalyticsController extends Controller
             'monthlyTrend' => $this->monthlyTrend($trendYear, $now),
             'incidentsBySeverity' => $this->incidentsBySeverity($rangeStart, $rangeEnd),
             'responseTimeTrend' => $this->responseTimeTrend(),
-            'periodLabel' => $this->periodLabel($period, $rangeStart, $rangeEnd, $now),
+            'periodLabel' => DateRange::label($period, $rangeStart, $rangeEnd, $now),
             'filters' => [
                 'period' => $period,
                 'date_from' => $dateFrom,
@@ -86,37 +86,6 @@ class AnalyticsController extends Controller
                 'trend_year' => $trendYear ?: $now->year,
             ],
         ]);
-    }
-
-    /**
-     * Resolve a [start, end] Carbon pair from a period preset or custom dates.
-     *
-     * @return array{Carbon, Carbon}
-     */
-    private function resolveRange(
-        string $period,
-        string $dateFrom,
-        string $dateTo,
-        CarbonInterface $now,
-    ): array {
-        return match ($period) {
-            'this_month' => [
-                $now->copy()->startOfMonth(),
-                $now->copy()->endOfMonth(),
-            ],
-            'last_3_months' => [
-                $now->copy()->subMonths(2)->startOfMonth(),
-                $now->copy()->endOfMonth(),
-            ],
-            'custom' => [
-                $dateFrom !== '' ? Date::parse($dateFrom)->startOfDay() : $now->copy()->startOfYear(),
-                $dateTo !== '' ? Date::parse($dateTo)->endOfDay() : $now->copy()->endOfDay(),
-            ],
-            default => [ // this_year
-                $now->copy()->startOfYear(),
-                $now->copy()->endOfDay(),
-            ],
-        };
     }
 
     /**
@@ -224,21 +193,5 @@ class AnalyticsController extends Controller
                 'minutes' => $minutesByMonth[$month - 1],
             ])
             ->all();
-    }
-
-    private function periodLabel(
-        string $period,
-        CarbonInterface $start,
-        CarbonInterface $end,
-        CarbonInterface $now,
-    ): string {
-        return match ($period) {
-            'this_month' => $now->format('F Y'),
-            'last_3_months' => $start->format('M Y').' – '.$end->format('M Y'),
-            'custom' => $start->format('M j').' – '.$end->format('M j, Y'),
-            default => $now->month === 1
-                ? $now->format('F Y')
-                : $start->format('M').' – '.$end->format('M Y'),
-        };
     }
 }

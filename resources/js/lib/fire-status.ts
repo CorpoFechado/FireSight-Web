@@ -100,6 +100,31 @@ export const PERSONNEL_STATUS_CFG: Record<PersonnelStatus, BadgeCfg> = {
     inactive: { bg: '#F3F4F6', text: '#4B5563', label: 'Inactive' },
 };
 
+// ─── Incident type config (matches AnalyticsController::TYPE_LABELS/COLORS) ──
+
+export type IncidentType = 'structural' | 'grass' | 'electrical' | 'vehicular' | 'other';
+
+type TypeCfg = { label: string; color: string };
+
+export const TYPE_CFG: Record<IncidentType, TypeCfg> = {
+    structural: { label: 'Structure Fire', color: '#E63946' },
+    grass: { label: 'Grass/Vegetation', color: '#F77F00' },
+    vehicular: { label: 'Vehicle Fire', color: '#F4A261' },
+    electrical: { label: 'Electrical Fire', color: '#457B9D' },
+    other: { label: 'Other', color: '#868E96' },
+};
+
+/**
+ * Map marker fill colors for severity levels — matches Analytics'
+ * SEVERITY_COLORS constants so pins and charts use identical hues.
+ */
+export const SEVERITY_MARKER_COLORS: Record<SeverityLevel, string> = {
+    critical: '#E63946',
+    high: '#F77F00',
+    moderate: '#F4A261',
+    low: '#2A9D8F',
+};
+
 /** Marker/legend color for a risk level — used by Leaflet map components. */
 export function riskLevelColor(level: RiskLevel): string {
     return RISK_CFG[level]?.color ?? '#6B7A8D';
