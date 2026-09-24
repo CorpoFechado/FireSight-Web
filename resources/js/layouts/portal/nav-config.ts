@@ -2,6 +2,7 @@ import type { InertiaLinkProps } from '@inertiajs/react';
 import {
     BarChart3,
     Bell,
+    BookOpen,
     CalendarClock,
     FileText,
     Home,
@@ -9,6 +10,7 @@ import {
     Map,
     Megaphone,
     Navigation,
+    Phone,
     User,
     Users,
 } from 'lucide-react';
@@ -16,8 +18,10 @@ import type { LucideIcon } from 'lucide-react';
 import {
     analytics,
     announcements,
+    barangayContacts,
     dashboard,
     dutySchedule,
+    fireEducation,
     fireProne,
     map as fireMap,
     notifications,
@@ -50,8 +54,10 @@ export const PORTAL_NAV: PortalNavItem[] = [
     { title: 'Response Tracking', href: response(), icon: Navigation },
     { title: 'Analytics & Reports', href: analytics(), icon: BarChart3, roles: ['bfp_admin'] },
     { title: 'Personnel Accounts', href: personnel(), icon: Users, roles: ['bfp_admin'] },
+    { title: 'Barangay Contacts', href: barangayContacts(), icon: Phone, roles: ['bfp_admin'] },
     { title: 'Duty Schedule', href: dutySchedule(), icon: CalendarClock, roles: ['bfp_admin'] },
     { title: 'Announcements', href: announcements(), icon: Megaphone, roles: ['bfp_admin'] },
+    { title: 'Fire Education', href: fireEducation(), icon: BookOpen, roles: ['bfp_admin'] },
     { title: 'Notifications', href: notifications(), icon: Bell },
     { title: 'Profile', href: profileEdit(), icon: User },
 ];

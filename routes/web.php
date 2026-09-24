@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\BarangayContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DutyScheduleController;
+use App\Http\Controllers\FireEducationController;
 use App\Http\Controllers\FireMapController;
 use App\Http\Controllers\IncidentActionController;
 use App\Http\Controllers\IncidentController;
@@ -21,8 +23,8 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
     Route::get('incidents/{report}', [IncidentController::class, 'show'])->name('incidents.show');
     Route::patch('incidents/{report}/status', [IncidentActionController::class, 'updateStatus'])
         ->name('incidents.updateStatus');
-    Route::post('incidents/{report}/complete', [IncidentActionController::class, 'complete'])
-        ->name('incidents.complete');
+    Route::post('incidents/{report}/resolve', [IncidentActionController::class, 'resolve'])
+        ->name('incidents.resolve');
 
     Route::get('map', [FireMapController::class, 'index'])->name('map');
     Route::get('fire-prone', [RiskAnalyticsController::class, 'index'])->name('fireProne');
@@ -65,10 +67,10 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         ->name('notifications.readAll');
 
     Route::middleware('bfp.admin')->group(function () {
-        Route::post('incidents/{report}/verify', [IncidentActionController::class, 'verify'])
-            ->name('incidents.verify');
-        Route::post('incidents/{report}/reject', [IncidentActionController::class, 'reject'])
-            ->name('incidents.reject');
+        Route::post('incidents/{report}/accept', [IncidentActionController::class, 'accept'])
+            ->name('incidents.accept');
+        Route::post('incidents/{report}/invalidate', [IncidentActionController::class, 'invalidate'])
+            ->name('incidents.invalidate');
 
         Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
@@ -76,6 +78,11 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         Route::post('personnel', [PersonnelController::class, 'store'])->name('personnel.store');
         Route::patch('personnel/{user}', [PersonnelController::class, 'update'])->name('personnel.update');
         Route::delete('personnel/{user}', [PersonnelController::class, 'destroy'])->name('personnel.destroy');
+
+        Route::get('barangay-contacts', [BarangayContactController::class, 'index'])->name('barangayContacts');
+        Route::post('barangay-contacts', [BarangayContactController::class, 'store'])->name('barangayContacts.store');
+        Route::patch('barangay-contacts/{barangayContact}', [BarangayContactController::class, 'update'])->name('barangayContacts.update');
+        Route::delete('barangay-contacts/{barangayContact}', [BarangayContactController::class, 'destroy'])->name('barangayContacts.destroy');
 
         Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements');
         Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
@@ -86,6 +93,11 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         Route::post('duty-schedule', [DutyScheduleController::class, 'store'])->name('dutySchedule.store');
         Route::patch('duty-schedule/{schedule}', [DutyScheduleController::class, 'update'])->name('dutySchedule.update');
         Route::delete('duty-schedule/{schedule}', [DutyScheduleController::class, 'destroy'])->name('dutySchedule.destroy');
+
+        Route::get('fire-education', [FireEducationController::class, 'index'])->name('fireEducation');
+        Route::post('fire-education', [FireEducationController::class, 'store'])->name('fireEducation.store');
+        Route::patch('fire-education/{fireEducationContent}', [FireEducationController::class, 'update'])->name('fireEducation.update');
+        Route::delete('fire-education/{fireEducationContent}', [FireEducationController::class, 'destroy'])->name('fireEducation.destroy');
     });
 });
 

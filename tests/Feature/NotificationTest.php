@@ -104,7 +104,7 @@ test('a user can mark all their notifications as read', function () {
     expect($user->appNotifications()->where('is_read', false)->count())->toBe(0);
 });
 
-test('verifying a report notifies the reporter', function () {
+test('accepting a report notifies the reporter', function () {
     $admin = User::factory()->bfpAdmin()->create();
     $reporter = User::factory()->create();
     $barangay = Barangay::create(['barangay_name' => 'Test Barangay']);
@@ -120,10 +120,8 @@ test('verifying a report notifies the reporter', function () {
         'status' => CommunityReport::STATUS_PENDING,
     ]);
 
-    $this->post(route('incidents.verify', $report), [
+    $this->post(route('incidents.accept', $report), [
         'barangay_id' => $barangay->barangay_id,
-        'incident_type' => 'structural',
-        'severity_level' => 'high',
     ]);
 
     $this->assertDatabaseHas('notification', [

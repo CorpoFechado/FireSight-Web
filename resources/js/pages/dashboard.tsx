@@ -153,7 +153,7 @@ export default function Dashboard({
                         <div className="flex flex-1 flex-col gap-3 p-4">
                             <BarangayRiskMap barangays={barangayRisk} height={220} />
                             <div className="flex items-center gap-4 px-1">
-                                {(['low', 'moderate', 'high', 'severe'] as const).map((level) => (
+                                {(['low', 'moderate', 'high', 'critical'] as const).map((level) => (
                                     <div key={level} className="flex items-center gap-1.5">
                                         <div
                                             className="size-2.5 rounded-full"

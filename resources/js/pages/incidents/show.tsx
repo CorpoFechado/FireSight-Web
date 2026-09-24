@@ -1,12 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Camera, FileText, MapPin } from 'lucide-react';
+import { ArrowLeft, Camera, Clock, FileText, MapPin, ShieldCheck, UserCheck } from 'lucide-react';
 import { useState } from 'react';
 import { IncidentActions } from '@/components/incidents/incident-actions';
 import { PortalCard } from '@/components/portal/portal-card';
 import { SeverityBadge, StatusBadge } from '@/components/portal/status-badge';
 import { SinglePointMap } from '@/components/portal/single-point-map';
 import PortalLayout from '@/layouts/portal-layout';
-import type { ReportStatus, SeverityLevel } from '@/lib/fire-status';
+import { STATUS_CFG, type ReportStatus, type SeverityLevel } from '@/lib/fire-status';
+import type { StatusHistoryEntry } from '@/lib/status-history';
 import { index as incidentsIndex, show as showIncident } from '@/routes/incidents';
 
 type ReportDetail = {
@@ -66,13 +67,28 @@ export default function IncidentShow({
     linkedReports,
     barangays,
     suggestedBarangayId,
+    statusHistory = [],
 }: {
     report: ReportDetail;
     linkedReports: LinkedReport[];
     barangays: Barangay[];
     suggestedBarangayId: number | null;
+    statusHistory?: StatusHistoryEntry[];
 }) {
     const { auth } = usePage().props;
+    const timeline = statusHistory && statusHistory.length > 0
+        ? statusHistory
+        : [
+            {
+                id: `initial-${report.report_id}`,
+                status: report.status,
+                notes: 'Incident report logged in FireSight.',
+                changed_at: report.dateTime,
+                changed_by: report.reporter_name ? `${report.reporter_name} (Reporter)` : 'Citizen Reporter',
+                personnel: null,
+            },
+        ];
+    const hasAssessment = Boolean(report.cause_of_fire || report.notes || report.casualties !== null);
 
     return (
         <PortalLayout title={report.reference} subtitle={`${report.type ?? 'Unclassified'} · ${report.barangay ?? 'Barangay not yet assigned'}`}>
@@ -147,33 +163,66 @@ export default function IncidentShow({
                                 </p>
                             </div>
 
-                            {(report.cause_of_fire || report.notes || report.casualties !== null) && (
-                                <div>
-                                    <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                        BFP Assessment
+                            {/* Status Change History */}
+                            <div>
+                                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                        Status History
                                     </p>
-                                    <div className="space-y-2">
-                                        {report.cause_of_fire && (
-                                            <div className="flex items-start gap-2">
-                                                <p className="w-24 flex-shrink-0 text-xs text-brand-muted">Cause</p>
-                                                <p className="text-xs font-semibold text-brand-navy">{report.cause_of_fire}</p>
-                                            </div>
-                                        )}
-                                        {report.casualties !== null && (
-                                            <div className="flex items-start gap-2">
-                                                <p className="w-24 flex-shrink-0 text-xs text-brand-muted">Casualties</p>
-                                                <p className="text-xs font-semibold text-brand-navy">{report.casualties}</p>
-                                            </div>
-                                        )}
-                                        {report.notes && (
-                                            <div className="flex items-start gap-2">
-                                                <p className="w-24 flex-shrink-0 text-xs text-brand-muted">Notes</p>
-                                                <p className="text-xs text-brand-navy">{report.notes}</p>
-                                            </div>
-                                        )}
+                                    <span className="inline-flex items-center gap-1 rounded bg-brand-bg px-2 py-0.5 text-[11px] font-medium text-brand-navy border border-[rgba(43,45,66,0.08)]">
+                                        <ShieldCheck size={11} className="text-brand-blue" />
+                                        Verified DB Audit Trail · {timeline.length} {timeline.length === 1 ? 'entry' : 'entries'}
+                                    </span>
+                                </div>
+
+                                <div className="rounded-xl bg-brand-bg/70 p-4 border border-[rgba(43,45,66,0.08)]">
+                                    <div className="space-y-1">
+                                        {timeline.map((item, index) => {
+                                            const isLatest = index === timeline.length - 1;
+                                            const isLast = index === timeline.length - 1;
+                                            const dotColor = STATUS_CFG[item.status]?.text ?? '#1d3557';
+
+                                            return (
+                                                <div key={item.id} className="flex items-start gap-3">
+                                                    {/* Dot & connecting line */}
+                                                    <div className="flex flex-col items-center pt-1">
+                                                        <span
+                                                            className={`size-3 rounded-full border-2 border-white shadow-xs ${
+                                                                isLatest ? 'ring-2 ring-brand-navy/30' : ''
+                                                            }`}
+                                                            style={{ background: dotColor }}
+                                                        />
+                                                        {!isLast && (
+                                                            <div className="my-1 w-0.5 min-h-[36px] flex-1 bg-gray-300/80" />
+                                                        )}
+                                                    </div>
+
+                                                    {/* Entry content */}
+                                                    <div className={`flex-1 ${!isLast ? 'pb-3' : 'pb-0'}`}>
+                                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                                            <StatusBadge status={item.status} />
+                                                            <span className="font-mono text-xs text-brand-muted">
+                                                                {item.changed_at}
+                                                            </span>
+                                                        </div>
+                                                        <p className="mt-1 flex items-center gap-1.5 text-xs text-brand-muted">
+                                                            <UserCheck size={12} className="shrink-0 text-brand-blue" />
+                                                            <span className="font-medium text-brand-navy">
+                                                                {item.changed_by}
+                                                            </span>
+                                                        </p>
+                                                        {item.notes && (
+                                                            <p className="mt-1.5 rounded-md bg-white/80 px-2.5 py-1.5 text-xs text-brand-navy border border-[rgba(43,45,66,0.07)] leading-relaxed">
+                                                                {item.notes}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
 
                         {/* Right column */}
@@ -236,6 +285,108 @@ export default function IncidentShow({
                             </div>
                         </div>
                     </div>
+
+                    {/* BFP Assessment Section (Full Width) */}
+                    {hasAssessment && (
+                        <div
+                            className="border-t px-6 py-6"
+                            style={{ borderColor: 'rgba(43,45,66,0.1)' }}
+                        >
+                            <div className="mb-4 flex items-center gap-2.5">
+                                <div
+                                    className="rounded-lg p-2"
+                                    style={{ background: 'rgba(29,53,87,0.08)' }}
+                                >
+                                    <ShieldCheck size={18} className="text-brand-navy" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-brand-navy">
+                                        BFP Assessment
+                                    </h3>
+                                    <p className="text-xs text-brand-muted">
+                                        Official investigation findings and casualty report
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    {report.cause_of_fire && (
+                                        <div
+                                            className={`rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-4 flex flex-col justify-between ${
+                                                report.casualties !== null
+                                                    ? 'md:col-span-2'
+                                                    : 'md:col-span-3'
+                                            }`}
+                                        >
+                                            <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                                Cause of Fire
+                                            </p>
+                                            <p className="my-2 text-base font-bold text-brand-navy sm:text-lg">
+                                                {report.cause_of_fire}
+                                            </p>
+                                            <p className="text-xs text-brand-muted">
+                                                Identified cause determined by responding BFP investigation team
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {report.casualties !== null && (
+                                        <div
+                                            className={`rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-4 flex flex-col justify-between ${
+                                                !report.cause_of_fire
+                                                    ? 'md:col-span-3'
+                                                    : 'md:col-span-1'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                                    Casualties
+                                                </p>
+                                                <span
+                                                    className={`size-2 rounded-full ${
+                                                        report.casualties > 0
+                                                            ? 'bg-brand-red animate-pulse'
+                                                            : 'bg-brand-green'
+                                                    }`}
+                                                />
+                                            </div>
+                                            <div className="my-2 flex items-baseline gap-2">
+                                                <span
+                                                    className={`font-mono text-3xl font-extrabold ${
+                                                        report.casualties > 0
+                                                            ? 'text-brand-red'
+                                                            : 'text-brand-navy'
+                                                    }`}
+                                                >
+                                                    {report.casualties}
+                                                </span>
+                                                <span className="text-xs font-medium text-brand-muted">
+                                                    {report.casualties === 1 ? 'person' : 'persons'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-brand-muted">
+                                                {report.casualties > 0
+                                                    ? 'Casualties recorded on scene'
+                                                    : 'Zero casualties recorded'}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {report.notes && (
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-4">
+                                        <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Investigation Notes & Officer Remarks
+                                        </p>
+                                        <p className="text-sm leading-relaxed text-brand-navy whitespace-pre-line">
+                                            {report.notes}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </PortalCard>
             </div>
         </PortalLayout>

@@ -22,11 +22,16 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $role
  * @property string $status
  * @property string $first_name
+ * @property string|null $middle_name
  * @property string $last_name
+ * @property string|null $suffix
  * @property string $name Virtual full-name accessor, not a real column.
  * @property string $email
  * @property string|null $contact_number
  * @property string|null $username
+ * @property string|null $google_id
+ * @property string|null $profile_image
+ * @property bool $is_verified
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -36,7 +41,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['role', 'status', 'first_name', 'last_name', 'email', 'contact_number', 'username', 'password'])]
+#[Fillable(['role', 'status', 'first_name', 'middle_name', 'last_name', 'suffix', 'email', 'contact_number', 'username', 'password', 'google_id', 'profile_image', 'is_verified'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -153,5 +158,10 @@ class User extends Authenticatable implements PasskeyUser
     public function dutySchedules(): HasMany
     {
         return $this->hasMany(DutySchedule::class, 'user_id');
+    }
+
+    public function residentAddress(): HasMany
+    {
+        return $this->hasMany(ResidentAddress::class, 'user_id');
     }
 }

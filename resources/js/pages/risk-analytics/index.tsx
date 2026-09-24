@@ -34,13 +34,10 @@ type RankingRow = {
 type FrequencyRow = { barangay_name: string; incidentCount: number; risk_level: RiskLevel | null };
 
 /**
- * This page labels the top risk tier "Critical" (matching the Figma design)
- * even though `risk_level` stores it as `severe` — RISK_CFG elsewhere in the
- * app (badges, other maps) keeps the "Severe" wording, so the override is
- * scoped to this page only.
+ * Legend tiers for the Risk Map.
  */
 const LEGEND: { level: RiskLevel; label: string; range: string }[] = [
-    { level: 'severe', label: 'Critical', range: '80+' },
+    { level: 'critical', label: 'Critical', range: '80+' },
     { level: 'high', label: 'High', range: '60–79' },
     { level: 'moderate', label: 'Moderate', range: '40–59' },
     { level: 'low', label: 'Low', range: '<40' },
@@ -216,8 +213,14 @@ export default function RiskAnalytics({
                                         </div>
                                     </div>
                                     <div className="flex flex-shrink-0 flex-col items-end">
-                                        <span className="text-sm font-bold text-brand-navy">{row.score ?? '—'}</span>
-                                        <span className="text-[11px] text-brand-muted">{row.incidentCount} inc.</span>
+                                        <span className="text-sm font-bold text-brand-navy">
+                                            {sortBy === 'risk' ? (row.score ?? '—') : row.incidentCount}
+                                        </span>
+                                        <span className="text-[11px] text-brand-muted">
+                                            {sortBy === 'risk'
+                                                ? `${row.incidentCount} ${row.incidentCount === 1 ? 'incident' : 'incidents'}`
+                                                : `Score: ${row.score ?? '—'}`}
+                                        </span>
                                     </div>
                                 </div>
                             ))}

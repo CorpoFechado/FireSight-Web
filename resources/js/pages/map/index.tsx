@@ -71,11 +71,12 @@ const PERIOD_OPTIONS: { label: string; value: Period }[] = [
 
 const TYPE_OPTIONS = [
     { label: 'All types', value: 'all' },
-    { label: 'Structure Fire', value: 'structural' },
-    { label: 'Grass/Vegetation', value: 'grass' },
-    { label: 'Electrical Fire', value: 'electrical' },
-    { label: 'Vehicle Fire', value: 'vehicular' },
-    { label: 'Other', value: 'other' },
+    { label: 'Residential Fire', value: 'residential_fire' },
+    { label: 'Commercial Fire', value: 'commercial_fire' },
+    { label: 'Vehicular Fire', value: 'vehicular_fire' },
+    { label: 'Storage Fire', value: 'storage_fire' },
+    { label: 'Rubbish Fire', value: 'rubbish_fire' },
+    { label: 'Others', value: 'others' },
 ];
 
 const SEVERITY_OPTIONS = [
@@ -244,7 +245,7 @@ export default function FireIncidentsMap({
     const resultSummary = buildResultSummary(incidents, filters, periodLabel);
 
     return (
-        <PortalLayout title="Fire Incidents Map" subtitle="Lian, Batangas — Completed Incidents">
+        <PortalLayout title="Fire Incidents Map" subtitle="Lian, Batangas — Resolved Incidents">
             <div className="space-y-3">
                 {/* ── Filter bar ─────────────────────────────────────────── */}
                 <PortalCard className="p-4">
@@ -613,7 +614,7 @@ export default function FireIncidentsMap({
                                 <div className="pointer-events-none absolute inset-0 z-[999] flex items-center justify-center">
                                     <div className="rounded-xl bg-white/90 px-6 py-4 text-center shadow-lg">
                                         <p className="text-sm font-semibold text-brand-navy">
-                                            No completed incidents found
+                                            No resolved incidents found
                                         </p>
                                         <p className="mt-1 text-xs text-brand-muted">
                                             Try a different period, type, or severity.

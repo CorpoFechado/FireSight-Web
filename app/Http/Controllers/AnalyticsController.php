@@ -22,33 +22,34 @@ class AnalyticsController extends Controller
      */
     private const RESOLVED_STATUSES = [
         CommunityReport::STATUS_RESOLVED,
-        CommunityReport::STATUS_COMPLETED,
     ];
 
     /** @var array<string, string> */
     public const TYPE_LABELS = [
-        'structural' => 'Structure Fire',
-        'grass' => 'Grass/Vegetation',
-        'vehicular' => 'Vehicle Fire',
-        'electrical' => 'Electrical Fire',
-        'other' => 'Other',
+        'residential_fire' => 'Residential Fire',
+        'commercial_fire' => 'Commercial Fire',
+        'vehicular_fire' => 'Vehicular Fire',
+        'storage_fire' => 'Storage Fire',
+        'rubbish_fire' => 'Rubbish Fire',
+        'others' => 'Others',
     ];
 
     /** @var array<string, string> */
     public const TYPE_COLORS = [
-        'structural' => '#E63946',
-        'grass' => '#F77F00',
-        'vehicular' => '#F4A261',
-        'electrical' => '#457B9D',
-        'other' => '#868E96',
+        'residential_fire' => '#E63946',
+        'commercial_fire' => '#D62828',
+        'vehicular_fire' => '#F4A261',
+        'storage_fire' => '#7B2CBF',
+        'rubbish_fire' => '#F77F00',
+        'others' => '#457B9D',
     ];
 
     /** @var array<string, string> */
     public const SEVERITY_COLORS = [
-        'critical' => '#E63946',
-        'high' => '#F77F00',
-        'moderate' => '#F4A261',
-        'low' => '#2A9D8F',
+        'critical' => '#DC2626',
+        'high' => '#F97316',
+        'moderate' => '#EAB308',
+        'low' => '#16A34A',
     ];
 
     public function index(Request $request): Response
@@ -77,7 +78,7 @@ class AnalyticsController extends Controller
             'incidentsByType' => $this->incidentsByType($rangeStart, $rangeEnd),
             'monthlyTrend' => $this->monthlyTrend($trendYear, $now),
             'incidentsBySeverity' => $this->incidentsBySeverity($rangeStart, $rangeEnd),
-            'responseTimeTrend' => $this->responseTimeTrend(),
+            'barangaysWithMostIncidents' => $this->barangaysWithMostIncidents($rangeStart, $rangeEnd),
             'periodLabel' => DateRange::label($period, $rangeStart, $rangeEnd, $now),
             'filters' => [
                 'period' => $period,
@@ -98,7 +99,7 @@ class AnalyticsController extends Controller
         // incident_type is only recorded once an incident is marked
         // Complete (post-assessment), so exclude the still-unassessed rows.
         $query = IncidentRecord::whereNotNull('incident_type')
-            ->whereBetween('data_time', [$start, $end]);
+            ->whereBetween('incident_datetime', [$start, $end]);
 
         $total = (clone $query)->count();
 
@@ -134,8 +135,8 @@ class AnalyticsController extends Controller
                 $start = Date::createFromDate($trendYear, $month, 1)->startOfMonth();
                 $end = $start->copy()->endOfMonth();
 
-                $total = IncidentRecord::whereBetween('data_time', [$start, $end])->count();
-                $resolved = IncidentRecord::whereBetween('data_time', [$start, $end])
+                $total = IncidentRecord::whereBetween('incident_datetime', [$start, $end])->count();
+                $resolved = IncidentRecord::whereBetween('incident_datetime', [$start, $end])
                     ->whereHas('report', fn ($q) => $q->whereIn('status', self::RESOLVED_STATUSES))
                     ->count();
 
@@ -159,7 +160,7 @@ class AnalyticsController extends Controller
         // Complete (post-assessment), so exclude the still-unassessed rows.
         $counts = IncidentRecord::query()
             ->whereNotNull('severity_level')
-            ->whereBetween('data_time', [$start, $end])
+            ->whereBetween('incident_datetime', [$start, $end])
             ->selectRaw('severity_level, count(*) as total')
             ->groupBy('severity_level')
             ->pluck('total', 'severity_level');
@@ -175,22 +176,28 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Static stand-in trend — the schema doesn't yet capture dispatch /
-     * on-scene timestamps needed to compute a real response time, so this
-     * mirrors the static stand-in pattern used on the Response Tracking
-     * route (see routes/web.php) until that instrumentation exists.
+     * Top barangays by incident count for the snapshot period.
      *
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array{barangay_id: int, barangay_name: string, count: int}>
      */
-    private function responseTimeTrend(): array
-    {
-        $now = Date::now();
-        $minutesByMonth = [12.4, 10.8, 13.9, 11.2, 15.1, 13.6, 12.0, 11.5, 13.2, 12.7, 11.9, 12.3];
-
-        return collect(range(1, $now->month))
-            ->map(fn (int $month) => [
-                'month' => $now->copy()->month($month)->format('M'),
-                'minutes' => $minutesByMonth[$month - 1],
+    private function barangaysWithMostIncidents(
+        CarbonInterface $start,
+        CarbonInterface $end,
+        int $limit = 5,
+    ): array {
+        return IncidentRecord::query()
+            ->join('barangay', 'incident_record.barangay_id', '=', 'barangay.barangay_id')
+            ->whereBetween('incident_record.incident_datetime', [$start, $end])
+            ->selectRaw('barangay.barangay_id, barangay.barangay_name, count(incident_record.incident_id) as count')
+            ->groupBy('barangay.barangay_id', 'barangay.barangay_name')
+            ->orderByDesc('count')
+            ->orderBy('barangay.barangay_name')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => [
+                'barangay_id' => (int) $row->barangay_id,
+                'barangay_name' => (string) $row->barangay_name,
+                'count' => (int) $row->count,
             ])
             ->all();
     }

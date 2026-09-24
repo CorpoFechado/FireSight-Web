@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class ReportStatusHistory extends Model
+{
+    protected $table = 'report_status_history';
+
+    protected $primaryKey = 'history_id';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'report_id', 'status', 'notes', 'changed_by', 'created_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+        ];
+    }
+
+    public function report(): BelongsTo
+    {
+        return $this->belongsTo(CommunityReport::class, 'report_id');
+    }
+
+    public function changedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'changed_by');
+    }
+}

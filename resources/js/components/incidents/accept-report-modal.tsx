@@ -15,11 +15,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { verify } from '@/routes/incidents';
+import { accept } from '@/routes/incidents';
 
 type Barangay = { barangay_id: number; barangay_name: string };
 
-export function VerifyReportModal({
+export function AcceptReportModal({
     reportId,
     barangays,
     suggestedBarangayId,
@@ -52,7 +52,7 @@ export function VerifyReportModal({
     const submit = (e: FormEvent) => {
         e.preventDefault();
 
-        post(verify(reportId).url, {
+        post(accept(reportId).url, {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
@@ -66,7 +66,7 @@ export function VerifyReportModal({
             <DialogContent className="bg-white text-brand-navy sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-brand-navy">
-                        Verify Report
+                        Accept Report
                     </DialogTitle>
                 </DialogHeader>
 
@@ -75,7 +75,7 @@ export function VerifyReportModal({
                         Confirm the barangay for dispatch routing. Incident
                         type, severity, and other assessment details are
                         recorded later, once the fire has been marked
-                        Complete.
+                        Resolved.
                     </p>
 
                     <div className="space-y-1.5">
@@ -118,7 +118,7 @@ export function VerifyReportModal({
                             disabled={processing || !data.barangay_id}
                             className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                         >
-                            {processing ? 'Verifying…' : 'Confirm Verification'}
+                            {processing ? 'Accepting…' : 'Confirm Acceptance'}
                         </button>
                     </DialogFooter>
                 </form>

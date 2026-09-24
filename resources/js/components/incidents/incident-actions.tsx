@@ -1,12 +1,12 @@
 import { router } from '@inertiajs/react';
-import { CheckCircle, ClipboardCheck, Navigation, XCircle } from 'lucide-react';
+import { CheckCircle, Navigation, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { reject, updateStatus } from '@/routes/incidents';
+import { accept, invalidate, updateStatus } from '@/routes/incidents';
 import type { BfpRole } from '@/types/auth';
 import type { ReportStatus } from '@/lib/fire-status';
-import { CompleteReportModal } from './complete-report-modal';
-import { VerifyReportModal } from './verify-report-modal';
+import { AcceptReportModal } from './accept-report-modal';
+import { ResolveReportModal } from './resolve-report-modal';
 
 type Barangay = { barangay_id: number; barangay_name: string };
 
@@ -23,18 +23,18 @@ export function IncidentActions({
     barangays: Barangay[];
     suggestedBarangayId: number | null;
 }) {
-    const [verifyOpen, setVerifyOpen] = useState(false);
-    const [completeOpen, setCompleteOpen] = useState(false);
-    const [confirming, setConfirming] = useState<'reject' | 'dispatch' | 'resolve' | null>(null);
+    const [acceptOpen, setAcceptOpen] = useState(false);
+    const [resolveOpen, setResolveOpen] = useState(false);
+    const [confirming, setConfirming] = useState<'invalidate' | 'dispatch' | null>(null);
     const [processing, setProcessing] = useState(false);
 
     const isAdmin = role === 'bfp_admin';
 
-    const runReject = () => {
+    const runInvalidate = () => {
         setProcessing(true);
-        router.post(reject(reportId).url, {}, {
+        router.post(invalidate(reportId).url, {}, {
             preserveScroll: true,
-            onError: (errors) => toast.error(Object.values(errors)[0] ?? 'Could not reject this report.'),
+            onError: (errors) => toast.error(Object.values(errors)[0] ?? 'Could not mark this report as invalid.'),
             onFinish: () => {
                 setProcessing(false);
                 setConfirming(null);
@@ -42,7 +42,7 @@ export function IncidentActions({
         });
     };
 
-    const runStatusUpdate = (next: 'dispatched' | 'resolved') => {
+    const runStatusUpdate = (next: 'dispatched') => {
         setProcessing(true);
         router.patch(updateStatus(reportId).url, { status: next }, {
             preserveScroll: true,
@@ -54,15 +54,14 @@ export function IncidentActions({
         });
     };
 
-    if (status === 'completed' || status === 'rejected') {
+    if (status === 'resolved' || status === 'invalid') {
         return null;
     }
 
     if (confirming) {
         const copy = {
-            reject: { label: 'Reject', color: '#E63946', run: runReject },
+            invalidate: { label: 'Mark as Invalid', color: '#E63946', run: runInvalidate },
             dispatch: { label: 'Mark as Dispatched', color: '#457B9D', run: () => runStatusUpdate('dispatched') },
-            resolve: { label: 'Mark as Resolved', color: '#2A9D8F', run: () => runStatusUpdate('resolved') },
         }[confirming];
 
         return (
@@ -98,36 +97,36 @@ export function IncidentActions({
             {status === 'pending' && isAdmin && (
                 <>
                     <button
-                        onClick={() => setVerifyOpen(true)}
-                        className="flex items-center gap-1.5 rounded-lg bg-brand-navy px-3 py-2 text-xs font-semibold text-white"
+                        onClick={() => setAcceptOpen(true)}
+                        className="flex items-center gap-1.5 rounded-lg bg-brand-navy px-3 py-2 text-xs font-semibold text-white hover:bg-brand-navy/90"
                     >
-                        <CheckCircle size={14} /> Verify Report
+                        <CheckCircle size={14} /> Accept Report
                     </button>
                     <button
-                        onClick={() => setConfirming('reject')}
-                        className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white"
+                        onClick={() => setConfirming('invalidate')}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
                         style={{ background: '#E63946' }}
                     >
-                        <XCircle size={14} /> Reject
+                        <XCircle size={14} /> Mark as Invalid
                     </button>
-                    <VerifyReportModal
+                    <AcceptReportModal
                         reportId={reportId}
                         barangays={barangays}
                         suggestedBarangayId={suggestedBarangayId}
-                        open={verifyOpen}
-                        onOpenChange={setVerifyOpen}
+                        open={acceptOpen}
+                        onOpenChange={setAcceptOpen}
                     />
                 </>
             )}
 
             {status === 'pending' && !isAdmin && (
-                <p className="text-xs text-brand-muted">Waiting on a BFP administrator to verify this report.</p>
+                <p className="text-xs text-brand-muted">Waiting on a BFP administrator to accept this report.</p>
             )}
 
-            {status === 'verified' && (
+            {status === 'accepted' && (
                 <button
                     onClick={() => setConfirming('dispatch')}
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
                     style={{ background: '#457B9D' }}
                 >
                     <Navigation size={14} /> Mark as Dispatched
@@ -135,28 +134,18 @@ export function IncidentActions({
             )}
 
             {status === 'dispatched' && (
-                <button
-                    onClick={() => setConfirming('resolve')}
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white"
-                    style={{ background: '#2A9D8F' }}
-                >
-                    <CheckCircle size={14} /> Mark as Resolved
-                </button>
-            )}
-
-            {status === 'resolved' && (
                 <>
                     <button
-                        onClick={() => setCompleteOpen(true)}
-                        className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white"
+                        onClick={() => setResolveOpen(true)}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
                         style={{ background: '#2A9D8F' }}
                     >
-                        <ClipboardCheck size={14} /> Mark as Complete
+                        <CheckCircle size={14} /> Mark as Resolved
                     </button>
-                    <CompleteReportModal
+                    <ResolveReportModal
                         reportId={reportId}
-                        open={completeOpen}
-                        onOpenChange={setCompleteOpen}
+                        open={resolveOpen}
+                        onOpenChange={setResolveOpen}
                     />
                 </>
             )}

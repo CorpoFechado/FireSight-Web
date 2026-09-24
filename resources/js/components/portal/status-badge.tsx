@@ -5,6 +5,7 @@ import {
     ANNOUNCEMENT_CFG,
     ROLE_CFG,
     PERSONNEL_STATUS_CFG,
+    EDUCATION_CATEGORY_CFG,
 } from '@/lib/fire-status';
 import type {
     ReportStatus,
@@ -13,6 +14,7 @@ import type {
     AnnouncementType,
     PersonnelRole,
     PersonnelStatus,
+    FireEducationCategory,
 } from '@/lib/fire-status';
 
 export function StatusBadge({ status }: { status: ReportStatus }) {
@@ -96,6 +98,27 @@ export function PersonnelStatusBadge({ status }: { status: PersonnelStatus }) {
                 className="size-1.5 rounded-full"
                 style={{ background: cfg.text }}
             />
+            {cfg.label}
+        </span>
+    );
+}
+
+export function EducationCategoryBadge({
+    category,
+}: {
+    category: FireEducationCategory;
+}) {
+    const cfg = EDUCATION_CATEGORY_CFG[category] ?? {
+        bg: '#F3F4F6',
+        text: '#4B5563',
+        label: category,
+    };
+
+    return (
+        <span
+            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
+            style={{ background: cfg.bg, color: cfg.text }}
+        >
             {cfg.label}
         </span>
     );

@@ -6,8 +6,6 @@ import {
     CartesianGrid,
     Cell,
     Legend,
-    Line,
-    LineChart,
     Pie,
     PieChart,
     ResponsiveContainer,
@@ -38,7 +36,11 @@ type SeverityBar = {
     color: string;
 };
 
-type ResponseTimePoint = { month: string; minutes: number };
+type BarangayIncidentPoint = {
+    barangay_id: number;
+    barangay_name: string;
+    count: number;
+};
 
 type Period = 'this_month' | 'last_3_months' | 'this_year' | 'custom';
 
@@ -71,14 +73,14 @@ export default function Analytics({
     incidentsByType,
     monthlyTrend,
     incidentsBySeverity,
-    responseTimeTrend,
+    barangaysWithMostIncidents,
     periodLabel,
     filters,
 }: {
     incidentsByType: IncidentTypeSlice[];
     monthlyTrend: MonthlyTrendPoint[];
     incidentsBySeverity: SeverityBar[];
-    responseTimeTrend: ResponseTimePoint[];
+    barangaysWithMostIncidents: BarangayIncidentPoint[];
     periodLabel: string;
     filters: Filters;
 }) {
@@ -349,54 +351,63 @@ export default function Analytics({
                         </div>
                     </PortalCard>
 
-                    {/* Average Response Time Trend */}
+                    {/* Barangays with Most Incidents */}
                     <PortalCard>
                         <div className="border-b px-5 py-4" style={{ borderColor: 'rgba(43,45,66,0.08)' }}>
                             <h2 className="text-sm font-bold text-brand-navy">
-                                Average Response Time Trend (minutes)
+                                Barangays with Most Incidents
                             </h2>
                         </div>
                         <div className="p-5">
-                            <ResponsiveContainer width="100%" height={220}>
-                                <LineChart
-                                    data={responseTimeTrend}
-                                    margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
-                                >
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        stroke="rgba(43,45,66,0.06)"
-                                        vertical={false}
-                                    />
-                                    <XAxis
-                                        dataKey="month"
-                                        tick={{ fontSize: 11, fill: '#6B7A8D' }}
-                                        axisLine={false}
-                                        tickLine={false}
-                                    />
-                                    <YAxis
-                                        tick={{ fontSize: 11, fill: '#6B7A8D' }}
-                                        axisLine={false}
-                                        tickLine={false}
-                                        width={28}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            fontSize: 12,
-                                            borderRadius: 8,
-                                            border: '1px solid rgba(43,45,66,0.1)',
-                                        }}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="minutes"
-                                        name="Avg. response time"
-                                        stroke="#2A9D8F"
-                                        strokeWidth={2}
-                                        dot={{ r: 3, fill: '#2A9D8F' }}
-                                        activeDot={{ r: 5 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
+                            {barangaysWithMostIncidents.length === 0 ? (
+                                <div className="flex h-[220px] items-center justify-center">
+                                    <p className="text-xs text-brand-muted">
+                                        No incident records for this period.
+                                    </p>
+                                </div>
+                            ) : (
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <BarChart
+                                        data={barangaysWithMostIncidents}
+                                        margin={{ top: 4, right: 4, bottom: 20, left: 0 }}
+                                    >
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            stroke="rgba(43,45,66,0.06)"
+                                            vertical={false}
+                                        />
+                                        <XAxis
+                                            dataKey="barangay_name"
+                                            tick={{ fontSize: 11, fill: '#6B7A8D' }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            interval={0}
+                                            angle={-15}
+                                            textAnchor="end"
+                                            height={40}
+                                        />
+                                        <YAxis
+                                            allowDecimals={false}
+                                            tick={{ fontSize: 11, fill: '#6B7A8D' }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            width={28}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                fontSize: 12,
+                                                borderRadius: 8,
+                                                border: '1px solid rgba(43,45,66,0.1)',
+                                            }}
+                                            formatter={(value: number) => [
+                                                `${value} incident${value === 1 ? '' : 's'}`,
+                                                'Incidents',
+                                            ]}
+                                        />
+                                        <Bar dataKey="count" name="Incidents" fill="#E63946" radius={[3, 3, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
                         </div>
                     </PortalCard>
                 </div>

@@ -19,7 +19,6 @@ class DashboardController extends Controller
      */
     private const RESOLVED_STATUSES = [
         CommunityReport::STATUS_RESOLVED,
-        CommunityReport::STATUS_COMPLETED,
     ];
 
     public function index(): Response
@@ -44,7 +43,7 @@ class DashboardController extends Controller
 
         $pending = CommunityReport::where('status', CommunityReport::STATUS_PENDING)->count();
 
-        $activeStatuses = [CommunityReport::STATUS_VERIFIED, CommunityReport::STATUS_DISPATCHED];
+        $activeStatuses = [CommunityReport::STATUS_ACCEPTED, CommunityReport::STATUS_DISPATCHED];
         $activeCount = CommunityReport::whereIn('status', $activeStatuses)->count();
         $dispatchedCount = CommunityReport::where('status', CommunityReport::STATUS_DISPATCHED)->count();
         $criticalActiveCount = IncidentRecord::where('severity_level', 'critical')
@@ -54,8 +53,6 @@ class DashboardController extends Controller
         $weekStart = $today->copy()->startOfWeek();
         $weekEnd = $today->copy()->endOfWeek();
         $totalThisWeek = CommunityReport::whereBetween('created_at', [$weekStart, $weekEnd])->count();
-        // "Resolved" here means the fire is out, which covers both `resolved`
-        // and `completed` (completed is just resolved + assessment details).
         $resolvedThisWeek = CommunityReport::whereIn('status', self::RESOLVED_STATUSES)
             ->whereBetween('created_at', [$weekStart, $weekEnd])->count();
         $resolutionRate = $totalThisWeek > 0 ? (int) round($resolvedThisWeek / $totalThisWeek * 100) : 0;
@@ -77,17 +74,19 @@ class DashboardController extends Controller
      */
     private function recentIncidents(): array
     {
-        return IncidentRecord::with(['report', 'barangay'])
-            ->orderByDesc('data_time')
+        return CommunityReport::with(['barangay', 'incidentRecord.barangay'])
+            ->latest('created_at')
             ->limit(5)
             ->get()
-            ->map(fn (IncidentRecord $incident) => [
-                'report_id' => $incident->report_id,
-                'reference' => sprintf('INC-%s-%04d', $incident->data_time->format('Y'), $incident->report_id),
-                'barangay' => $incident->barangay->barangay_name,
-                'type' => $incident->incident_type ? ucfirst($incident->incident_type) : 'Unclassified',
-                'status' => $incident->report->status,
-                'dateTime' => $incident->data_time->format('Y-m-d H:i'),
+            ->map(fn (CommunityReport $report) => [
+                'report_id' => $report->report_id,
+                'reference' => sprintf('INC-%s-%04d', $report->created_at->format('Y'), $report->report_id),
+                'barangay' => $report->barangay?->barangay_name ?? $report->incidentRecord?->barangay?->barangay_name ?? 'Not assigned',
+                'type' => $report->incidentRecord?->incident_type
+                    ? AnalyticsController::TYPE_LABELS[$report->incidentRecord->incident_type] ?? ucfirst(str_replace('_', ' ', $report->incidentRecord->incident_type))
+                    : 'Unclassified',
+                'status' => $report->status,
+                'dateTime' => $report->created_at->format('Y-m-d H:i'),
             ])
             ->all();
     }
@@ -104,8 +103,8 @@ class DashboardController extends Controller
                 $start = Date::now()->subMonths($monthsAgo)->startOfMonth();
                 $end = $start->copy()->endOfMonth();
 
-                $total = IncidentRecord::whereBetween('data_time', [$start, $end])->count();
-                $resolved = IncidentRecord::whereBetween('data_time', [$start, $end])
+                $total = IncidentRecord::whereBetween('incident_datetime', [$start, $end])->count();
+                $resolved = IncidentRecord::whereBetween('incident_datetime', [$start, $end])
                     ->whereHas('report', fn ($q) => $q->whereIn('status', self::RESOLVED_STATUSES))
                     ->count();
 

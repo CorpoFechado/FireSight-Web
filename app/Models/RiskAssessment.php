@@ -29,4 +29,24 @@ class RiskAssessment extends Model
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
     }
+
+    /**
+     * Normalizes legacy `severe` to canonical `critical` when reading risk_level.
+     */
+    public function getRiskLevelAttribute(mixed $value): ?string
+    {
+        if ($value === 'severe') {
+            return 'critical';
+        }
+
+        return $value;
+    }
+
+    /**
+     * Normalizes legacy `severe` to canonical `critical` when writing risk_level.
+     */
+    public function setRiskLevelAttribute(mixed $value): void
+    {
+        $this->attributes['risk_level'] = $value === 'severe' ? 'critical' : $value;
+    }
 }

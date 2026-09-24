@@ -29,10 +29,10 @@ test('status filter can be set to all or other specific status', function () {
         fn ($page) => $page->where('filters.status', 'all'),
     );
 
-    $responseVerified = $this->get(route('incidents.index', ['status' => 'verified']));
-    $responseVerified->assertOk();
-    $responseVerified->assertInertia(
-        fn ($page) => $page->where('filters.status', 'verified'),
+    $responseAccepted = $this->get(route('incidents.index', ['status' => 'accepted']));
+    $responseAccepted->assertOk();
+    $responseAccepted->assertInertia(
+        fn ($page) => $page->where('filters.status', 'accepted'),
     );
 });
 

@@ -39,19 +39,19 @@ type BarangayOption = {
 const STATUS_FILTERS: { label: string; value: string }[] = [
     { label: 'All', value: 'all' },
     { label: 'Pending', value: 'pending' },
-    { label: 'Verified', value: 'verified' },
+    { label: 'Accepted', value: 'accepted' },
     { label: 'Dispatched', value: 'dispatched' },
     { label: 'Resolved', value: 'resolved' },
-    { label: 'Completed', value: 'completed' },
-    { label: 'Rejected', value: 'rejected' },
+    { label: 'Invalid', value: 'invalid' },
 ];
 
 const TYPE_OPTIONS: { label: string; value: string }[] = [
-    { label: 'Structure Fire', value: 'structural' },
-    { label: 'Grass/Vegetation', value: 'grass' },
-    { label: 'Vehicle Fire', value: 'vehicular' },
-    { label: 'Electrical Fire', value: 'electrical' },
-    { label: 'Other', value: 'other' },
+    { label: 'Residential Fire', value: 'residential_fire' },
+    { label: 'Commercial Fire', value: 'commercial_fire' },
+    { label: 'Vehicular Fire', value: 'vehicular_fire' },
+    { label: 'Storage Fire', value: 'storage_fire' },
+    { label: 'Rubbish Fire', value: 'rubbish_fire' },
+    { label: 'Others', value: 'others' },
 ];
 
 const SEVERITY_OPTIONS: { label: string; value: string }[] = [

@@ -6,11 +6,22 @@
  */
 
 export type ReportStatus =
-    'pending' | 'verified' | 'rejected' | 'dispatched' | 'resolved' | 'completed';
+    | 'pending'
+    | 'accepted'
+    | 'dispatched'
+    | 'resolved'
+    | 'invalid';
 export type SeverityLevel = 'low' | 'moderate' | 'high' | 'critical';
-export type RiskLevel = 'low' | 'moderate' | 'high' | 'severe';
+export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
 export type AnnouncementType =
-    'general' | 'advisory' | 'emergency' | 'fire_safety_tip';
+    | 'general'
+    | 'advisory'
+    | 'emergency'
+    | 'fire_safety_tip';
+export type FireEducationCategory =
+    | 'prevention'
+    | 'emergency_response'
+    | 'awareness';
 export type PersonnelRole = 'bfp_admin' | 'bfp_personnel';
 export type PersonnelStatus = 'active' | 'inactive';
 
@@ -23,11 +34,11 @@ export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
         border: '#F4A261',
         label: 'Pending',
     },
-    verified: {
+    accepted: {
         bg: '#E0F5F3',
         text: '#1B7A72',
         border: '#2A9D8F',
-        label: 'Verified',
+        label: 'Accepted',
     },
     dispatched: {
         bg: '#E3EFF7',
@@ -36,47 +47,41 @@ export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
         label: 'Dispatched',
     },
     resolved: {
-        bg: '#F3F4F6',
-        text: '#4B5563',
-        border: '#9CA3AF',
-        label: 'Resolved',
-    },
-    completed: {
         bg: '#DCFCE7',
         text: '#15803D',
         border: '#22C55E',
-        label: 'Completed',
+        label: 'Resolved',
     },
-    rejected: {
+    invalid: {
         bg: '#FDE8EA',
         text: '#B91C2C',
         border: '#E63946',
-        label: 'Rejected',
+        label: 'Invalid',
     },
 };
 
 export const SEVERITY_CFG: Record<SeverityLevel, BadgeCfg> = {
-    critical: { bg: '#FDE8EA', text: '#B91C2C', label: 'Critical' },
-    high: { bg: '#FFF0E6', text: '#C2410C', label: 'High' },
-    moderate: { bg: '#FFFBEB', text: '#92400E', label: 'Moderate' },
-    low: { bg: '#E0F5F3', text: '#1B7A72', label: 'Low' },
+    critical: { bg: '#FEE2E2', text: '#DC2626', label: 'Critical' },
+    high: { bg: '#FFEDD5', text: '#EA580C', label: 'High' },
+    moderate: { bg: '#FEF9C3', text: '#854D0E', label: 'Moderate' },
+    low: { bg: '#DCFCE7', text: '#16A34A', label: 'Low' },
 };
 
 export const RISK_CFG: Record<RiskLevel, BadgeCfg & { color: string }> = {
-    severe: {
-        bg: '#FDE8EA',
-        text: '#B91C2C',
-        label: 'Severe',
-        color: '#E63946',
+    critical: {
+        bg: '#FEE2E2',
+        text: '#DC2626',
+        label: 'Critical',
+        color: '#DC2626',
     },
-    high: { bg: '#FFF0E6', text: '#C2410C', label: 'High', color: '#F77F00' },
+    high: { bg: '#FFEDD5', text: '#EA580C', label: 'High', color: '#F97316' },
     moderate: {
-        bg: '#FFFBEB',
-        text: '#92400E',
+        bg: '#FEF9C3',
+        text: '#854D0E',
         label: 'Moderate',
-        color: '#F4A261',
+        color: '#EAB308',
     },
-    low: { bg: '#E0F5F3', text: '#1B7A72', label: 'Low', color: '#2A9D8F' },
+    low: { bg: '#DCFCE7', text: '#16A34A', label: 'Low', color: '#16A34A' },
 };
 
 export const ANNOUNCEMENT_CFG: Record<AnnouncementType, BadgeCfg> = {
@@ -88,6 +93,12 @@ export const ANNOUNCEMENT_CFG: Record<AnnouncementType, BadgeCfg> = {
         text: '#1B7A72',
         label: 'Fire Safety',
     },
+};
+
+export const EDUCATION_CATEGORY_CFG: Record<FireEducationCategory, BadgeCfg> = {
+    prevention: { bg: '#E0F5F3', text: '#1B7A72', label: 'Prevention' },
+    emergency_response: { bg: '#FDE8EA', text: '#B91C2C', label: 'Emergency Response' },
+    awareness: { bg: '#E3EFF7', text: '#2C5F82', label: 'Awareness' },
 };
 
 export const ROLE_CFG: Record<PersonnelRole, BadgeCfg> = {
@@ -102,16 +113,23 @@ export const PERSONNEL_STATUS_CFG: Record<PersonnelStatus, BadgeCfg> = {
 
 // ─── Incident type config (matches AnalyticsController::TYPE_LABELS/COLORS) ──
 
-export type IncidentType = 'structural' | 'grass' | 'electrical' | 'vehicular' | 'other';
+export type IncidentType =
+    | 'residential_fire'
+    | 'commercial_fire'
+    | 'vehicular_fire'
+    | 'storage_fire'
+    | 'rubbish_fire'
+    | 'others';
 
 type TypeCfg = { label: string; color: string };
 
 export const TYPE_CFG: Record<IncidentType, TypeCfg> = {
-    structural: { label: 'Structure Fire', color: '#E63946' },
-    grass: { label: 'Grass/Vegetation', color: '#F77F00' },
-    vehicular: { label: 'Vehicle Fire', color: '#F4A261' },
-    electrical: { label: 'Electrical Fire', color: '#457B9D' },
-    other: { label: 'Other', color: '#868E96' },
+    residential_fire: { label: 'Residential Fire', color: '#E63946' },
+    commercial_fire: { label: 'Commercial Fire', color: '#D62828' },
+    vehicular_fire: { label: 'Vehicular Fire', color: '#F4A261' },
+    storage_fire: { label: 'Storage Fire', color: '#7B2CBF' },
+    rubbish_fire: { label: 'Rubbish Fire', color: '#F77F00' },
+    others: { label: 'Others', color: '#457B9D' },
 };
 
 /**
@@ -119,10 +137,10 @@ export const TYPE_CFG: Record<IncidentType, TypeCfg> = {
  * SEVERITY_COLORS constants so pins and charts use identical hues.
  */
 export const SEVERITY_MARKER_COLORS: Record<SeverityLevel, string> = {
-    critical: '#E63946',
-    high: '#F77F00',
-    moderate: '#F4A261',
-    low: '#2A9D8F',
+    critical: '#DC2626',
+    high: '#F97316',
+    moderate: '#EAB308',
+    low: '#16A34A',
 };
 
 /** Marker/legend color for a risk level — used by Leaflet map components. */

@@ -17,13 +17,20 @@ class FireMapController extends Controller
      * Keeping it as a named constant makes it easy to add an
      * "all / in-progress" option later without touching query logic.
      */
-    private const DISPLAY_STATUS = CommunityReport::STATUS_COMPLETED;
+    private const DISPLAY_STATUS = CommunityReport::STATUS_RESOLVED;
 
     /** @var list<string> */
     private const VALID_PERIODS = ['this_month', 'last_3_months', 'this_year', 'custom'];
 
     /** @var list<string> */
-    private const VALID_TYPES = ['structural', 'grass', 'electrical', 'vehicular', 'other'];
+    private const VALID_TYPES = [
+        'residential_fire',
+        'commercial_fire',
+        'vehicular_fire',
+        'storage_fire',
+        'rubbish_fire',
+        'others',
+    ];
 
     /** @var list<string> */
     private const VALID_SEVERITIES = ['low', 'moderate', 'high', 'critical'];

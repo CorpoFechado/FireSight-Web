@@ -15,14 +15,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { complete } from '@/routes/incidents';
+import { resolve } from '@/routes/incidents';
 
 const INCIDENT_TYPES = [
-    { value: 'structural', label: 'Structural' },
-    { value: 'grass', label: 'Grass' },
-    { value: 'electrical', label: 'Electrical' },
-    { value: 'vehicular', label: 'Vehicular' },
-    { value: 'other', label: 'Other' },
+    { value: 'residential_fire', label: 'Residential Fire' },
+    { value: 'commercial_fire', label: 'Commercial Fire' },
+    { value: 'vehicular_fire', label: 'Vehicular Fire' },
+    { value: 'storage_fire', label: 'Storage Fire' },
+    { value: 'rubbish_fire', label: 'Rubbish Fire' },
+    { value: 'others', label: 'Others' },
 ];
 
 const SEVERITY_LEVELS = [
@@ -32,7 +33,7 @@ const SEVERITY_LEVELS = [
     { value: 'critical', label: 'Critical' },
 ];
 
-export function CompleteReportModal({
+export function ResolveReportModal({
     reportId,
     open,
     onOpenChange,
@@ -53,7 +54,7 @@ export function CompleteReportModal({
     const submit = (e: FormEvent) => {
         e.preventDefault();
 
-        post(complete(reportId).url, {
+        post(resolve(reportId).url, {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
@@ -74,14 +75,15 @@ export function CompleteReportModal({
             <DialogContent className="bg-white text-brand-navy sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="text-brand-navy">
-                        Mark as Complete
+                        Mark as Resolved
                     </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={submit} className="space-y-4">
                     <p className="text-xs text-brand-muted">
                         Record the post-incident assessment now that the
-                        fire has been extinguished.
+                        fire has been extinguished. Only after resolving will
+                        the report be recorded in the official incident table.
                     </p>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -150,7 +152,7 @@ export function CompleteReportModal({
                                 onChange={(e) =>
                                     setData('cause_of_fire', e.target.value)
                                 }
-                                placeholder="e.g. Faulty electrical wiring"
+                                placeholder="e.g. Electrical short circuit"
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
@@ -187,6 +189,7 @@ export function CompleteReportModal({
                             value={data.notes}
                             onChange={(e) => setData('notes', e.target.value)}
                             rows={3}
+                            placeholder="Add incident notes, response units, or observations..."
                             className="w-full rounded-md border px-3 py-2 text-sm outline-none"
                             style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                         />
@@ -215,7 +218,7 @@ export function CompleteReportModal({
                             className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                             style={{ background: '#2A9D8F' }}
                         >
-                            {processing ? 'Saving…' : 'Confirm Completion'}
+                            {processing ? 'Saving…' : 'Confirm Resolution'}
                         </button>
                     </DialogFooter>
                 </form>
