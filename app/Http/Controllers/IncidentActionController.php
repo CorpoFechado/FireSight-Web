@@ -174,6 +174,60 @@ class IncidentActionController extends Controller
     }
 
     /**
+     * Updates assessment details for a resolved incident record.
+     * Open to any BFP staff / admin.
+     */
+    public function updateDetails(Request $request, CommunityReport $report): RedirectResponse
+    {
+        $record = $report->incidentRecord;
+        if (! $record) {
+            throw ValidationException::withMessages([
+                'details' => 'No incident assessment record found to edit.',
+            ]);
+        }
+
+        if ($request->input('severity_level') === 'medium') {
+            $request->merge(['severity_level' => 'moderate']);
+        }
+
+        $data = $request->validate([
+            'incident_type' => ['required', Rule::in([
+                'residential_fire',
+                'commercial_fire',
+                'vehicular_fire',
+                'storage_fire',
+                'rubbish_fire',
+                'others',
+            ])],
+            'severity_level' => ['required', Rule::in(['low', 'moderate', 'high', 'critical'])],
+            'cause_of_fire' => ['nullable', 'string', 'max:150'],
+            'casualties' => ['nullable', 'integer', 'min:0'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        DB::transaction(function () use ($record, $report, $data) {
+            $record->update([
+                'incident_type' => $data['incident_type'],
+                'severity_level' => $data['severity_level'],
+                'cause_of_fire' => $data['cause_of_fire'] ?? null,
+                'casualties' => $data['casualties'] ?? 0,
+                'notes' => $data['notes'] ?? null,
+            ]);
+
+            $this->logStatusHistory(
+                $report,
+                $report->status,
+                'Incident assessment details updated by BFP personnel.'
+            );
+        });
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Incident assessment details updated successfully.',
+        ]);
+    }
+
+    /**
      * Logs a status change entry to `report_status_history`.
      * `changed_by` is the currently authenticated user (NULL for system actions).
      */

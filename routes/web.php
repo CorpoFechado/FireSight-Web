@@ -25,6 +25,8 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         ->name('incidents.updateStatus');
     Route::post('incidents/{report}/resolve', [IncidentActionController::class, 'resolve'])
         ->name('incidents.resolve');
+    Route::patch('incidents/{report}/details', [IncidentActionController::class, 'updateDetails'])
+        ->name('incidents.updateDetails');
 
     Route::get('map', [FireMapController::class, 'index'])->name('map');
     Route::get('fire-prone', [RiskAnalyticsController::class, 'index'])->name('fireProne');

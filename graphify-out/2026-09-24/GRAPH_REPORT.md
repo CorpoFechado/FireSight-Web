@@ -1,53 +1,52 @@
 # Graph Report - firesight-web-v2  (2026-09-24)
 
 ## Corpus Check
-- 308 files · ~140,954 words
+- 311 files · ~143,941 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 26 file(s) not represented in the graph (top: (none) 19, .geojson 2, .example 1)
 
 ## Summary
-- 1634 nodes · 3443 edges · 136 communities (94 shown, 12 thin omitted)
+- 1653 nodes · 3485 edges · 132 communities (92 shown, 10 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4d053774`
+- Built from commit: `40480693`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- @inertiajs/react
-- Illuminate\Http\Request
-- Illuminate\Database\Schema\Blueprint
-- app-sidebar-layout.tsx
+- utils.ts
+- Announcement
+- Illuminate\Support\Facades\Schema
+- index.ts
 - risk-analytics/index.tsx
 - dependencies
-- select.tsx
+- dialog.tsx
 - package.json
-- personnel/index.tsx
+- dropdown-menu.tsx
 - AGENTS.md
-- cn
-- Illuminate\Database\Migrations\Migration
+- sidebar.tsx
 - Inertia React Development
-- Inertia\Response
-- app-header.tsx
+- Illuminate\Http\Request
+- cn
+- response-tracking/index.tsx
 - map/index.tsx
-- bootstrap/app.php
 - use-appearance.tsx
 - PasswordValidationRules
 - incidents/index.tsx
 - fire-status.ts
 - components.json
 - Pest Testing 4
-- Laravel\Fortify\Features
+- FortifyServiceProvider.php
 - Laravel Fortify Development
 - compilerOptions
 - react
 - devDependencies
-- analytics/index.tsx
+- portal-layout.tsx
 - Barangay
-- UserFactory
-- PersonnelController
+- Geo
+- FortifyServiceProvider
 - auth.ts
 - Tailwind CSS Development
 - Architecture Best Practices
@@ -55,7 +54,7 @@
 - DutySchedule
 - scripts
 - CommunityReport
-- security.tsx
+- lucide-react
 - Queue & Job Best Practices
 - composer.json
 - require-dev
@@ -69,8 +68,8 @@
 - Wayfinder Development
 - Caching Best Practices
 - Eloquent Best Practices
-- toggle-group.tsx
-- duty-shift-form-modal.tsx
+- web.php
+- duty-schedule/index.tsx
 - Migration Best Practices
 - Blade & Views Best Practices
 - Error Handling Best Practices
@@ -78,8 +77,8 @@
 - require
 - Task Scheduling Best Practices
 - Testing Best Practices
-- user-info.tsx
-- dashboard.tsx
+- app-header.tsx
+- 2026_09_24_000006_update_risk_level_enum_to_critical.php
 - Illuminate\Database\Eloquent\Model
 - config
 - Collection Best Practices
@@ -98,40 +97,37 @@
 - collapsible.tsx
 - laravel-boost
 - console.php
-- utils.ts
+- use-current-url.ts
 - User
 - rules/graphify.md
 - workflows/graphify.md
 - FireEducationContent
 - IncidentRecord
-- Illuminate\Database\Eloquent\Factories\Factory
+- bootstrap/app.php
 - show.tsx
-- app.tsx
-- Illuminate\Support\Facades\Schema
-- PersonnelController.php
-- alert.tsx
+- dashboard.tsx
+- Illuminate\Database\Schema\Blueprint
+- SecurityController.php
+- EmailVerificationTest.php
 - 2026_09_24_000002_harmonize_community_report_schema.php
 - Illuminate\Support\Facades\DB
 - 2026_09_24_000005_harmonize_workflow_statuses_and_types.php
-- app-sidebar.tsx
-- lucide-react
-- FortifyServiceProvider
-- FortifyServiceProvider.php
-- Notification
-- breadcrumbs.tsx
+- AppServiceProvider.php
+- Illuminate\Database\Migrations\Migration
+- @inertiajs/react
+- ResetUserPassword.php
 - ProfileValidationRules
 - useIsMobile
-- placeholder-pattern.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 127 edges
 2. `react` - 75 edges
 3. `@inertiajs/react` - 67 edges
 4. `User` - 66 edges
-5. `lucide-react` - 49 edges
-6. `CommunityReport` - 40 edges
-7. `Barangay` - 32 edges
-8. `IncidentRecord` - 31 edges
+5. `lucide-react` - 50 edges
+6. `CommunityReport` - 41 edges
+7. `Barangay` - 34 edges
+8. `IncidentRecord` - 32 edges
 9. `Button()` - 21 edges
 10. `DialogContent()` - 18 edges
 
@@ -142,91 +138,87 @@
   tests/Feature/FireMapTest.php → app/Models/User.php
 - `makeResolved()` --calls--> `IncidentRecord`  [EXTRACTED]
   tests/Feature/FireMapTest.php → app/Models/IncidentRecord.php
-- `BreadcrumbEllipsis()` --calls--> `cn()`  [EXTRACTED]
-  resources/js/components/ui/breadcrumb.tsx → resources/js/lib/utils.ts
 - `CardFooter()` --calls--> `cn()`  [EXTRACTED]
   resources/js/components/ui/card.tsx → resources/js/lib/utils.ts
+- `DropdownMenuCheckboxItem()` --calls--> `cn()`  [EXTRACTED]
+  resources/js/components/ui/dropdown-menu.tsx → resources/js/lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (136 total, 12 thin omitted)
+## Communities (132 total, 10 thin omitted)
 
-### Community 0 - "@inertiajs/react"
-Cohesion: 0.17
-Nodes (16): @inertiajs/react, InputError(), Props, PasskeyVerify(), Props, PasswordInput(), Props, TextLink() (+8 more)
+### Community 0 - "utils.ts"
+Cohesion: 0.15
+Nodes (17): @radix-ui/react-checkbox, InputError(), Props, PasskeyVerify(), Props, PasswordInput(), Props, TextLink() (+9 more)
 
-### Community 1 - "Illuminate\Http\Request"
-Cohesion: 0.20
-Nodes (6): AnnouncementController, BarangayContactController, Announcement, BarangayContact, Illuminate\Http\RedirectResponse, Illuminate\Http\Request
-
-### Community 3 - "app-sidebar-layout.tsx"
-Cohesion: 0.12
-Nodes (17): AppContent(), Props, AppShell(), Props, AppSidebar(), AppSidebarHeader(), Breadcrumbs(), SidebarInset() (+9 more)
+### Community 3 - "index.ts"
+Cohesion: 0.10
+Nodes (22): AppContent(), Props, AppShell(), Props, AppSidebar(), AppSidebarHeader(), Breadcrumbs(), SidebarInset() (+14 more)
 
 ### Community 4 - "risk-analytics/index.tsx"
-Cohesion: 0.11
-Nodes (27): leaflet, react-leaflet, BarangayFeature, BarangayGeoProperties, BarangayRiskMap(), BARANGAY_GEOJSON_URL, GEOJSON_TO_DB_BARANGAY_NAME, resolveDbBarangayName() (+19 more)
+Cohesion: 0.15
+Nodes (20): react-leaflet, BarangayFeature, BarangayGeoProperties, BarangayRiskMap(), BARANGAY_GEOJSON_URL, GEOJSON_TO_DB_BARANGAY_NAME, resolveDbBarangayName(), riskLevelColor() (+12 more)
 
 ### Community 5 - "dependencies"
 Cohesion: 0.05
 Nodes (39): dependencies, class-variance-authority, clsx, concurrently, globals, @inertiajs/react, @inertiajs/vite, input-otp (+31 more)
 
-### Community 6 - "select.tsx"
-Cohesion: 0.17
-Nodes (17): AnnouncementFormModal(), AnnouncementRow, TYPE_OPTIONS, DeleteAnnouncementDialog(), AcceptReportModal(), Barangay, Barangay, IncidentActions() (+9 more)
+### Community 6 - "dialog.tsx"
+Cohesion: 0.15
+Nodes (30): sonner, AnnouncementFormModal(), AnnouncementRow, TYPE_OPTIONS, DeleteAnnouncementDialog(), ContactRow, NOTE: no fallback to personnel[0] — an empty string forces the, ShiftRow (+22 more)
 
 ### Community 7 - "package.json"
 Cohesion: 0.06
-Nodes (31): private, $schema, type, babel-plugin-react-compiler, clsx, concurrently, eslint, eslint-config-prettier (+23 more)
+Nodes (33): private, $schema, type, babel-plugin-react-compiler, clsx, concurrently, eslint, eslint-config-prettier (+25 more)
 
-### Community 8 - "personnel/index.tsx"
-Cohesion: 0.11
-Nodes (22): BarangayOption, ContactFormModal(), DeleteContactDialog(), DeletePersonnelDialog(), PortalCard(), DropdownMenu(), DropdownMenuContent(), DropdownMenuGroup() (+14 more)
+### Community 8 - "dropdown-menu.tsx"
+Cohesion: 0.14
+Nodes (18): @radix-ui/react-dropdown-menu, DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuGroup(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuSeparator() (+10 more)
 
 ### Community 9 - "AGENTS.md"
 Cohesion: 0.06
 Nodes (30): APIs & Eloquent Resources, Application Structure & Architecture, Artisan, Conventions, Deployment, Do Things the Laravel Way, Documentation Files, Foundational Context (+22 more)
 
-### Community 10 - "cn"
-Cohesion: 0.08
-Nodes (37): @radix-ui/react-dialog, DialogOverlay(), DropdownMenuCheckboxItem(), DropdownMenuShortcut(), DropdownMenuSubContent(), DropdownMenuSubTrigger(), SelectLabel(), SelectScrollDownButton() (+29 more)
+### Community 10 - "sidebar.tsx"
+Cohesion: 0.11
+Nodes (28): footerNavItems, mainNavItems, NavUser(), Sidebar(), SidebarContent(), SidebarContext, SidebarFooter(), SidebarGroup() (+20 more)
 
 ### Community 12 - "Inertia React Development"
 Cohesion: 0.07
 Nodes (27): Basic Link Component, Basic Usage, Client-Side Navigation, Common Pitfalls, Deferred Props, Documentation, Form Component (Recommended), Form Component Reset Props (+19 more)
 
-### Community 13 - "Inertia\Response"
+### Community 13 - "Illuminate\Http\Request"
+Cohesion: 0.12
+Nodes (17): BarangayContactController, Controller, FireMapController, ProfileController, HandleInertiaRequests, BarangayContact, Illuminate\Contracts\Auth\MustVerifyEmail, Illuminate\Http\RedirectResponse (+9 more)
+
+### Community 14 - "cn"
 Cohesion: 0.10
-Nodes (15): Controller, DashboardController, FireMapController, RiskAnalyticsController, ProfileController, SecurityController, BarangayRiskSnapshot, Illuminate\Auth\Middleware\RequirePassword (+7 more)
+Nodes (33): class-variance-authority, @radix-ui/react-slot, @radix-ui/react-toggle, @radix-ui/react-toggle-group, Badge(), badgeVariants, Breadcrumb(), BreadcrumbEllipsis() (+25 more)
 
-### Community 14 - "app-header.tsx"
-Cohesion: 0.13
-Nodes (18): @radix-ui/react-navigation-menu, @radix-ui/react-tooltip, mainNavItems, Props, rightNavItems, AppLogo(), NavigationMenu(), NavigationMenuContent() (+10 more)
+### Community 15 - "response-tracking/index.tsx"
+Cohesion: 0.24
+Nodes (8): leaflet, PortalCard(), Incident, incidentIcon(), ResponseTracking(), RouteSummary, Station, stationIcon
 
-### Community 15 - "map/index.tsx"
+### Community 16 - "map/index.tsx"
 Cohesion: 0.12
 Nodes (18): IncidentType, SEVERITY_MARKER_COLORS, TYPE_CFG, BarangayFeature, BarangayGeoProperties, BarangayRiskPoint, buildResultSummary(), ColorBy (+10 more)
 
-### Community 16 - "bootstrap/app.php"
-Cohesion: 0.13
-Nodes (12): EnsureBfpAdmin, EnsureBfpStaff, HandleAppearance, HandleInertiaRequests, Closure, Illuminate\Foundation\Application, Illuminate\Foundation\Configuration\Exceptions, Illuminate\Foundation\Configuration\Middleware (+4 more)
-
 ### Community 17 - "use-appearance.tsx"
-Cohesion: 0.22
+Cohesion: 0.19
 Nodes (16): AppearanceToggleTab(), Appearance, applyTheme(), getStoredAppearance(), handleSystemThemeChange(), initializeTheme(), isDarkMode(), listeners (+8 more)
 
 ### Community 18 - "PasswordValidationRules"
-Cohesion: 0.15
-Nodes (8): PasswordValidationRules, PasswordUpdateRequest, ProfileDeleteRequest, ProfileUpdateRequest, TwoFactorAuthenticationRequest, Illuminate\Contracts\Validation\ValidationRule, Illuminate\Foundation\Http\FormRequest, Laravel\Fortify\InteractsWithTwoFactorState
+Cohesion: 0.20
+Nodes (6): PasswordValidationRules, PasswordUpdateRequest, ProfileDeleteRequest, ProfileUpdateRequest, Illuminate\Contracts\Validation\ValidationRule, Illuminate\Foundation\Http\FormRequest
 
 ### Community 19 - "incidents/index.tsx"
-Cohesion: 0.19
-Nodes (10): PaginationBar(), BarangayOption, Filters, IncidentRow, inputStyle, SEVERITY_OPTIONS, STATUS_FILTERS, TYPE_OPTIONS (+2 more)
+Cohesion: 0.17
+Nodes (11): PaginationBar(), AiFireBadge(), BarangayOption, Filters, IncidentRow, inputStyle, SEVERITY_OPTIONS, STATUS_FILTERS (+3 more)
 
 ### Community 20 - "fire-status.ts"
-Cohesion: 0.13
-Nodes (22): AnnouncementBadge(), PersonnelStatusBadge(), RoleBadge(), ANNOUNCEMENT_CFG, AnnouncementType, BadgeCfg, EDUCATION_CATEGORY_CFG, FireEducationCategory (+14 more)
+Cohesion: 0.12
+Nodes (24): AnnouncementBadge(), PersonnelStatusBadge(), RoleBadge(), AI_FIRE_LABEL_CFG, AiFireConfig, ANNOUNCEMENT_CFG, AnnouncementType, BadgeCfg (+16 more)
 
 ### Community 21 - "components.json"
 Cohesion: 0.11
@@ -236,9 +228,9 @@ Nodes (17): aliases, components, hooks, lib, ui, utils, iconLibrary, rsc (+9 mor
 Cohesion: 0.11
 Nodes (17): Architecture Testing, Assertions, Basic Test Structure, Basic Usage, Browser Test Example, Common Pitfalls, Creating Tests, Datasets (+9 more)
 
-### Community 23 - "Laravel\Fortify\Features"
-Cohesion: 0.14
-Nodes (8): Illuminate\Auth\Events\Verified, Illuminate\Auth\Notifications\ResetPassword, Illuminate\Auth\Notifications\VerifyEmail, Illuminate\Support\Facades\Event, Illuminate\Support\Facades\Notification, Illuminate\Support\Facades\URL, Inertia\Testing\AssertableInertia, Laravel\Fortify\Features
+### Community 23 - "FortifyServiceProvider.php"
+Cohesion: 0.18
+Nodes (7): Illuminate\Auth\Notifications\ResetPassword, Illuminate\Auth\Notifications\VerifyEmail, Illuminate\Cache\RateLimiting\Limit, Illuminate\Support\Facades\Notification, Illuminate\Support\Facades\RateLimiter, Laravel\Fortify\Features, Laravel\Fortify\Fortify
 
 ### Community 24 - "Laravel Fortify Development"
 Cohesion: 0.12
@@ -249,20 +241,24 @@ Cohesion: 0.12
 Nodes (16): compilerOptions, allowJs, baseUrl, esModuleInterop, forceConsistentCasingInFileNames, isolatedModules, jsx, module (+8 more)
 
 ### Community 26 - "react"
-Cohesion: 0.26
-Nodes (16): react, sonner, ContactRow, Props, PersonnelFormModal(), PersonnelRow, ROLE_OPTIONS, STATUS_OPTIONS (+8 more)
+Cohesion: 0.18
+Nodes (8): react, AcceptReportModal(), Barangay, IncidentActions(), ResolveReportModal(), PlaceholderPatternProps, Separator(), sidebarNavItems
 
 ### Community 27 - "devDependencies"
 Cohesion: 0.12
 Nodes (16): devDependencies, babel-plugin-react-compiler, eslint, eslint-config-prettier, eslint-import-resolver-typescript, @eslint/js, eslint-plugin-import, eslint-plugin-react (+8 more)
 
-### Community 28 - "analytics/index.tsx"
-Cohesion: 0.15
-Nodes (11): recharts, BarangayIncidentPoint, CURRENT_YEAR, Filters, IncidentTypeSlice, inputStyle, MonthlyTrendPoint, Period (+3 more)
+### Community 28 - "portal-layout.tsx"
+Cohesion: 0.12
+Nodes (13): recharts, AuroraBackground(), PortalLayout(), BarangayIncidentPoint, CURRENT_YEAR, Filters, IncidentTypeSlice, inputStyle (+5 more)
 
 ### Community 29 - "Barangay"
 Cohesion: 0.07
-Nodes (14): RecheckIncidentBarangays, Barangay, Geo, BarangayBoundarySeeder, BarangayContactSeeder, BarangaySeeder, DatabaseSeeder, DummyDataSeeder (+6 more)
+Nodes (13): RiskAnalyticsController, Barangay, BarangayRiskSnapshot, BarangayBoundarySeeder, BarangayContactSeeder, BarangaySeeder, DatabaseSeeder, DummyDataSeeder (+5 more)
+
+### Community 30 - "Geo"
+Cohesion: 0.38
+Nodes (3): RecheckIncidentBarangays, Geo, Illuminate\Console\Command
 
 ### Community 32 - "auth.ts"
 Cohesion: 0.15
@@ -277,12 +273,12 @@ Cohesion: 0.17
 Nodes (11): Architecture Best Practices, Code to Interfaces, Convention Over Configuration, Default Sort by Descending, Single-Purpose Action Classes, Use Atomic Locks for Race Conditions, Use `Concurrency::run()` for Parallel Execution, Use `Context` for Request-Scoped Data (+3 more)
 
 ### Community 35 - "two-factor-setup-modal.tsx"
-Cohesion: 0.13
-Nodes (17): input-otp, ManageTwoFactor(), Props, Props, TwoFactorSetupModal(), TwoFactorSetupStep(), InputOTP, InputOTPGroup (+9 more)
+Cohesion: 0.15
+Nodes (14): input-otp, Props, TwoFactorSetupModal(), TwoFactorSetupStep(), InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot (+6 more)
 
 ### Community 36 - "DutySchedule"
-Cohesion: 0.20
-Nodes (5): DutyScheduleController, DutySchedule, Illuminate\Database\Eloquent\Builder, Illuminate\Database\QueryException, Illuminate\Validation\ValidationException
+Cohesion: 0.23
+Nodes (4): DutyScheduleController, DutySchedule, Illuminate\Database\Eloquent\Builder, Illuminate\Database\QueryException
 
 ### Community 37 - "scripts"
 Cohesion: 0.15
@@ -292,9 +288,9 @@ Nodes (13): scripts, ci:check, dev, lint, lint:check, post-autoload-dump, post-c
 Cohesion: 0.22
 Nodes (4): IncidentActionController, IncidentController, CommunityReport, Illuminate\Database\Eloquent\Relations\BelongsToMany
 
-### Community 39 - "security.tsx"
-Cohesion: 0.23
-Nodes (6): Heading(), ManagePasskeys(), Props, PasskeyItem(), PasskeyRegistration(), Props
+### Community 39 - "lucide-react"
+Cohesion: 0.13
+Nodes (15): lucide-react, Heading(), ManagePasskeys(), Props, ManageTwoFactor(), Props, PasskeyItem(), Props (+7 more)
 
 ### Community 40 - "Queue & Job Best Practices"
 Cohesion: 0.18
@@ -313,8 +309,8 @@ Cohesion: 0.17
 Nodes (11): Audit Dependencies, Authorize Every Action, CSRF Protection, Encrypt Sensitive Database Fields, Escape Output to Prevent XSS, Keep Secrets Out of Code, Mass Assignment Protection, Prevent SQL Injection (+3 more)
 
 ### Community 44 - "two-factor-recovery-codes.tsx"
-Cohesion: 0.21
-Nodes (10): AlertError(), AppLogoIcon(), Props, TwoFactorRecoveryCodes(), Card(), CardContent(), CardDescription(), CardFooter() (+2 more)
+Cohesion: 0.15
+Nodes (14): AlertError(), AppLogoIcon(), Props, TwoFactorRecoveryCodes(), Alert(), AlertDescription(), AlertTitle(), alertVariants (+6 more)
 
 ### Community 45 - "Advanced Query Patterns"
 Cohesion: 0.20
@@ -348,13 +344,13 @@ Nodes (8): Caching Best Practices, Configure Failover Cache Stores in Production
 Cohesion: 0.22
 Nodes (8): Apply Global Scopes Sparingly, Avoid Hardcoded Table Names in Queries, Cast Date Columns Properly, Define Attribute Casts, Eloquent Best Practices, Use Correct Relationship Types, Use Local Scopes for Reusable Queries, Use `whereBelongsTo()` for Relationship Queries
 
-### Community 53 - "toggle-group.tsx"
-Cohesion: 0.20
-Nodes (11): class-variance-authority, @radix-ui/react-slot, @radix-ui/react-toggle, @radix-ui/react-toggle-group, Badge(), badgeVariants, ToggleGroup(), ToggleGroupContext (+3 more)
+### Community 53 - "web.php"
+Cohesion: 0.25
+Nodes (3): NotificationController, Illuminate\Auth\Middleware\RequirePassword, Illuminate\Support\Facades\Route
 
-### Community 54 - "duty-shift-form-modal.tsx"
+### Community 54 - "duty-schedule/index.tsx"
 Cohesion: 0.14
-Nodes (25): DeleteShiftDialog(), DutyShiftFormModal(), PersonnelOption, NOTE: no fallback to personnel[0] — an empty string forces the, ShiftRow, addDays(), capitalize(), DAY_LABELS (+17 more)
+Nodes (23): DeleteShiftDialog(), DutyShiftFormModal(), PersonnelOption, addDays(), capitalize(), DAY_LABELS, dayHeader(), formatTime() (+15 more)
 
 ### Community 55 - "Migration Best Practices"
 Cohesion: 0.22
@@ -384,17 +380,17 @@ Nodes (7): Task Scheduling Best Practices, Use `environments()` to Restrict Task
 Cohesion: 0.25
 Nodes (7): Call `Event::fake()` After Factory Setup, Testing Best Practices, Use `Exceptions::fake()` to Assert Exception Reporting, Use Factory States and Sequences, Use `LazilyRefreshDatabase` Over `RefreshDatabase`, Use Model Assertions Over Raw Database Assertions, Use `recycle()` to Share Relationship Instances Across Factories
 
-### Community 62 - "user-info.tsx"
-Cohesion: 0.23
-Nodes (10): @radix-ui/react-avatar, Avatar(), AvatarFallback(), AvatarImage(), UserInfo(), getInitial(), GetInitialsFn, useInitials() (+2 more)
+### Community 62 - "app-header.tsx"
+Cohesion: 0.10
+Nodes (24): @radix-ui/react-tooltip, mainNavItems, Props, rightNavItems, AppLogo(), Avatar(), AvatarFallback(), AvatarImage() (+16 more)
 
-### Community 63 - "dashboard.tsx"
-Cohesion: 0.25
-Nodes (6): BarangayRiskPoint, KPICard(), StatusBadge(), Kpis, MonthlyTrendPoint, RecentIncident
+### Community 63 - "2026_09_24_000006_update_risk_level_enum_to_critical.php"
+Cohesion: 0.60
+Nodes (4): down(), downSqlite(), up(), upSqlite()
 
 ### Community 64 - "Illuminate\Database\Eloquent\Model"
-Cohesion: 0.10
-Nodes (8): AuthToken, EmergencyContact, ReportEvidence, ReportStatusHistory, ResidentAddress, RiskAssessment, Illuminate\Database\Eloquent\Model, Illuminate\Database\Eloquent\Relations\BelongsTo
+Cohesion: 0.08
+Nodes (9): AuthToken, EmergencyContact, Notification, ReportEvidence, ReportStatusHistory, ResidentAddress, RiskAssessment, Illuminate\Database\Eloquent\Model (+1 more)
 
 ### Community 65 - "config"
 Cohesion: 0.29
@@ -452,41 +448,41 @@ Nodes (5): extra, laravel, post-create-project, dont-discover, installer
 Cohesion: 0.40
 Nodes (4): Monolog\Handler\NullHandler, Monolog\Handler\StreamHandler, Monolog\Handler\SyslogUdpHandler, Monolog\Processor\PsrLogMessageProcessor
 
-### Community 82 - "utils.ts"
-Cohesion: 0.19
-Nodes (12): @radix-ui/react-checkbox, AppHeader(), Checkbox(), Separator(), IsCurrentOrParentUrlFn, IsCurrentUrlFn, useCurrentUrl(), UseCurrentUrlReturn (+4 more)
+### Community 82 - "use-current-url.ts"
+Cohesion: 0.24
+Nodes (10): AppHeader(), NavFooter(), NavMain(), IsCurrentOrParentUrlFn, IsCurrentUrlFn, useCurrentUrl(), UseCurrentUrlReturn, WhenCurrentUrlFn (+2 more)
 
 ### Community 83 - "User"
-Cohesion: 0.11
-Nodes (11): User, Attribute, Illuminate\Database\Eloquent\Attributes\Fillable, Illuminate\Database\Eloquent\Attributes\Hidden, Illuminate\Database\Eloquent\Casts\Attribute, Illuminate\Database\Eloquent\Relations\HasOne, Illuminate\Foundation\Auth\User, Illuminate\Notifications\Notifiable (+3 more)
+Cohesion: 0.07
+Nodes (18): PersonnelController, BfpPersonnelDetails, User, Attribute, BfpAccountSeeder, IncidentReportSeeder, Illuminate\Database\Eloquent\Attributes\Fillable, Illuminate\Database\Eloquent\Attributes\Hidden (+10 more)
 
 ### Community 103 - "FireEducationContent"
-Cohesion: 0.21
-Nodes (6): FireEducationController, FireEducationContent, FireEducationContentSeeder, Illuminate\Database\Eloquent\Factories\HasFactory, Illuminate\Support\Facades\Storage, Illuminate\Validation\Rule
+Cohesion: 0.32
+Nodes (3): FireEducationController, FireEducationContent, FireEducationContentSeeder
 
 ### Community 104 - "IncidentRecord"
 Cohesion: 0.11
-Nodes (8): AnalyticsController, IncidentRecord, DateRange, Carbon, Carbon\CarbonInterface, IncidentReportSeeder, Illuminate\Support\Carbon, makeResolved()
+Nodes (8): AnalyticsController, DashboardController, IncidentRecord, DateRange, Carbon, Carbon\CarbonInterface, Illuminate\Support\Carbon, makeResolved()
 
-### Community 105 - "Illuminate\Database\Eloquent\Factories\Factory"
-Cohesion: 0.28
-Nodes (4): DutyScheduleFactory, FireEducationContentFactory, static, Illuminate\Database\Eloquent\Factories\Factory
+### Community 105 - "bootstrap/app.php"
+Cohesion: 0.07
+Nodes (18): EnsureBfpAdmin, EnsureBfpStaff, HandleAppearance, Closure, DutyScheduleFactory, FireEducationContentFactory, static, static (+10 more)
 
 ### Community 106 - "show.tsx"
-Cohesion: 0.15
-Nodes (14): SinglePointMap(), SeverityBadge(), formatDateTime(), generateStatusHistory(), INVALID_SEQUENCE, parseDate(), STANDARD_SEQUENCE, STATUS_PERSONNEL (+6 more)
+Cohesion: 0.11
+Nodes (16): AiVerificationCard(), AiVerificationCardProps, SinglePointMap(), SeverityBadge(), AiFireLabel, formatDateTime(), generateStatusHistory(), INVALID_SEQUENCE (+8 more)
 
-### Community 107 - "app.tsx"
-Cohesion: 0.23
-Nodes (6): AuroraBackground(), Toaster(), TooltipProvider(), useFlashToast(), AuthSimpleLayout(), AuthLayout()
+### Community 107 - "dashboard.tsx"
+Cohesion: 0.25
+Nodes (6): BarangayRiskPoint, KPICard(), StatusBadge(), Kpis, MonthlyTrendPoint, RecentIncident
 
-### Community 109 - "PersonnelController.php"
-Cohesion: 0.15
-Nodes (5): BfpPersonnelDetails, BfpAccountSeeder, Illuminate\Support\Facades\Hash, Illuminate\Support\Str, Pdo\Mysql
+### Community 109 - "SecurityController.php"
+Cohesion: 0.36
+Nodes (3): SecurityController, TwoFactorAuthenticationRequest, Laravel\Fortify\InteractsWithTwoFactorState
 
-### Community 110 - "alert.tsx"
-Cohesion: 0.60
-Nodes (4): Alert(), AlertDescription(), AlertTitle(), alertVariants
+### Community 110 - "EmailVerificationTest.php"
+Cohesion: 0.50
+Nodes (3): Illuminate\Auth\Events\Verified, Illuminate\Support\Facades\Event, Illuminate\Support\Facades\URL
 
 ### Community 111 - "2026_09_24_000002_harmonize_community_report_schema.php"
 Cohesion: 0.53
@@ -500,25 +496,17 @@ Nodes (5): down(), downSqlite(), up(), upSqlite(), Illuminate\Support\Facades\DB
 Cohesion: 0.60
 Nodes (4): down(), downSqlite(), up(), upSqlite()
 
-### Community 114 - "app-sidebar.tsx"
-Cohesion: 0.25
-Nodes (12): footerNavItems, mainNavItems, NavFooter(), NavMain(), NavUser(), Sidebar(), SidebarGroup(), SidebarMenu() (+4 more)
+### Community 118 - "AppServiceProvider.php"
+Cohesion: 0.24
+Nodes (4): AppServiceProvider, Carbon\CarbonImmutable, Illuminate\Support\ServiceProvider, Illuminate\Validation\Rules\Password
 
-### Community 115 - "lucide-react"
-Cohesion: 0.19
-Nodes (10): lucide-react, DeleteFireEducationDialog(), CATEGORY_OPTIONS, FireEducationFormModal(), FireEducationRow, FireEducationViewModal(), EducationCategoryBadge(), IconProps (+2 more)
+### Community 127 - "@inertiajs/react"
+Cohesion: 0.15
+Nodes (13): @inertiajs/react, BarangayOption, ContactFormModal(), DeleteContactDialog(), DeletePersonnelDialog(), PersonnelFormModal(), PersonnelRow, ROLE_OPTIONS (+5 more)
 
-### Community 118 - "FortifyServiceProvider"
-Cohesion: 0.21
-Nodes (4): AppServiceProvider, FortifyServiceProvider, Carbon\CarbonImmutable, Illuminate\Support\ServiceProvider
-
-### Community 128 - "FortifyServiceProvider.php"
-Cohesion: 0.22
-Nodes (6): ResetUserPassword, Illuminate\Cache\RateLimiting\Limit, Illuminate\Support\Facades\RateLimiter, Illuminate\Support\Facades\Validator, Laravel\Fortify\Contracts\ResetsUserPasswords, Laravel\Fortify\Fortify
-
-### Community 130 - "breadcrumbs.tsx"
-Cohesion: 0.39
-Nodes (7): Breadcrumb(), BreadcrumbEllipsis(), BreadcrumbItem(), BreadcrumbLink(), BreadcrumbList(), BreadcrumbPage(), BreadcrumbSeparator()
+### Community 128 - "ResetUserPassword.php"
+Cohesion: 0.50
+Nodes (3): ResetUserPassword, Illuminate\Support\Facades\Validator, Laravel\Fortify\Contracts\ResetsUserPasswords
 
 ### Community 131 - "ProfileValidationRules"
 Cohesion: 0.39
@@ -529,24 +517,24 @@ Cohesion: 0.70
 Nodes (4): getServerSnapshot(), isSmallerThanBreakpoint(), mediaQueryListener(), useIsMobile()
 
 ## Knowledge Gaps
-- **525 isolated node(s):** `php`, `$schema`, `style`, `rsc`, `tsx` (+520 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 707 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **526 isolated node(s):** `php`, `$schema`, `style`, `rsc`, `tsx` (+521 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 714 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `@inertiajs/react`, `breadcrumbs.tsx`, `app-sidebar-layout.tsx`, `risk-analytics/index.tsx`, `useIsMobile`, `select.tsx`, `package.json`, `personnel/index.tsx`, `placeholder-pattern.tsx`, `cn`, `app-header.tsx`, `map/index.tsx`, `use-appearance.tsx`, `incidents/index.tsx`, `two-factor-setup-modal.tsx`, `security.tsx`, `two-factor-recovery-codes.tsx`, `toggle-group.tsx`, `duty-shift-form-modal.tsx`, `user-info.tsx`, `utils.ts`, `show.tsx`, `app.tsx`, `alert.tsx`, `app-sidebar.tsx`, `lucide-react`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
-- **Why does `@inertiajs/react` connect `@inertiajs/react` to `breadcrumbs.tsx`, `app-sidebar-layout.tsx`, `select.tsx`, `package.json`, `personnel/index.tsx`, `app-header.tsx`, `map/index.tsx`, `incidents/index.tsx`, `fire-status.ts`, `react`, `analytics/index.tsx`, `auth.ts`, `two-factor-setup-modal.tsx`, `security.tsx`, `two-factor-recovery-codes.tsx`, `notifications/index.tsx`, `duty-shift-form-modal.tsx`, `dashboard.tsx`, `utils.ts`, `show.tsx`, `app.tsx`, `app-sidebar.tsx`, `lucide-react`, `welcome.tsx`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
-- **Why does `User` connect `User` to `FortifyServiceProvider.php`, `Illuminate\Http\Request`, `Illuminate\Database\Eloquent\Model`, `ProfileValidationRules`, `DutySchedule`, `Notification`, `FireEducationContent`, `IncidentRecord`, `Illuminate\Database\Eloquent\Factories\Factory`, `DutyScheduleOnDutyTest.php`, `PersonnelController.php`, `PasswordValidationRules`, `Laravel\Fortify\Features`, `Barangay`, `PersonnelController`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `utils.ts`, `index.ts`, `risk-analytics/index.tsx`, `useIsMobile`, `dialog.tsx`, `package.json`, `dropdown-menu.tsx`, `sidebar.tsx`, `cn`, `response-tracking/index.tsx`, `map/index.tsx`, `use-appearance.tsx`, `incidents/index.tsx`, `portal-layout.tsx`, `two-factor-setup-modal.tsx`, `lucide-react`, `two-factor-recovery-codes.tsx`, `duty-schedule/index.tsx`, `app-header.tsx`, `show.tsx`, `@inertiajs/react`?**
+  _High betweenness centrality (0.048) - this node is a cross-community bridge._
+- **Why does `@inertiajs/react` connect `@inertiajs/react` to `utils.ts`, `index.ts`, `dialog.tsx`, `package.json`, `dropdown-menu.tsx`, `sidebar.tsx`, `cn`, `map/index.tsx`, `use-appearance.tsx`, `incidents/index.tsx`, `fire-status.ts`, `react`, `portal-layout.tsx`, `auth.ts`, `two-factor-setup-modal.tsx`, `lucide-react`, `two-factor-recovery-codes.tsx`, `notifications/index.tsx`, `duty-schedule/index.tsx`, `app-header.tsx`, `use-current-url.ts`, `show.tsx`, `dashboard.tsx`?**
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
+- **Why does `dependencies` connect `dependencies` to `package.json`?**
+  _High betweenness centrality (0.025) - this node is a cross-community bridge._
 - **What connects `php`, `$schema`, `style` to the rest of the system?**
-  _525 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `app-sidebar-layout.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.12 - nodes in this community are weakly interconnected._
-- **Should `risk-analytics/index.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.11363636363636363 - nodes in this community are weakly interconnected._
+  _526 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `index.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.0953058321479374 - nodes in this community are weakly interconnected._
 - **Should `dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.05128205128205128 - nodes in this community are weakly interconnected._
+- **Should `dialog.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.14710884353741496 - nodes in this community are weakly interconnected._

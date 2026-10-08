@@ -13,6 +13,7 @@ export type NotificationRow = {
     message: string;
     is_read: boolean;
     created_at: string;
+    user_name?: string;
 };
 
 export function NotificationItem({
@@ -65,6 +66,11 @@ export function NotificationItem({
                 <p className="mt-0.5 text-xs text-brand-muted">
                     {notification.message}
                 </p>
+                {notification.user_name && (
+                    <p className="mt-1 text-xs font-medium text-brand-orange">
+                        {notification.user_name}
+                    </p>
+                )}
             </div>
 
             <div className="flex flex-shrink-0 items-center gap-1.5 pl-3">

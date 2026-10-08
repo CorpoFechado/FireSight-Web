@@ -73,14 +73,18 @@ class IncidentController extends Controller
     public function show(CommunityReport $report): Response
     {
         $report->load([
-            'barangay',
-            'incidentRecord.barangay',
+            'barangay.contacts',
+            'incidentRecord.barangay.contacts',
             'linkedReports.incidentRecord.barangay',
             'linkedReports.barangay',
             'linkedFromReports.incidentRecord.barangay',
             'linkedFromReports.barangay',
             'statusHistory.changedBy.personnelDetails',
         ]);
+
+        $barangay = $report->barangay ?? $report->incidentRecord?->barangay;
+        $contacts = $barangay?->contacts ?? collect();
+        $primaryContact = $contacts->first();
 
         // report_link is directional (main/related); merge both sides so
         // either report in a linked pair shows the other.
@@ -120,9 +124,20 @@ class IncidentController extends Controller
                 'report_image' => $report->report_image,
                 'latitude' => (float) $report->latitude,
                 'longitude' => (float) $report->longitude,
+                'raw_incident_type' => $report->incidentRecord?->incident_type,
+                'raw_severity_level' => $report->incidentRecord?->severity_level,
                 'cause_of_fire' => $report->incidentRecord?->cause_of_fire,
                 'casualties' => $report->incidentRecord?->casualties,
                 'notes' => $report->incidentRecord?->notes,
+                'barangay_contact_person' => $primaryContact?->name,
+                'barangay_contact_number' => $primaryContact?->phone_number,
+                'barangay_contact_role' => $primaryContact?->role,
+                'barangay_contacts' => $contacts->map(fn ($c) => [
+                    'contact_id' => $c->contact_id,
+                    'name' => $c->name,
+                    'role' => $c->role,
+                    'phone_number' => $c->phone_number,
+                ])->values()->all(),
             ],
             'statusHistory' => $statusHistory,
             'linkedReports' => $linked,
@@ -184,6 +199,9 @@ class IncidentController extends Controller
             'severity' => $report->incidentRecord?->severity_level,
             'status' => $report->status,
             'dateTime' => $report->created_at->format('Y-m-d H:i'),
+            'ai_fire_label' => $report->ai_fire_label,
+            'ai_fire_confidence' => $report->ai_fire_confidence !== null ? (float) $report->ai_fire_confidence : null,
+            'ai_verified_at' => $report->ai_verified_at?->format('Y-m-d H:i'),
         ];
     }
 

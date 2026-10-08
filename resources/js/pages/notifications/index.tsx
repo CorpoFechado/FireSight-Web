@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+﻿import { router } from '@inertiajs/react';
 import { CheckCheck } from 'lucide-react';
 import { PortalCard } from '@/components/portal/portal-card';
 import {
@@ -17,9 +17,11 @@ type Groups = {
 export default function NotificationsIndex({
     groups,
     unreadCount,
+    isAdmin = false,
 }: {
     groups: Groups;
     unreadCount: number;
+    isAdmin?: boolean;
 }) {
     const isEmpty =
         groups.today.length === 0 &&
@@ -31,18 +33,22 @@ export default function NotificationsIndex({
     };
 
     return (
-        <PortalLayout title="Notifications">
+        <PortalLayout title={isAdmin ? 'All Notifications' : 'Notifications'}>
             <div className="space-y-4">
                 {/* Page header */}
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-brand-navy">
-                            Notifications
+                            {isAdmin ? 'All Notifications' : 'Notifications'}
                         </h1>
                         <p className="mt-1 text-sm text-brand-muted">
-                            {unreadCount > 0
-                                ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
-                                : 'You’re all caught up'}
+                            {isAdmin
+                                ? unreadCount > 0
+                                    ? `${unreadCount} unread across all users`
+                                    : 'All caught up'
+                                : unreadCount > 0
+                                  ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
+                                  : "You're all caught up"}
                         </p>
                     </div>
                     <button
@@ -61,8 +67,9 @@ export default function NotificationsIndex({
                             No notifications yet
                         </p>
                         <p className="max-w-sm text-xs text-brand-muted">
-                            Updates on your reports and station announcements
-                            will show up here.
+                            {isAdmin
+                                ? 'Notifications sent to users will appear here.'
+                                : 'Updates on your reports and station announcements will show up here.'}
                         </p>
                     </PortalCard>
                 ) : (

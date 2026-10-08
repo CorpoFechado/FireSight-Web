@@ -124,12 +124,12 @@ export type IncidentType =
 type TypeCfg = { label: string; color: string };
 
 export const TYPE_CFG: Record<IncidentType, TypeCfg> = {
-    residential_fire: { label: 'Residential Fire', color: '#E63946' },
-    commercial_fire: { label: 'Commercial Fire', color: '#D62828' },
-    vehicular_fire: { label: 'Vehicular Fire', color: '#F4A261' },
-    storage_fire: { label: 'Storage Fire', color: '#7B2CBF' },
-    rubbish_fire: { label: 'Rubbish Fire', color: '#F77F00' },
-    others: { label: 'Others', color: '#457B9D' },
+    residential_fire: { label: 'Residential Fire', color: '#1D3557' },
+    commercial_fire: { label: 'Commercial Fire', color: '#1E4D5B' },
+    vehicular_fire: { label: 'Vehicular Fire', color: '#236B6E' },
+    storage_fire: { label: 'Storage Fire', color: '#2A9D8F' },
+    rubbish_fire: { label: 'Rubbish Fire', color: '#48B6A3' },
+    others: { label: 'Others', color: '#76CEBF' },
 };
 
 /**
@@ -147,3 +147,44 @@ export const SEVERITY_MARKER_COLORS: Record<SeverityLevel, string> = {
 export function riskLevelColor(level: RiskLevel): string {
     return RISK_CFG[level]?.color ?? '#6B7A8D';
 }
+
+// ─── Mobile App AI Fire Verification Config ──────────────────────────────────
+
+export type AiFireLabel = 'fire' | 'smoke' | 'no_fire';
+
+export type AiFireConfig = {
+    label: string;
+    bg: string;
+    text: string;
+    border: string;
+    badgeBg: string;
+    badgeText: string;
+};
+
+export const AI_FIRE_LABEL_CFG: Record<string, AiFireConfig> = {
+    fire: {
+        label: 'Fire Detected',
+        bg: 'rgba(230, 57, 70, 0.08)',
+        text: '#E63946',
+        border: 'rgba(230, 57, 70, 0.25)',
+        badgeBg: '#FEE2E2',
+        badgeText: '#DC2626',
+    },
+    smoke: {
+        label: 'Smoke Detected',
+        bg: 'rgba(244, 162, 97, 0.08)',
+        text: '#D97706',
+        border: 'rgba(244, 162, 97, 0.25)',
+        badgeBg: '#FFEDD5',
+        badgeText: '#EA580C',
+    },
+    no_fire: {
+        label: 'No Fire Detected',
+        bg: 'rgba(34, 197, 94, 0.08)',
+        text: '#16A34A',
+        border: 'rgba(34, 197, 94, 0.25)',
+        badgeBg: '#DCFCE7',
+        badgeText: '#15803D',
+    },
+};
+

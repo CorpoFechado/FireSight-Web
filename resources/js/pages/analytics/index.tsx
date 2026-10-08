@@ -1,11 +1,12 @@
 import { router } from '@inertiajs/react';
 import { CalendarDays, ChevronDown } from 'lucide-react';
 import {
+    Area,
+    AreaChart,
     Bar,
     BarChart,
     CartesianGrid,
     Cell,
-    Legend,
     Pie,
     PieChart,
     ResponsiveContainer,
@@ -27,7 +28,7 @@ type IncidentTypeSlice = {
     color: string;
 };
 
-type MonthlyTrendPoint = { month: string; incidents: number; resolved: number };
+type MonthlyTrendPoint = { month: string; incidents: number; resolved?: number };
 
 type SeverityBar = {
     level: string;
@@ -62,6 +63,14 @@ const PERIOD_OPTIONS: { label: string; value: Period }[] = [
 
 const CURRENT_YEAR = new Date().getFullYear();
 const TREND_YEARS = Array.from({ length: 4 }, (_, i) => CURRENT_YEAR - i);
+
+const BARANGAY_BAR_COLORS = [
+    '#1D3557',
+    '#204E5F',
+    '#26696D',
+    '#2A9D8F',
+    '#48B6A3',
+];
 
 const inputStyle = { borderColor: 'rgba(43,45,66,0.13)' };
 const inputClass =
@@ -241,7 +250,7 @@ export default function Analytics({
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
                         >
                             <h2 className="text-sm font-bold text-brand-navy">
-                                Monthly Incident &amp; Response Trend
+                                Monthly Incident Trend
                             </h2>
                             {/* Year selector — independent of the global filter */}
                             <div className="relative flex items-center">
@@ -266,12 +275,30 @@ export default function Analytics({
                         </div>
                         <div className="p-5">
                             <ResponsiveContainer width="100%" height={260}>
-                                <BarChart
+                                <AreaChart
                                     data={monthlyTrend}
-                                    margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
-                                    barCategoryGap="32%"
-                                    barGap={3}
+                                    margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
                                 >
+                                    <defs>
+                                        <linearGradient
+                                            id="analyticsTrendGradient"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="#1D3557"
+                                                stopOpacity={0.28}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="#1D3557"
+                                                stopOpacity={0.02}
+                                            />
+                                        </linearGradient>
+                                    </defs>
                                     <CartesianGrid
                                         strokeDasharray="3 3"
                                         stroke="rgba(43,45,66,0.06)"
@@ -284,6 +311,7 @@ export default function Analytics({
                                         tickLine={false}
                                     />
                                     <YAxis
+                                        allowDecimals={false}
                                         tick={{ fontSize: 11, fill: '#6B7A8D' }}
                                         axisLine={false}
                                         tickLine={false}
@@ -294,12 +322,35 @@ export default function Analytics({
                                             fontSize: 12,
                                             borderRadius: 8,
                                             border: '1px solid rgba(43,45,66,0.1)',
+                                            boxShadow: '0 4px 12px rgba(29, 53, 87, 0.08)',
+                                        }}
+                                        formatter={(value: number) => [
+                                            `${value} incident${value === 1 ? '' : 's'}`,
+                                            'Incidents',
+                                        ]}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="incidents"
+                                        name="Incidents"
+                                        stroke="#1D3557"
+                                        strokeWidth={2.5}
+                                        fillOpacity={1}
+                                        fill="url(#analyticsTrendGradient)"
+                                        dot={{
+                                            r: 3.5,
+                                            fill: '#1D3557',
+                                            stroke: '#ffffff',
+                                            strokeWidth: 1.5,
+                                        }}
+                                        activeDot={{
+                                            r: 5.5,
+                                            fill: '#1D3557',
+                                            stroke: '#ffffff',
+                                            strokeWidth: 2,
                                         }}
                                     />
-                                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                                    <Bar dataKey="incidents" name="Incidents" fill="#1D3557" radius={[3, 3, 0, 0]} />
-                                    <Bar dataKey="resolved" name="Resolved" fill="#2A9D8F" radius={[3, 3, 0, 0]} />
-                                </BarChart>
+                                </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </PortalCard>
@@ -341,7 +392,7 @@ export default function Analytics({
                                             border: '1px solid rgba(43,45,66,0.1)',
                                         }}
                                     />
-                                    <Bar dataKey="count" name="Incidents" radius={[3, 3, 0, 0]}>
+                                    <Bar dataKey="count" name="Incidents" radius={[3, 3, 0, 0]} maxBarSize={48}>
                                         {incidentsBySeverity.map((row) => (
                                             <Cell key={row.level} fill={row.color} />
                                         ))}
@@ -404,7 +455,20 @@ export default function Analytics({
                                                 'Incidents',
                                             ]}
                                         />
-                                        <Bar dataKey="count" name="Incidents" fill="#E63946" radius={[3, 3, 0, 0]} />
+                                        <Bar
+                                            dataKey="count"
+                                            name="Incidents"
+                                            fill="#2A9D8F"
+                                            radius={[3, 3, 0, 0]}
+                                            maxBarSize={48}
+                                        >
+                                            {barangaysWithMostIncidents.map((_, index) => (
+                                                <Cell
+                                                    key={`barangay-cell-${index}`}
+                                                    fill={BARANGAY_BAR_COLORS[index] ?? '#2A9D8F'}
+                                                />
+                                            ))}
+                                        </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             )}

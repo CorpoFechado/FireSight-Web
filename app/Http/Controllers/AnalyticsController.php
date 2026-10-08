@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Support\DateRange;
 use Carbon\CarbonInterface;
@@ -13,17 +12,6 @@ use Inertia\Response;
 
 class AnalyticsController extends Controller
 {
-    /**
-     * A report counts as "resolved" for these charts once the fire is out,
-     * whether or not the post-incident assessment (Complete step) has
-     * happened yet.
-     *
-     * @var array<int, string>
-     */
-    private const RESOLVED_STATUSES = [
-        CommunityReport::STATUS_RESOLVED,
-    ];
-
     /** @var array<string, string> */
     public const TYPE_LABELS = [
         'residential_fire' => 'Residential Fire',
@@ -36,20 +24,20 @@ class AnalyticsController extends Controller
 
     /** @var array<string, string> */
     public const TYPE_COLORS = [
-        'residential_fire' => '#E63946',
-        'commercial_fire' => '#D62828',
-        'vehicular_fire' => '#F4A261',
-        'storage_fire' => '#7B2CBF',
-        'rubbish_fire' => '#F77F00',
-        'others' => '#457B9D',
+        'residential_fire' => '#1D3557',
+        'commercial_fire' => '#1E4D5B',
+        'vehicular_fire' => '#236B6E',
+        'storage_fire' => '#2A9D8F',
+        'rubbish_fire' => '#48B6A3',
+        'others' => '#76CEBF',
     ];
 
     /** @var array<string, string> */
     public const SEVERITY_COLORS = [
-        'critical' => '#DC2626',
-        'high' => '#F97316',
-        'moderate' => '#EAB308',
-        'low' => '#16A34A',
+        'critical' => '#1D3557',
+        'high' => '#205B67',
+        'moderate' => '#2A9D8F',
+        'low' => '#62C5B5',
     ];
 
     public function index(Request $request): Response
@@ -120,7 +108,7 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Incident volume vs. resolved count for each month of the selected year.
+     * Incident volume for each month of the selected year.
      * For the current year, only shows months up to today; for past years,
      * shows all 12 months.
      *
@@ -136,14 +124,10 @@ class AnalyticsController extends Controller
                 $end = $start->copy()->endOfMonth();
 
                 $total = IncidentRecord::whereBetween('incident_datetime', [$start, $end])->count();
-                $resolved = IncidentRecord::whereBetween('incident_datetime', [$start, $end])
-                    ->whereHas('report', fn ($q) => $q->whereIn('status', self::RESOLVED_STATUSES))
-                    ->count();
 
                 return [
                     'month' => $start->format('M'),
                     'incidents' => $total,
-                    'resolved' => $resolved,
                 ];
             })
             ->all();

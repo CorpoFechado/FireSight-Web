@@ -1,9 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Camera, Clock, FileText, MapPin, ShieldCheck, UserCheck } from 'lucide-react';
+import { ArrowLeft, Building2, Camera, Clock, Edit, FileText, MapPin, Phone, ShieldCheck, UserCheck } from 'lucide-react';
 import { useState } from 'react';
 import { IncidentActions } from '@/components/incidents/incident-actions';
+import { AiVerificationCard } from '@/components/incidents/ai-verification-card';
+import { EditDetailsModal } from '@/components/incidents/edit-details-modal';
 import { PortalCard } from '@/components/portal/portal-card';
-import { SeverityBadge, StatusBadge } from '@/components/portal/status-badge';
+import { AiFireBadge, SeverityBadge, StatusBadge } from '@/components/portal/status-badge';
 import { SinglePointMap } from '@/components/portal/single-point-map';
 import PortalLayout from '@/layouts/portal-layout';
 import { STATUS_CFG, type ReportStatus, type SeverityLevel } from '@/lib/fire-status';
@@ -24,9 +26,23 @@ type ReportDetail = {
     report_image: string | null;
     latitude: number;
     longitude: number;
+    raw_incident_type: string | null;
+    raw_severity_level: string | null;
     cause_of_fire: string | null;
     casualties: number | null;
     notes: string | null;
+    ai_fire_label: string | null;
+    ai_fire_confidence: number | null;
+    ai_verified_at: string | null;
+    barangay_contact_person: string | null;
+    barangay_contact_number: string | null;
+    barangay_contact_role: string | null;
+    barangay_contacts?: Array<{
+        contact_id: number;
+        name: string;
+        role: string;
+        phone_number: string;
+    }>;
 };
 
 type LinkedReport = {
@@ -76,6 +92,14 @@ export default function IncidentShow({
     statusHistory?: StatusHistoryEntry[];
 }) {
     const { auth } = usePage().props;
+    const [editOpen, setEditOpen] = useState(false);
+    const assessmentValues = {
+        incident_type: report.raw_incident_type,
+        severity_level: report.raw_severity_level,
+        cause_of_fire: report.cause_of_fire,
+        casualties: report.casualties,
+        notes: report.notes,
+    };
     const timeline = statusHistory && statusHistory.length > 0
         ? statusHistory
         : [
@@ -116,9 +140,14 @@ export default function IncidentShow({
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <StatusBadge status={report.status} />
                             {report.severity && <SeverityBadge severity={report.severity} />}
+                            <AiFireBadge
+                                label={report.ai_fire_label}
+                                confidence={report.ai_fire_confidence}
+                                showConfidence
+                            />
                         </div>
                     </div>
 
@@ -126,9 +155,7 @@ export default function IncidentShow({
                         <IncidentActions
                             reportId={report.report_id}
                             status={report.status}
-                            role={auth.user.role}
-                            barangays={barangays}
-                            suggestedBarangayId={suggestedBarangayId}
+                            assessmentValues={assessmentValues}
                         />
                     </div>
 
@@ -152,6 +179,54 @@ export default function IncidentShow({
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+
+                            {/* Barangay Contact Information */}
+                            <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                <div className="mb-2 flex items-center justify-between">
+                                    <p className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                        <Building2 size={13} className="text-brand-navy" />
+                                        Barangay Local Contact
+                                    </p>
+                                    <span className="text-[11px] font-semibold text-brand-blue">
+                                        {report.barangay ?? 'Unassigned'}
+                                    </span>
+                                </div>
+                                {report.barangay_contact_person ? (
+                                    <div className="space-y-2 text-xs">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <span className="text-brand-muted">Contact Person</span>
+                                            <span className="font-semibold text-brand-navy text-right">
+                                                {report.barangay_contact_person}
+                                                {report.barangay_contact_role ? (
+                                                    <span className="ml-1 text-[11px] font-normal text-brand-muted">
+                                                        ({report.barangay_contact_role})
+                                                    </span>
+                                                ) : null}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-brand-muted">Contact Number</span>
+                                            {report.barangay_contact_number ? (
+                                                <a
+                                                    href={`tel:${report.barangay_contact_number}`}
+                                                    className="flex items-center gap-1 font-mono font-bold text-brand-blue hover:underline"
+                                                >
+                                                    <Phone size={12} />
+                                                    {report.barangay_contact_number}
+                                                </a>
+                                            ) : (
+                                                <span className="text-brand-muted">—</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-brand-muted">
+                                        {report.barangay
+                                            ? `No official contact details registered for Brgy. ${report.barangay}.`
+                                            : 'Assign a barangay to view local official emergency contacts.'}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
@@ -259,6 +334,17 @@ export default function IncidentShow({
 
                             <div>
                                 <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                    AI Image Verification
+                                </p>
+                                <AiVerificationCard
+                                    label={report.ai_fire_label}
+                                    confidence={report.ai_fire_confidence}
+                                    verifiedAt={report.ai_verified_at}
+                                />
+                            </div>
+
+                            <div>
+                                <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
                                     Linked / Related Reports
                                 </p>
                                 {linkedReports.length === 0 ? (
@@ -292,21 +378,31 @@ export default function IncidentShow({
                             className="border-t px-6 py-6"
                             style={{ borderColor: 'rgba(43,45,66,0.1)' }}
                         >
-                            <div className="mb-4 flex items-center gap-2.5">
-                                <div
-                                    className="rounded-lg p-2"
-                                    style={{ background: 'rgba(29,53,87,0.08)' }}
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5">
+                                    <div
+                                        className="rounded-lg p-2"
+                                        style={{ background: 'rgba(29,53,87,0.08)' }}
+                                    >
+                                        <ShieldCheck size={18} className="text-brand-navy" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-brand-navy">
+                                            BFP Assessment
+                                        </h3>
+                                        <p className="text-xs text-brand-muted">
+                                            Official investigation findings and casualty report
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditOpen(true)}
+                                    className="flex items-center gap-1.5 rounded-lg border border-[rgba(43,45,66,0.18)] bg-white px-3 py-1.5 text-xs font-semibold text-brand-navy shadow-xs transition hover:bg-brand-bg hover:border-brand-navy/30"
                                 >
-                                    <ShieldCheck size={18} className="text-brand-navy" />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-bold text-brand-navy">
-                                        BFP Assessment
-                                    </h3>
-                                    <p className="text-xs text-brand-muted">
-                                        Official investigation findings and casualty report
-                                    </p>
-                                </div>
+                                    <Edit size={13} className="text-brand-blue" />
+                                    Edit Details
+                                </button>
                             </div>
 
                             <div className="space-y-4">
@@ -388,6 +484,15 @@ export default function IncidentShow({
                         </div>
                     )}
                 </PortalCard>
+
+                {hasAssessment && (
+                    <EditDetailsModal
+                        reportId={report.report_id}
+                        open={editOpen}
+                        onOpenChange={setEditOpen}
+                        initialValues={assessmentValues}
+                    />
+                )}
             </div>
         </PortalLayout>
     );

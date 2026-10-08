@@ -6,6 +6,7 @@ import {
     ROLE_CFG,
     PERSONNEL_STATUS_CFG,
     EDUCATION_CATEGORY_CFG,
+    AI_FIRE_LABEL_CFG,
 } from '@/lib/fire-status';
 import type {
     ReportStatus,
@@ -123,3 +124,52 @@ export function EducationCategoryBadge({
         </span>
     );
 }
+
+export function AiFireBadge({
+    label,
+    confidence,
+    showConfidence = false,
+}: {
+    label: string | null;
+    confidence?: number | null;
+    showConfidence?: boolean;
+}) {
+    if (!label) {
+        return (
+            <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                style={{ background: '#F1F3F5', color: '#6B7A8D' }}
+            >
+                <span className="size-1.5 rounded-full bg-gray-400" />
+                Unverified
+            </span>
+        );
+    }
+
+    const key = label.toLowerCase();
+    const cfg = AI_FIRE_LABEL_CFG[key] ?? {
+        label: label.replace(/_/g, ' '),
+        badgeBg: '#F3F4F6',
+        badgeText: '#4B5563',
+    };
+
+    const percent =
+        confidence !== null && confidence !== undefined
+            ? ` ${(confidence * 100).toFixed(0)}%`
+            : '';
+
+    return (
+        <span
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+            style={{ background: cfg.badgeBg, color: cfg.badgeText }}
+        >
+            <span
+                className="size-1.5 rounded-full"
+                style={{ background: cfg.badgeText }}
+            />
+            {cfg.label}
+            {showConfidence && percent ? ` · ${percent.trim()}` : ''}
+        </span>
+    );
+}
+

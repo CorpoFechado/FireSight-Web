@@ -30,6 +30,7 @@ class CommunityReport extends Model
         'user_id', 'reporter_name', 'contact_number', 'description',
         'report_image', 'latitude', 'longitude', 'status',
         'barangay_id', 'location_accuracy_m', 'device_latitude', 'device_longitude',
+        'ai_fire_label', 'ai_fire_confidence', 'ai_verified_at',
     ];
 
     protected function casts(): array
@@ -39,6 +40,8 @@ class CommunityReport extends Model
             'longitude' => 'decimal:8',
             'device_latitude' => 'decimal:8',
             'device_longitude' => 'decimal:8',
+            'ai_fire_confidence' => 'float',
+            'ai_verified_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

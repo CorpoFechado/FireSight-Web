@@ -3,7 +3,7 @@ import { Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PaginationBar } from '@/components/portal/pagination-bar';
 import { PortalCard } from '@/components/portal/portal-card';
-import { SeverityBadge, StatusBadge } from '@/components/portal/status-badge';
+import { AiFireBadge, SeverityBadge, StatusBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
 import type { ReportStatus, SeverityLevel } from '@/lib/fire-status';
 import { index as incidentsIndex, show as showIncident } from '@/routes/incidents';
@@ -19,6 +19,9 @@ type IncidentRow = {
     severity: SeverityLevel | null;
     status: ReportStatus;
     dateTime: string;
+    ai_fire_label: string | null;
+    ai_fire_confidence: number | null;
+    ai_verified_at: string | null;
 };
 
 type Filters = {
@@ -243,22 +246,28 @@ export default function IncidentsIndex({
                         <table className="w-full text-sm">
                             <thead>
                                 <tr style={{ background: '#FAFBFC', borderBottom: '1px solid rgba(43,45,66,0.08)' }}>
-                                    {['Reporter', 'Barangay', 'Type', 'Severity', 'Status', 'Date / Time'].map(
-                                        (h) => (
-                                            <th
-                                                key={h}
-                                                className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-brand-muted uppercase"
-                                            >
-                                                {h}
-                                            </th>
-                                        ),
-                                    )}
+                                    {[
+                                        'Reporter',
+                                        'Barangay',
+                                        'Type',
+                                        'Severity',
+                                        'Status',
+                                        'AI Check',
+                                        'Date / Time',
+                                    ].map((h) => (
+                                        <th
+                                            key={h}
+                                            className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-brand-muted uppercase"
+                                        >
+                                            {h}
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {reports.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-8 text-center text-xs text-brand-muted">
+                                        <td colSpan={7} className="px-4 py-8 text-center text-xs text-brand-muted">
                                             No reports match these filters.
                                         </td>
                                     </tr>
@@ -282,6 +291,13 @@ export default function IncidentsIndex({
                                         </td>
                                         <td className="px-4 py-3">
                                             <StatusBadge status={r.status} />
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <AiFireBadge
+                                                label={r.ai_fire_label}
+                                                confidence={r.ai_fire_confidence}
+                                                showConfidence
+                                            />
                                         </td>
                                         <td className="px-4 py-3 font-mono text-xs text-brand-muted">{r.dateTime}</td>
                                     </Link>

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             BfpAccountSeeder::class,
             DummyDataSeeder::class,
             IncidentReportSeeder::class,
+            DutyScheduleSeeder::class,
             FireEducationContentSeeder::class,
         ]);
     }
