@@ -183,6 +183,29 @@ export function riskLevelColor(level: RiskLevel): string {
     return RISK_CFG[level]?.color ?? '#6B7A8D';
 }
 
+/**
+ * Leaflet polygon styling for risk map layers.
+ * Uses lowered opacity and soft borders so polygon fills never clash with
+ * the portal theme or drown out underlying street map details.
+ */
+export function riskMapPolygonStyle(level: RiskLevel | null | undefined): {
+    color: string;
+    weight: number;
+    opacity: number;
+    fillColor: string;
+    fillOpacity: number;
+} {
+    const color = level ? riskLevelColor(level) : '#6B7A8D';
+
+    return {
+        color,
+        weight: 1.5,
+        opacity: 0.6,
+        fillColor: color,
+        fillOpacity: level ? 0.22 : 0.1,
+    };
+}
+
 // ─── Mobile App AI Fire Verification Config ──────────────────────────────────
 
 export type AiFireLabel = 'fire' | 'smoke' | 'no_fire';

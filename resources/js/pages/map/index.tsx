@@ -15,6 +15,7 @@ import {
     RISK_CFG,
     TYPE_CFG,
     riskLevelColor,
+    riskMapPolygonStyle,
 } from '@/lib/fire-status';
 import type { AlarmLevel, IncidentType, RiskLevel } from '@/lib/fire-status';
 import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
@@ -515,10 +516,8 @@ export default function FireIncidentsMap({
                                                       resolveDbBarangayName(feature.properties.barangay),
                                                   )
                                                 : undefined;
-                                            const color = risk?.risk_level
-                                                ? riskLevelColor(risk.risk_level)
-                                                : '#6B7A8D';
-                                            return { color, weight: 1, fillColor: color, fillOpacity: 0.28 };
+
+                                            return riskMapPolygonStyle(risk?.risk_level);
                                         }}
                                         onEachFeature={(feature: BarangayFeature, layer) => {
                                             const risk = riskByBarangayName.get(

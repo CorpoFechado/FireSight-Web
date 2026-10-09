@@ -268,12 +268,12 @@ export default function IncidentShow({
                                                             style={{ background: dotColor }}
                                                         />
                                                         {!isLast && (
-                                                            <div className="my-1 w-0.5 min-h-[36px] flex-1 bg-gray-300/80" />
+                                                            <div className="my-1 w-0.5 min-h-[22px] flex-1 bg-gray-300/80" />
                                                         )}
                                                     </div>
 
                                                     {/* Entry content */}
-                                                    <div className={`flex-1 ${!isLast ? 'pb-3' : 'pb-0'}`}>
+                                                    <div className={`flex-1 ${!isLast ? 'pb-2.5' : 'pb-0'}`}>
                                                         <div className="flex flex-wrap items-center justify-between gap-2">
                                                             <StatusBadge status={item.status} />
                                                             <span className="font-mono text-xs text-brand-muted">
@@ -286,11 +286,6 @@ export default function IncidentShow({
                                                                 {item.changed_by}
                                                             </span>
                                                         </p>
-                                                        {item.notes && (
-                                                            <p className="mt-1.5 rounded-md bg-white/80 px-2.5 py-1.5 text-xs text-brand-navy border border-[rgba(43,45,66,0.07)] leading-relaxed">
-                                                                {item.notes}
-                                                            </p>
-                                                        )}
                                                     </div>
                                                 </div>
                                             );

@@ -7,7 +7,7 @@ import { GeoJSON, MapContainer, Marker, ScaleControl, TileLayer } from 'react-le
 import { PortalCard } from '@/components/portal/portal-card';
 import PortalLayout from '@/layouts/portal-layout';
 import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
-import { RISK_CFG, riskLevelColor } from '@/lib/fire-status';
+import { RISK_CFG, riskLevelColor, riskMapPolygonStyle } from '@/lib/fire-status';
 import type { RiskLevel } from '@/lib/fire-status';
 import { LIAN_CENTER, LIAN_DEFAULT_ZOOM, OSM_ATTRIBUTION, OSM_TILE_URL } from '@/lib/map-constants';
 
@@ -138,9 +138,8 @@ export default function RiskAnalytics({
                                             const risk = feature
                                                 ? riskByBarangayName.get(resolveDbBarangayName(feature.properties.barangay))
                                                 : undefined;
-                                            const color = risk?.risk_level ? riskLevelColor(risk.risk_level) : '#6B7A8D';
 
-                                            return { color, weight: 1, fillColor: color, fillOpacity: 0.55 };
+                                            return riskMapPolygonStyle(risk?.risk_level);
                                         }}
                                         onEachFeature={(feature: BarangayFeature, layer) => {
                                             const risk = riskByBarangayName.get(resolveDbBarangayName(feature.properties.barangay));
@@ -207,6 +206,7 @@ export default function RiskAnalytics({
                                                             : Math.round((row.incidentCount / maxCount) * 100)
                                                     }%`,
                                                     background: row.risk_level ? riskLevelColor(row.risk_level) : '#6B7A8D',
+                                                    opacity: 0.75,
                                                 }}
                                             />
                                         </div>
@@ -253,6 +253,10 @@ export default function RiskAnalytics({
                                         <Cell
                                             key={row.barangay_name}
                                             fill={row.risk_level ? riskLevelColor(row.risk_level) : '#6B7A8D'}
+                                            fillOpacity={0.65}
+                                            stroke={row.risk_level ? riskLevelColor(row.risk_level) : '#6B7A8D'}
+                                            strokeOpacity={0.85}
+                                            strokeWidth={1}
                                         />
                                     ))}
                                 </Bar>
