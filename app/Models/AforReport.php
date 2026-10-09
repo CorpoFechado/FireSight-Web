@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AlarmLevel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -35,7 +36,7 @@ use Illuminate\Support\Carbon;
  * @property int $firefighter_injured
  * @property int $firefighter_death
  * @property array<int, array{type_kind?: string}>|null $breathing_apparatus
- * @property string|null $alarm_level
+ * @property AlarmLevel|null $alarm_level
  * @property array<int, array{level?: string, time?: string, ground_commander?: string}>|null $alarm_declarations
  * @property array<int, array{qty?: int|string, type_kind?: string}>|null $extinguishing_agents
  * @property array<int, array{type?: string, length?: string|int}>|null $ropes_ladders
@@ -120,6 +121,7 @@ class AforReport extends Model
             'firefighter_injured' => 'integer',
             'firefighter_death' => 'integer',
             'breathing_apparatus' => 'array',
+            'alarm_level' => AlarmLevel::class,
             'alarm_declarations' => 'array',
             'extinguishing_agents' => 'array',
             'ropes_ladders' => 'array',

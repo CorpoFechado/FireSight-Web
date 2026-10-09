@@ -40,7 +40,7 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
             'reference' => 'INC-2026-0036',
             'type' => 'Other (Open Burning)',
             'barangay' => 'Prenza',
-            'severity' => 'Low',
+            'alarm_level' => '1st Alarm',
             'reporter' => 'Juan Corpuz',
             'latitude' => 13.99796296,
             'longitude' => 120.65501697,

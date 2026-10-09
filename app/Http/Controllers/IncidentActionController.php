@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AlarmLevel;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
@@ -125,10 +126,6 @@ class IncidentActionController extends Controller
             'resolve'
         );
 
-        if ($request->input('severity_level') === 'medium') {
-            $request->merge(['severity_level' => 'moderate']);
-        }
-
         $data = $request->validate([
             'incident_type' => ['required', Rule::in([
                 'residential_fire',
@@ -138,7 +135,7 @@ class IncidentActionController extends Controller
                 'rubbish_fire',
                 'others',
             ])],
-            'severity_level' => ['required', Rule::in(['low', 'moderate', 'high', 'critical'])],
+            'alarm_level' => ['required', Rule::enum(AlarmLevel::class)],
             'cause_of_fire' => ['nullable', 'string', 'max:150'],
             'casualties' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string'],
@@ -150,7 +147,7 @@ class IncidentActionController extends Controller
                 'barangay_id' => $report->barangay_id,
                 'incident_datetime' => now(),
                 'incident_type' => $data['incident_type'],
-                'severity_level' => $data['severity_level'],
+                'alarm_level' => $data['alarm_level'],
                 'cause_of_fire' => $data['cause_of_fire'] ?? null,
                 'casualties' => $data['casualties'] ?? 0,
                 'notes' => $data['notes'] ?? null,
@@ -186,10 +183,6 @@ class IncidentActionController extends Controller
             ]);
         }
 
-        if ($request->input('severity_level') === 'medium') {
-            $request->merge(['severity_level' => 'moderate']);
-        }
-
         $data = $request->validate([
             'incident_type' => ['required', Rule::in([
                 'residential_fire',
@@ -199,7 +192,7 @@ class IncidentActionController extends Controller
                 'rubbish_fire',
                 'others',
             ])],
-            'severity_level' => ['required', Rule::in(['low', 'moderate', 'high', 'critical'])],
+            'alarm_level' => ['required', Rule::enum(AlarmLevel::class)],
             'cause_of_fire' => ['nullable', 'string', 'max:150'],
             'casualties' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string'],
@@ -208,7 +201,7 @@ class IncidentActionController extends Controller
         DB::transaction(function () use ($record, $report, $data) {
             $record->update([
                 'incident_type' => $data['incident_type'],
-                'severity_level' => $data['severity_level'],
+                'alarm_level' => $data['alarm_level'],
                 'cause_of_fire' => $data['cause_of_fire'] ?? null,
                 'casualties' => $data['casualties'] ?? 0,
                 'notes' => $data['notes'] ?? null,

@@ -30,7 +30,7 @@ type IncidentTypeSlice = {
 
 type MonthlyTrendPoint = { month: string; incidents: number; resolved?: number };
 
-type SeverityBar = {
+type AlarmLevelBar = {
     level: string;
     label: string;
     count: number;
@@ -81,14 +81,14 @@ const inputClass =
 export default function Analytics({
     incidentsByType,
     monthlyTrend,
-    incidentsBySeverity,
+    incidentsByAlarmLevel,
     barangaysWithMostIncidents,
     periodLabel,
     filters,
 }: {
     incidentsByType: IncidentTypeSlice[];
     monthlyTrend: MonthlyTrendPoint[];
-    incidentsBySeverity: SeverityBar[];
+    incidentsByAlarmLevel: AlarmLevelBar[];
     barangaysWithMostIncidents: BarangayIncidentPoint[];
     periodLabel: string;
     filters: Filters;
@@ -357,16 +357,16 @@ export default function Analytics({
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-2">
-                    {/* Incidents by Severity */}
+                    {/* Incidents by Alarm Level */}
                     <PortalCard>
                         <div className="border-b px-5 py-4" style={{ borderColor: 'rgba(43,45,66,0.08)' }}>
-                            <h2 className="text-sm font-bold text-brand-navy">Incidents by Severity</h2>
+                            <h2 className="text-sm font-bold text-brand-navy">Incidents by Alarm Level</h2>
                         </div>
                         <div className="p-5">
-                            <ResponsiveContainer width="100%" height={220}>
+                            <ResponsiveContainer width="100%" height={240}>
                                 <BarChart
-                                    data={incidentsBySeverity}
-                                    margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+                                    data={incidentsByAlarmLevel}
+                                    margin={{ top: 4, right: 4, bottom: 25, left: 0 }}
                                 >
                                     <CartesianGrid
                                         strokeDasharray="3 3"
@@ -375,9 +375,13 @@ export default function Analytics({
                                     />
                                     <XAxis
                                         dataKey="label"
-                                        tick={{ fontSize: 11, fill: '#6B7A8D' }}
+                                        tick={{ fontSize: 10, fill: '#6B7A8D' }}
                                         axisLine={false}
                                         tickLine={false}
+                                        interval={0}
+                                        angle={-25}
+                                        textAnchor="end"
+                                        height={45}
                                     />
                                     <YAxis
                                         tick={{ fontSize: 11, fill: '#6B7A8D' }}
@@ -392,8 +396,8 @@ export default function Analytics({
                                             border: '1px solid rgba(43,45,66,0.1)',
                                         }}
                                     />
-                                    <Bar dataKey="count" name="Incidents" radius={[3, 3, 0, 0]} maxBarSize={48}>
-                                        {incidentsBySeverity.map((row) => (
+                                    <Bar dataKey="count" name="Incidents" radius={[3, 3, 0, 0]} maxBarSize={32}>
+                                        {incidentsByAlarmLevel.map((row) => (
                                             <Cell key={row.level} fill={row.color} />
                                         ))}
                                     </Bar>

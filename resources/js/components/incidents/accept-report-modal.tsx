@@ -73,7 +73,7 @@ export function AcceptReportModal({
                 <form onSubmit={submit} className="space-y-4">
                     <p className="text-xs text-brand-muted">
                         Confirm the barangay for dispatch routing. Incident
-                        type, severity, and other assessment details are
+                        type, alarm level, and other assessment details are
                         recorded later, once the fire has been marked
                         Resolved.
                     </p>

@@ -116,7 +116,7 @@ test('resolving a dispatched report requires incident details and inserts incide
     $response = $this->actingAs($this->staff)
         ->post(route('incidents.resolve', $report), [
             'incident_type' => 'residential_fire',
-            'severity_level' => 'moderate',
+            'alarm_level' => '2nd_alarm',
             'cause_of_fire' => 'Gas stove unattended',
             'casualties' => 0,
             'notes' => 'Extinguished by responding fire personnel.',
@@ -130,7 +130,7 @@ test('resolving a dispatched report requires incident details and inserts incide
     $record = IncidentRecord::where('report_id', $report->report_id)->first();
     expect($record)->not->toBeNull()
         ->and($record->incident_type)->toBe('residential_fire')
-        ->and($record->severity_level)->toBe('moderate')
+        ->and($record->alarm_level->value)->toBe('2nd_alarm')
         ->and($record->cause_of_fire)->toBe('Gas stove unattended')
         ->and($record->casualties)->toBe(0)
         ->and($record->notes)->toBe('Extinguished by responding fire personnel.');
@@ -155,14 +155,14 @@ test('resolve validates incident_type to canonical mobile fire types', function 
     $response = $this->actingAs($this->staff)
         ->post(route('incidents.resolve', $report), [
             'incident_type' => 'structural', // legacy type, should fail validation
-            'severity_level' => 'moderate',
+            'alarm_level' => '2nd_alarm',
         ]);
 
     $response->assertSessionHasErrors('incident_type');
     expect(IncidentRecord::where('report_id', $report->report_id)->count())->toBe(0);
 });
 
-test('resolve accepts critical severity_level and normalizes legacy medium to moderate', function () {
+test('resolve accepts valid alarm levels and rejects invalid or legacy values', function () {
     $report1 = CommunityReport::create([
         'user_id' => $this->resident->id,
         'reporter_name' => 'Test 1',
@@ -177,12 +177,12 @@ test('resolve accepts critical severity_level and normalizes legacy medium to mo
     $this->actingAs($this->staff)
         ->post(route('incidents.resolve', $report1), [
             'incident_type' => 'residential_fire',
-            'severity_level' => 'critical',
+            'alarm_level' => '5th_alarm',
         ])
         ->assertRedirect();
 
     $record1 = IncidentRecord::where('report_id', $report1->report_id)->first();
-    expect($record1->severity_level)->toBe('critical');
+    expect($record1->alarm_level->value)->toBe('5th_alarm');
 
     $report2 = CommunityReport::create([
         'user_id' => $this->resident->id,
@@ -195,15 +195,22 @@ test('resolve accepts critical severity_level and normalizes legacy medium to mo
         'status' => CommunityReport::STATUS_DISPATCHED,
     ]);
 
+    // Legacy values and invalid alarm levels must fail validation
     $this->actingAs($this->staff)
         ->post(route('incidents.resolve', $report2), [
             'incident_type' => 'residential_fire',
-            'severity_level' => 'medium', // legacy mobile value
+            'alarm_level' => 'medium',
         ])
-        ->assertRedirect();
+        ->assertSessionHasErrors('alarm_level');
 
-    $record2 = IncidentRecord::where('report_id', $report2->report_id)->first();
-    expect($record2->severity_level)->toBe('moderate');
+    $this->actingAs($this->staff)
+        ->post(route('incidents.resolve', $report2), [
+            'incident_type' => 'residential_fire',
+            'alarm_level' => 'critical',
+        ])
+        ->assertSessionHasErrors('alarm_level');
+
+    expect(IncidentRecord::where('report_id', $report2->report_id)->count())->toBe(0);
 });
 
 test('incidents show renders with actual statusHistory from database including personnel and notes', function () {
@@ -352,7 +359,7 @@ test('staff and admin can update incident assessment details after resolution', 
         'barangay_id' => $this->barangay->barangay_id,
         'incident_datetime' => now()->subHour(),
         'incident_type' => 'residential_fire',
-        'severity_level' => 'low',
+        'alarm_level' => '1st_alarm',
         'cause_of_fire' => 'Initial guess',
         'casualties' => 0,
         'notes' => 'Initial notes',
@@ -361,7 +368,7 @@ test('staff and admin can update incident assessment details after resolution', 
     $response = $this->actingAs($this->staff)
         ->patch(route('incidents.updateDetails', $report), [
             'incident_type' => 'commercial_fire',
-            'severity_level' => 'high',
+            'alarm_level' => '3rd_alarm',
             'cause_of_fire' => 'Faulty electrical wiring behind refrigerator',
             'casualties' => 2,
             'notes' => 'Updated investigation report after full inspection.',
@@ -371,7 +378,7 @@ test('staff and admin can update incident assessment details after resolution', 
     $record->refresh();
 
     expect($record->incident_type)->toBe('commercial_fire')
-        ->and($record->severity_level)->toBe('high')
+        ->and($record->alarm_level->value)->toBe('3rd_alarm')
         ->and($record->cause_of_fire)->toBe('Faulty electrical wiring behind refrigerator')
         ->and($record->casualties)->toBe(2)
         ->and($record->notes)->toBe('Updated investigation report after full inspection.');

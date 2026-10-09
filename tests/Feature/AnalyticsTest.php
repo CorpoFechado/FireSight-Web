@@ -35,7 +35,7 @@ test('bfp admin can view analytics with barangays with most incidents', function
             ->has('monthlyTrend.0.month')
             ->has('monthlyTrend.0.incidents')
             ->missing('monthlyTrend.0.resolved')
-            ->has('incidentsBySeverity')
+            ->has('incidentsByAlarmLevel')
             ->has('filters')
             ->has('periodLabel')
     );
@@ -72,7 +72,7 @@ test('barangays with most incidents reflects snapshot period', function () {
             'barangay_id' => $b1->barangay_id,
             'incident_datetime' => Carbon::create(2026, 6, 10, 10, 0, 0),
             'incident_type' => 'residential_fire',
-            'severity_level' => 'high',
+            'alarm_level' => '3rd_alarm',
         ]);
     }
 
@@ -91,7 +91,7 @@ test('barangays with most incidents reflects snapshot period', function () {
         'barangay_id' => $b2->barangay_id,
         'incident_datetime' => Carbon::create(2026, 6, 12, 10, 0, 0),
         'incident_type' => 'rubbish_fire',
-        'severity_level' => 'low',
+        'alarm_level' => '1st_alarm',
     ]);
 
     // Create 5 incidents in Barangay Beta from last year (2025) - should NOT show when filtering "this_month"
@@ -110,7 +110,7 @@ test('barangays with most incidents reflects snapshot period', function () {
             'barangay_id' => $b2->barangay_id,
             'incident_datetime' => Carbon::create(2025, 6, 10, 10, 0, 0),
             'incident_type' => 'residential_fire',
-            'severity_level' => 'high',
+            'alarm_level' => '3rd_alarm',
         ]);
     }
 

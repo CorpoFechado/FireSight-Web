@@ -11,8 +11,21 @@ export type ReportStatus =
     | 'dispatched'
     | 'resolved'
     | 'invalid';
-export type SeverityLevel = 'low' | 'moderate' | 'high' | 'critical';
-export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
+export type AlarmLevel =
+    | '1st_alarm'
+    | '2nd_alarm'
+    | '3rd_alarm'
+    | '4th_alarm'
+    | '5th_alarm'
+    | 'task_force_alpha'
+    | 'task_force_bravo'
+    | 'task_force_charlie'
+    | 'task_force_delta'
+    | 'task_force_echo'
+    | 'task_force_hotel'
+    | 'task_force_india'
+    | 'general_alarm';
+export type RiskLevel = 'mild' | 'moderate' | 'high';
 export type AnnouncementType =
     | 'general'
     | 'advisory'
@@ -60,28 +73,41 @@ export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
     },
 };
 
-export const SEVERITY_CFG: Record<SeverityLevel, BadgeCfg> = {
-    critical: { bg: '#FEE2E2', text: '#DC2626', label: 'Critical' },
-    high: { bg: '#FFEDD5', text: '#EA580C', label: 'High' },
-    moderate: { bg: '#FEF9C3', text: '#854D0E', label: 'Moderate' },
-    low: { bg: '#DCFCE7', text: '#16A34A', label: 'Low' },
+export const ALARM_LEVEL_CFG: Record<AlarmLevel, BadgeCfg> = {
+    '1st_alarm': { bg: '#D1FAE5', text: '#065F46', label: '1st Alarm' },
+    '2nd_alarm': { bg: '#D1FAE5', text: '#047857', label: '2nd Alarm' },
+    '3rd_alarm': { bg: '#FEF3C7', text: '#92400E', label: '3rd Alarm' },
+    '4th_alarm': { bg: '#FEF3C7', text: '#B45309', label: '4th Alarm' },
+    '5th_alarm': { bg: '#FFEDD5', text: '#C2410C', label: '5th Alarm' },
+    task_force_alpha: { bg: '#FFEDD5', text: '#9A3412', label: 'Task Force Alpha' },
+    task_force_bravo: { bg: '#FEE2E2', text: '#B91C1C', label: 'Task Force Bravo' },
+    task_force_charlie: { bg: '#FEE2E2', text: '#991B1B', label: 'Task Force Charlie' },
+    task_force_delta: { bg: '#FEE2E2', text: '#7F1D1D', label: 'Task Force Delta' },
+    task_force_echo: { bg: '#FFE4E6', text: '#881337', label: 'Task Force Echo' },
+    task_force_hotel: { bg: '#FFE4E6', text: '#881337', label: 'Task Force Hotel' },
+    task_force_india: { bg: '#FFE4E6', text: '#4C0519', label: 'Task Force India' },
+    general_alarm: { bg: '#FFE4E6', text: '#4C0519', label: 'General Alarm' },
 };
 
 export const RISK_CFG: Record<RiskLevel, BadgeCfg & { color: string }> = {
-    critical: {
+    high: {
         bg: '#FEE2E2',
         text: '#DC2626',
-        label: 'Critical',
+        label: 'High',
         color: '#DC2626',
     },
-    high: { bg: '#FFEDD5', text: '#EA580C', label: 'High', color: '#F97316' },
     moderate: {
+        bg: '#FFEDD5',
+        text: '#EA580C',
+        label: 'Moderate',
+        color: '#F97316',
+    },
+    mild: {
         bg: '#FEF9C3',
         text: '#854D0E',
-        label: 'Moderate',
+        label: 'Mild',
         color: '#EAB308',
     },
-    low: { bg: '#DCFCE7', text: '#16A34A', label: 'Low', color: '#16A34A' },
 };
 
 export const ANNOUNCEMENT_CFG: Record<AnnouncementType, BadgeCfg> = {
@@ -133,14 +159,23 @@ export const TYPE_CFG: Record<IncidentType, TypeCfg> = {
 };
 
 /**
- * Map marker fill colors for severity levels — matches Analytics'
- * SEVERITY_COLORS constants so pins and charts use identical hues.
+ * Map marker fill colors for alarm levels — matches Analytics'
+ * ALARM_LEVEL_COLORS constants so pins and charts use identical hues.
  */
-export const SEVERITY_MARKER_COLORS: Record<SeverityLevel, string> = {
-    critical: '#DC2626',
-    high: '#F97316',
-    moderate: '#EAB308',
-    low: '#16A34A',
+export const ALARM_LEVEL_MARKER_COLORS: Record<AlarmLevel, string> = {
+    '1st_alarm': '#34D399',
+    '2nd_alarm': '#10B981',
+    '3rd_alarm': '#FBBF24',
+    '4th_alarm': '#F59E0B',
+    '5th_alarm': '#F97316',
+    task_force_alpha: '#EA580C',
+    task_force_bravo: '#EF4444',
+    task_force_charlie: '#DC2626',
+    task_force_delta: '#B91C1C',
+    task_force_echo: '#991B1B',
+    task_force_hotel: '#BE123C',
+    task_force_india: '#9F1239',
+    general_alarm: '#881337',
 };
 
 /** Marker/legend color for a risk level — used by Leaflet map components. */

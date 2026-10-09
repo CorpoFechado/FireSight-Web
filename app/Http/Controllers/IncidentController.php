@@ -28,7 +28,7 @@ class IncidentController extends Controller
         $dateTo = $request->string('date_to')->trim()->value();
         $barangayId = $request->integer('barangay_id') ?: null;
         $incidentType = $request->string('incident_type')->trim()->value();
-        $severityLevel = $request->string('severity_level')->trim()->value();
+        $alarmLevel = $request->string('alarm_level')->trim()->value();
 
         $reports = CommunityReport::query()
             ->with(['incidentRecord.barangay', 'barangay'])
@@ -48,7 +48,7 @@ class IncidentController extends Controller
                     ->orWhereHas('incidentRecord', fn ($q) => $q->where('barangay_id', $barangayId));
             }))
             ->when($incidentType !== '', fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('incident_type', $incidentType)))
-            ->when($severityLevel !== '', fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('severity_level', $severityLevel)))
+            ->when($alarmLevel !== '', fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('alarm_level', $alarmLevel)))
             ->latest('created_at')
             ->paginate(15)
             ->withQueryString()
@@ -63,7 +63,7 @@ class IncidentController extends Controller
                 'date_to' => $dateTo,
                 'barangay_id' => $barangayId ? (string) $barangayId : '',
                 'incident_type' => $incidentType,
-                'severity_level' => $severityLevel,
+                'alarm_level' => $alarmLevel,
             ],
             'barangays' => Barangay::orderBy('barangay_name')->get(['barangay_id', 'barangay_name']),
             'totalCount' => CommunityReport::count(),
@@ -125,7 +125,7 @@ class IncidentController extends Controller
                 'latitude' => (float) $report->latitude,
                 'longitude' => (float) $report->longitude,
                 'raw_incident_type' => $report->incidentRecord?->incident_type,
-                'raw_severity_level' => $report->incidentRecord?->severity_level,
+                'raw_alarm_level' => $report->incidentRecord?->alarm_level?->value ?? $report->incidentRecord?->alarm_level,
                 'cause_of_fire' => $report->incidentRecord?->cause_of_fire,
                 'casualties' => $report->incidentRecord?->casualties,
                 'notes' => $report->incidentRecord?->notes,
@@ -196,7 +196,7 @@ class IncidentController extends Controller
             'type' => $report->incidentRecord?->incident_type
                 ? AnalyticsController::TYPE_LABELS[$report->incidentRecord->incident_type] ?? ucfirst(str_replace('_', ' ', $report->incidentRecord->incident_type))
                 : null,
-            'severity' => $report->incidentRecord?->severity_level,
+            'alarm_level' => $report->incidentRecord?->alarm_level?->value ?? $report->incidentRecord?->alarm_level,
             'status' => $report->status,
             'dateTime' => $report->created_at->format('Y-m-d H:i'),
             'ai_fire_label' => $report->ai_fire_label,

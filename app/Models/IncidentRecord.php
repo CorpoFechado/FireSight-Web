@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AlarmLevel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,13 +17,14 @@ class IncidentRecord extends Model
 
     protected $fillable = [
         'report_id', 'barangay_id', 'incident_datetime', 'incident_type',
-        'severity_level', 'cause_of_fire', 'casualties', 'notes',
+        'alarm_level', 'cause_of_fire', 'casualties', 'notes',
     ];
 
     protected function casts(): array
     {
         return [
             'incident_datetime' => 'datetime',
+            'alarm_level' => AlarmLevel::class,
         ];
     }
 
@@ -44,31 +46,6 @@ class IncidentRecord extends Model
     public function setDataTimeAttribute(mixed $value): void
     {
         $this->attributes['incident_datetime'] = $value;
-    }
-
-    // ── Value normalization ───────────────────────────────────────────────────
-
-    /**
-     * Normalizes `medium` (mobile value) to `moderate` (web canonical value)
-     * when reading severity_level, so the rest of the app always sees the
-     * web-canonical set: low | moderate | high | critical.
-     */
-    public function getSeverityLevelAttribute(mixed $value): ?string
-    {
-        if ($value === 'medium') {
-            return 'moderate';
-        }
-
-        return $value;
-    }
-
-    /**
-     * Normalizes `medium` (mobile value) to `moderate` (canonical value)
-     * when setting severity_level.
-     */
-    public function setSeverityLevelAttribute(mixed $value): void
-    {
-        $this->attributes['severity_level'] = $value === 'medium' ? 'moderate' : $value;
     }
 
     /**

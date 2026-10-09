@@ -5,10 +5,10 @@ import { IncidentActions } from '@/components/incidents/incident-actions';
 import { AiVerificationCard } from '@/components/incidents/ai-verification-card';
 import { EditDetailsModal } from '@/components/incidents/edit-details-modal';
 import { PortalCard } from '@/components/portal/portal-card';
-import { AiFireBadge, SeverityBadge, StatusBadge } from '@/components/portal/status-badge';
+import { AiFireBadge, AlarmLevelBadge, StatusBadge } from '@/components/portal/status-badge';
 import { SinglePointMap } from '@/components/portal/single-point-map';
 import PortalLayout from '@/layouts/portal-layout';
-import { STATUS_CFG, type ReportStatus, type SeverityLevel } from '@/lib/fire-status';
+import { STATUS_CFG, type AlarmLevel, type ReportStatus } from '@/lib/fire-status';
 import type { StatusHistoryEntry } from '@/lib/status-history';
 import { index as incidentsIndex, show as showIncident } from '@/routes/incidents';
 
@@ -19,7 +19,7 @@ type ReportDetail = {
     contact_number: string;
     barangay: string | null;
     type: string | null;
-    severity: SeverityLevel | null;
+    alarm_level: AlarmLevel | null;
     status: ReportStatus;
     dateTime: string;
     description: string | null;
@@ -27,7 +27,7 @@ type ReportDetail = {
     latitude: number;
     longitude: number;
     raw_incident_type: string | null;
-    raw_severity_level: string | null;
+    raw_alarm_level: string | null;
     cause_of_fire: string | null;
     casualties: number | null;
     notes: string | null;
@@ -95,7 +95,7 @@ export default function IncidentShow({
     const [editOpen, setEditOpen] = useState(false);
     const assessmentValues = {
         incident_type: report.raw_incident_type,
-        severity_level: report.raw_severity_level,
+        alarm_level: report.raw_alarm_level,
         cause_of_fire: report.cause_of_fire,
         casualties: report.casualties,
         notes: report.notes,
@@ -142,7 +142,7 @@ export default function IncidentShow({
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                             <StatusBadge status={report.status} />
-                            {report.severity && <SeverityBadge severity={report.severity} />}
+                            {report.alarm_level && <AlarmLevelBadge alarmLevel={report.alarm_level} />}
                             <AiFireBadge
                                 label={report.ai_fire_label}
                                 confidence={report.ai_fire_confidence}

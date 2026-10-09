@@ -221,10 +221,9 @@ export default function Dashboard({
                             <div className="flex items-center gap-4 px-1">
                                 {(
                                     [
-                                        'low',
+                                        'mild',
                                         'moderate',
                                         'high',
-                                        'critical',
                                     ] as const
                                 ).map((level) => (
                                     <div

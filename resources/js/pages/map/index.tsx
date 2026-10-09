@@ -7,16 +7,16 @@ import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Layers } from 'lu
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CircleMarker, GeoJSON, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { PortalCard } from '@/components/portal/portal-card';
-import { SeverityBadge } from '@/components/portal/status-badge';
+import { AlarmLevelBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
 import {
+    ALARM_LEVEL_CFG,
+    ALARM_LEVEL_MARKER_COLORS,
     RISK_CFG,
-    SEVERITY_CFG,
-    SEVERITY_MARKER_COLORS,
     TYPE_CFG,
     riskLevelColor,
 } from '@/lib/fire-status';
-import type { IncidentType, RiskLevel, SeverityLevel } from '@/lib/fire-status';
+import type { AlarmLevel, IncidentType, RiskLevel } from '@/lib/fire-status';
 import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
 import { LIAN_CENTER, LIAN_DEFAULT_ZOOM, OSM_ATTRIBUTION, OSM_TILE_URL } from '@/lib/map-constants';
 import { map as mapRoute } from '@/routes/index';
@@ -32,7 +32,7 @@ type MapIncident = {
     reference: string;
     type: IncidentType | null;
     typeLabel: string | null;
-    severity: SeverityLevel | null;
+    alarm_level: AlarmLevel | null;
     barangay: string | null;
     latitude: number;
     longitude: number;
@@ -55,10 +55,10 @@ type Filters = {
     date_from: string;
     date_to: string;
     incident_type: string;
-    severity_level: string;
+    alarm_level: string;
 };
 
-type ColorBy = 'severity' | 'type';
+type ColorBy = 'alarm_level' | 'type';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -79,12 +79,12 @@ const TYPE_OPTIONS = [
     { label: 'Others', value: 'others' },
 ];
 
-const SEVERITY_OPTIONS = [
-    { label: 'All severities', value: 'all' },
-    { label: 'Critical', value: 'critical' },
-    { label: 'High', value: 'high' },
-    { label: 'Moderate', value: 'moderate' },
-    { label: 'Low', value: 'low' },
+const ALARM_LEVEL_OPTIONS = [
+    { label: 'All alarm levels', value: 'all' },
+    ...Object.entries(ALARM_LEVEL_CFG).map(([value, cfg]) => ({
+        label: cfg.label,
+        value,
+    })),
 ];
 
 const inputStyle = { borderColor: 'rgba(43,45,66,0.13)' };
@@ -105,8 +105,8 @@ const FALLBACK_COLOR = '#6B7A8D';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function markerColor(inc: MapIncident, colorBy: ColorBy): string {
-    if (colorBy === 'severity') {
-        return inc.severity ? (SEVERITY_MARKER_COLORS[inc.severity] ?? FALLBACK_COLOR) : FALLBACK_COLOR;
+    if (colorBy === 'alarm_level') {
+        return inc.alarm_level ? (ALARM_LEVEL_MARKER_COLORS[inc.alarm_level] ?? FALLBACK_COLOR) : FALLBACK_COLOR;
     }
     return inc.type ? (TYPE_CFG[inc.type]?.color ?? FALLBACK_COLOR) : FALLBACK_COLOR;
 }
@@ -121,12 +121,12 @@ function buildResultSummary(
         filters.incident_type !== 'all'
             ? (TYPE_CFG[filters.incident_type as IncidentType]?.label ?? null)
             : null;
-    const severityLabel =
-        filters.severity_level !== 'all'
-            ? (SEVERITY_CFG[filters.severity_level as SeverityLevel]?.label ?? null)
+    const alarmLevelLabel =
+        filters.alarm_level !== 'all'
+            ? (ALARM_LEVEL_CFG[filters.alarm_level as AlarmLevel]?.label ?? null)
             : null;
 
-    const qualifier = [severityLabel, typeLabel].filter(Boolean).join(' ');
+    const qualifier = [alarmLevelLabel, typeLabel].filter(Boolean).join(' ');
     const noun = qualifier ? `${qualifier} incident${count !== 1 ? 's' : ''}` : `incident${count !== 1 ? 's' : ''}`;
 
     return `${count} ${noun} · ${periodLabel}`;
@@ -147,7 +147,7 @@ export default function FireIncidentsMap({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [layers, setLayers] = useState({ pins: true, risk: true, station: true });
-    const [colorBy, setColorBy] = useState<ColorBy>('severity');
+    const [colorBy, setColorBy] = useState<ColorBy>('alarm_level');
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<Geometry, BarangayGeoProperties> | null>(null);
     const mapRef = useRef<L.Map | null>(null);
@@ -189,7 +189,7 @@ export default function FireIncidentsMap({
     const groupedCounts = useMemo(() => {
         const counts: Record<string, number> = {};
         for (const inc of incidents) {
-            const key = colorBy === 'severity' ? (inc.severity ?? 'unknown') : (inc.type ?? 'unknown');
+            const key = colorBy === 'alarm_level' ? (inc.alarm_level ?? 'unknown') : (inc.type ?? 'unknown');
             counts[key] = (counts[key] ?? 0) + 1;
         }
         return counts;
@@ -197,10 +197,10 @@ export default function FireIncidentsMap({
 
     // Legend entries driven by color-by
     const legendEntries = useMemo(() => {
-        if (colorBy === 'severity') {
-            return (['critical', 'high', 'moderate', 'low'] as SeverityLevel[])
+        if (colorBy === 'alarm_level') {
+            return (Object.keys(ALARM_LEVEL_CFG) as AlarmLevel[])
                 .filter((s) => groupedCounts[s] !== undefined)
-                .map((s) => ({ key: s, label: SEVERITY_CFG[s].label, color: SEVERITY_MARKER_COLORS[s] }));
+                .map((s) => ({ key: s, label: ALARM_LEVEL_CFG[s].label, color: ALARM_LEVEL_MARKER_COLORS[s] }));
         }
         return (Object.keys(TYPE_CFG) as IncidentType[])
             .filter((t) => groupedCounts[t] !== undefined)
@@ -223,8 +223,8 @@ export default function FireIncidentsMap({
         if (raw.incident_type && raw.incident_type !== 'all') {
             params.incident_type = raw.incident_type;
         }
-        if (raw.severity_level && raw.severity_level !== 'all') {
-            params.severity_level = raw.severity_level;
+        if (raw.alarm_level && raw.alarm_level !== 'all') {
+            params.alarm_level = raw.alarm_level;
         }
         router.get(mapRoute().url, params, { preserveState: true, replace: true });
     };
@@ -326,16 +326,16 @@ export default function FireIncidentsMap({
                             <ChevronDown size={11} className="pointer-events-none absolute right-1.5 text-brand-muted" />
                         </div>
 
-                        {/* Severity dropdown */}
+                        {/* Alarm Level dropdown */}
                         <div className="relative flex items-center">
                             <select
-                                id="map-severity-filter"
-                                value={filters.severity_level}
-                                onChange={(e) => navigate({ severity_level: e.target.value })}
+                                id="map-alarm-level-filter"
+                                value={filters.alarm_level}
+                                onChange={(e) => navigate({ alarm_level: e.target.value })}
                                 className={selectClass}
                                 style={inputStyle}
                             >
-                                {SEVERITY_OPTIONS.map((opt) => (
+                                {ALARM_LEVEL_OPTIONS.map((opt) => (
                                     <option key={opt.value} value={opt.value}>
                                         {opt.label}
                                     </option>
@@ -350,7 +350,7 @@ export default function FireIncidentsMap({
                         {/* Color-by toggle */}
                         <div className="flex items-center gap-1.5">
                             <span className="text-xs text-brand-muted">Color by:</span>
-                            {(['severity', 'type'] as ColorBy[]).map((opt) => (
+                            {(['alarm_level', 'type'] as ColorBy[]).map((opt) => (
                                 <button
                                     key={opt}
                                     id={`map-color-by-${opt}`}
@@ -361,7 +361,7 @@ export default function FireIncidentsMap({
                                         color: colorBy === opt ? '#fff' : '#6B7A8D',
                                     }}
                                 >
-                                    {opt}
+                                    {opt === 'alarm_level' ? 'Alarm Level' : 'Type'}
                                 </button>
                             ))}
                         </div>
@@ -391,12 +391,12 @@ export default function FireIncidentsMap({
                             >
                                 {Object.entries(groupedCounts).map(([key, count]) => {
                                     const color =
-                                        colorBy === 'severity'
-                                            ? (SEVERITY_MARKER_COLORS[key as SeverityLevel] ?? FALLBACK_COLOR)
+                                        colorBy === 'alarm_level'
+                                            ? (ALARM_LEVEL_MARKER_COLORS[key as AlarmLevel] ?? FALLBACK_COLOR)
                                             : (TYPE_CFG[key as IncidentType]?.color ?? FALLBACK_COLOR);
                                     const label =
-                                        colorBy === 'severity'
-                                            ? (SEVERITY_CFG[key as SeverityLevel]?.label ?? key)
+                                        colorBy === 'alarm_level'
+                                            ? (ALARM_LEVEL_CFG[key as AlarmLevel]?.label ?? key)
                                             : (TYPE_CFG[key as IncidentType]?.label ?? key);
                                     return (
                                         <div key={key} className="flex items-center gap-1">
@@ -445,7 +445,7 @@ export default function FireIncidentsMap({
                                                     {inc.barangay ?? '—'}
                                                 </p>
                                             </div>
-                                            {inc.severity && <SeverityBadge severity={inc.severity} />}
+                                            {inc.alarm_level && <AlarmLevelBadge alarmLevel={inc.alarm_level} />}
                                         </div>
                                     </div>
                                 ))}
@@ -565,11 +565,11 @@ export default function FireIncidentsMap({
                                                     <p className="text-sm font-semibold">
                                                         {inc.typeLabel ?? 'Unclassified'}
                                                     </p>
-                                                    {inc.severity && (
+                                                    {inc.alarm_level && (
                                                         <p className="text-xs capitalize text-gray-600">
-                                                            Severity:{' '}
-                                                            <span style={{ color: SEVERITY_MARKER_COLORS[inc.severity] }}>
-                                                                {inc.severity}
+                                                            Alarm Level:{' '}
+                                                            <span style={{ color: ALARM_LEVEL_MARKER_COLORS[inc.alarm_level] }}>
+                                                                {ALARM_LEVEL_CFG[inc.alarm_level]?.label ?? inc.alarm_level}
                                                             </span>
                                                         </p>
                                                     )}
@@ -590,22 +590,49 @@ export default function FireIncidentsMap({
                             </MapContainer>
 
                             {/* Dynamic legend */}
-                            {legendEntries.length > 0 && (
-                                <div className="absolute bottom-3 left-3 z-[1000] space-y-1.5 rounded-lg bg-white/95 px-3 py-2 shadow">
-                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-muted">
-                                        {colorBy === 'severity' ? 'Severity' : 'Type'}
-                                    </p>
-                                    <div className="flex flex-col gap-1">
-                                        {legendEntries.map((entry) => (
-                                            <div key={entry.key} className="flex items-center gap-1.5">
-                                                <span
-                                                    className="size-2 rounded-full"
-                                                    style={{ background: entry.color }}
-                                                />
-                                                <span className="text-xs text-brand-muted">{entry.label}</span>
+                            {(legendEntries.length > 0 || layers.risk) && (
+                                <div className="absolute bottom-3 left-3 z-[1000] space-y-2 rounded-lg bg-white/95 px-3 py-2 shadow">
+                                    {legendEntries.length > 0 && (
+                                        <div className="space-y-1.5">
+                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-muted">
+                                                {colorBy === 'alarm_level' ? 'Alarm Level' : 'Type'}
+                                            </p>
+                                            <div className="flex flex-col gap-1">
+                                                {legendEntries.map((entry) => (
+                                                    <div key={entry.key} className="flex items-center gap-1.5">
+                                                        <span
+                                                            className="size-2 rounded-full"
+                                                            style={{ background: entry.color }}
+                                                        />
+                                                        <span className="text-xs text-brand-muted">{entry.label}</span>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    )}
+                                    {layers.risk && (
+                                        <div
+                                            className={legendEntries.length > 0 ? 'border-t pt-2 space-y-1.5' : 'space-y-1.5'}
+                                            style={legendEntries.length > 0 ? { borderColor: 'rgba(43,45,66,0.1)' } : undefined}
+                                        >
+                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-muted">
+                                                Barangay Risk
+                                            </p>
+                                            <div className="flex flex-col gap-1">
+                                                {(['high', 'moderate', 'mild'] as const).map((lvl) => (
+                                                    <div key={lvl} className="flex items-center gap-1.5">
+                                                        <span
+                                                            className="size-2 rounded-full"
+                                                            style={{ background: RISK_CFG[lvl].color }}
+                                                        />
+                                                        <span className="text-xs text-brand-muted">
+                                                            {RISK_CFG[lvl].label}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -617,7 +644,7 @@ export default function FireIncidentsMap({
                                             No resolved incidents found
                                         </p>
                                         <p className="mt-1 text-xs text-brand-muted">
-                                            Try a different period, type, or severity.
+                                            Try a different period, type, or alarm level.
                                         </p>
                                     </div>
                                 </div>

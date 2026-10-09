@@ -25,11 +25,20 @@ const INCIDENT_TYPES = [
     { value: 'others', label: 'Others' },
 ];
 
-const SEVERITY_LEVELS = [
-    { value: 'low', label: 'Low' },
-    { value: 'moderate', label: 'Moderate' },
-    { value: 'high', label: 'High' },
-    { value: 'critical', label: 'Critical' },
+const ALARM_LEVELS = [
+    { value: '1st_alarm', label: '1st Alarm' },
+    { value: '2nd_alarm', label: '2nd Alarm' },
+    { value: '3rd_alarm', label: '3rd Alarm' },
+    { value: '4th_alarm', label: '4th Alarm' },
+    { value: '5th_alarm', label: '5th Alarm' },
+    { value: 'task_force_alpha', label: 'Task Force Alpha' },
+    { value: 'task_force_bravo', label: 'Task Force Bravo' },
+    { value: 'task_force_charlie', label: 'Task Force Charlie' },
+    { value: 'task_force_delta', label: 'Task Force Delta' },
+    { value: 'task_force_echo', label: 'Task Force Echo' },
+    { value: 'task_force_hotel', label: 'Task Force Hotel' },
+    { value: 'task_force_india', label: 'Task Force India' },
+    { value: 'general_alarm', label: 'General Alarm' },
 ];
 
 export function EditDetailsModal({
@@ -43,7 +52,7 @@ export function EditDetailsModal({
     onOpenChange: (open: boolean) => void;
     initialValues: {
         incident_type: string | null;
-        severity_level: string | null;
+        alarm_level: string | null;
         cause_of_fire: string | null;
         casualties: number | null;
         notes: string | null;
@@ -52,7 +61,7 @@ export function EditDetailsModal({
     const { data, setData, patch, processing, errors, reset, clearErrors } =
         useForm({
             incident_type: initialValues.incident_type ?? '',
-            severity_level: initialValues.severity_level ?? '',
+            alarm_level: initialValues.alarm_level ?? '',
             cause_of_fire: initialValues.cause_of_fire ?? '',
             casualties: initialValues.casualties !== null && initialValues.casualties !== undefined
                 ? initialValues.casualties.toString()
@@ -64,7 +73,7 @@ export function EditDetailsModal({
         if (open) {
             setData({
                 incident_type: initialValues.incident_type ?? '',
-                severity_level: initialValues.severity_level ?? '',
+                alarm_level: initialValues.alarm_level ?? '',
                 cause_of_fire: initialValues.cause_of_fire ?? '',
                 casualties: initialValues.casualties !== null && initialValues.casualties !== undefined
                     ? initialValues.casualties.toString()
@@ -137,30 +146,30 @@ export function EditDetailsModal({
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label>Severity</Label>
+                            <Label>Alarm Level</Label>
                             <Select
-                                value={data.severity_level}
+                                value={data.alarm_level}
                                 onValueChange={(v) =>
-                                    setData('severity_level', v)
+                                    setData('alarm_level', v)
                                 }
                             >
                                 <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select severity" />
+                                    <SelectValue placeholder="Select alarm level" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-white text-brand-navy">
-                                    {SEVERITY_LEVELS.map((s) => (
+                                    {ALARM_LEVELS.map((a) => (
                                         <SelectItem
-                                            key={s.value}
-                                            value={s.value}
+                                            key={a.value}
+                                            value={a.value}
                                         >
-                                            {s.label}
+                                            {a.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.severity_level && (
+                            {errors.alarm_level && (
                                 <p className="text-xs text-brand-red">
-                                    {errors.severity_level}
+                                    {errors.alarm_level}
                                 </p>
                             )}
                         </div>
@@ -233,7 +242,7 @@ export function EditDetailsModal({
                             disabled={
                                 processing ||
                                 !data.incident_type ||
-                                !data.severity_level
+                                !data.alarm_level
                             }
                             className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                             style={{ background: '#1D3557' }}

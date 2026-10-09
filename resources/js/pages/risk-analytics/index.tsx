@@ -36,11 +36,10 @@ type FrequencyRow = { barangay_name: string; incidentCount: number; risk_level: 
 /**
  * Legend tiers for the Risk Map.
  */
-const LEGEND: { level: RiskLevel; label: string; range: string }[] = [
-    { level: 'critical', label: 'Critical', range: '80+' },
-    { level: 'high', label: 'High', range: '60–79' },
-    { level: 'moderate', label: 'Moderate', range: '40–59' },
-    { level: 'low', label: 'Low', range: '<40' },
+const LEGEND: { level: RiskLevel; label: string; bfpRange: string; scoreRange: string }[] = [
+    { level: 'high', label: 'High', bfpRange: '11+', scoreRange: '70–100' },
+    { level: 'moderate', label: 'Moderate', bfpRange: '6–10', scoreRange: '40–69' },
+    { level: 'mild', label: 'Mild', bfpRange: '1–5', scoreRange: '0–39' },
 ];
 
 const stationIcon = L.divIcon({
@@ -116,7 +115,7 @@ export default function RiskAnalytics({
                                             style={{ background: RISK_CFG[item.level].color }}
                                         />
                                         <span className="text-xs text-brand-muted">
-                                            {item.label} ({item.range})
+                                            {item.label} · {item.bfpRange} ({item.scoreRange})
                                         </span>
                                     </div>
                                 ))}

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AlarmLevel;
 use App\Models\BfpPersonnelDetails;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
@@ -341,7 +342,7 @@ class IncidentReportSeeder extends Seeder
             'barangay_id' => $d1->barangay_id,
             'incident_datetime' => $d1->created_at,
             'incident_type' => 'storage_fire',
-            'severity_level' => 'critical',
+            'alarm_level' => '5th_alarm',
             'cause_of_fire' => 'Under active investigation; suspected chemical solvent ignition',
             'casualties' => 0,
             'notes' => 'Mutual aid tanker requested from Nasugbu BFP. Active suppression ongoing.',
@@ -444,7 +445,7 @@ class IncidentReportSeeder extends Seeder
             'barangay_id' => $rToday->barangay_id,
             'incident_datetime' => $rToday->updated_at,
             'incident_type' => 'residential_fire',
-            'severity_level' => 'moderate',
+            'alarm_level' => '2nd_alarm',
             'cause_of_fire' => 'Damaged LPG regulator hose connection ignited by pilot burner',
             'casualties' => 0,
             'notes' => 'Confined to dirty kitchen area. No structural damage to main house.',
@@ -502,7 +503,7 @@ class IncidentReportSeeder extends Seeder
             'barangay_id' => $rYest->barangay_id,
             'incident_datetime' => $rYest->updated_at,
             'incident_type' => 'commercial_fire',
-            'severity_level' => 'moderate',
+            'alarm_level' => '2nd_alarm',
             'cause_of_fire' => 'Overheated commercial refrigeration compressor motor',
             'casualties' => 0,
             'notes' => 'Stock in inventory backroom protected by quick response salvage operations.',
@@ -594,7 +595,7 @@ class IncidentReportSeeder extends Seeder
             'barangay_id' => $rW1->barangay_id,
             'incident_datetime' => $rW1->updated_at,
             'incident_type' => 'vehicular_fire',
-            'severity_level' => 'low',
+            'alarm_level' => '1st_alarm',
             'cause_of_fire' => 'Alternator electrical short circuit ignited leaking motor oil',
             'casualties' => 0,
             'notes' => 'Driver and all 4 passengers evacuated without injuries.',
@@ -652,7 +653,7 @@ class IncidentReportSeeder extends Seeder
             'barangay_id' => $rW2->barangay_id,
             'incident_datetime' => $rW2->updated_at,
             'incident_type' => 'rubbish_fire',
-            'severity_level' => 'low',
+            'alarm_level' => '1st_alarm',
             'cause_of_fire' => 'Discarded lighted cigarette butt ignited dry cogon grass along roadside',
             'casualties' => 0,
             'notes' => 'Area secured. No residential damage.',
@@ -662,47 +663,47 @@ class IncidentReportSeeder extends Seeder
         // Detailed realistic fire scenarios in Lian, Batangas
         $scenarios = [
             'residential_fire' => [
-                ['desc' => 'Two-storey wooden residential home caught fire in bedroom ceiling area.', 'cause' => 'Electrical short circuit from overloaded extension cord in second-floor bedroom', 'sev' => 'high'],
-                ['desc' => 'Fire broke out in residential kitchen while boiling cooking oil.', 'cause' => 'Unattended cooking pot ignited nearby vinyl wall covering and cabinets', 'sev' => 'moderate'],
-                ['desc' => 'Residential single-detached house caught fire during power restoration.', 'cause' => 'Voltage power surge ignited aged knob-and-tube electrical wiring in attic', 'sev' => 'high'],
-                ['desc' => 'Lighted candle left burning during evening power brownout ignited curtains.', 'cause' => 'Unattended candle fell onto fabric window drapery', 'sev' => 'moderate'],
-                ['desc' => 'Overheated floor fan motor ignited living room carpet and sofa foam.', 'cause' => 'Defective electric fan motor with seized bearings overheated and melted plastic housing', 'sev' => 'low'],
-                ['desc' => 'Kitchen fire spreading rapidly across wood-and-concrete residential structure.', 'cause' => 'LPG stove regulator leak ignited by spark from refrigerator relay', 'sev' => 'high'],
-                ['desc' => 'Substandard electrical jumper wire caught fire along roof eaves.', 'cause' => 'Overheated illegal electrical connection caused insulation melting and spark ignition', 'sev' => 'critical'],
-                ['desc' => 'Residential garage workshop fire ignited by battery charger.', 'cause' => 'Short circuit in lithium motorcycle battery charger left connected overnight', 'sev' => 'moderate'],
+                ['desc' => 'Two-storey wooden residential home caught fire in bedroom ceiling area.', 'cause' => 'Electrical short circuit from overloaded extension cord in second-floor bedroom', 'alarm_level' => '3rd_alarm'],
+                ['desc' => 'Fire broke out in residential kitchen while boiling cooking oil.', 'cause' => 'Unattended cooking pot ignited nearby vinyl wall covering and cabinets', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Residential single-detached house caught fire during power restoration.', 'cause' => 'Voltage power surge ignited aged knob-and-tube electrical wiring in attic', 'alarm_level' => '4th_alarm'],
+                ['desc' => 'Lighted candle left burning during evening power brownout ignited curtains.', 'cause' => 'Unattended candle fell onto fabric window drapery', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Overheated floor fan motor ignited living room carpet and sofa foam.', 'cause' => 'Defective electric fan motor with seized bearings overheated and melted plastic housing', 'alarm_level' => '1st_alarm'],
+                ['desc' => 'Kitchen fire spreading rapidly across wood-and-concrete residential structure.', 'cause' => 'LPG stove regulator leak ignited by spark from refrigerator relay', 'alarm_level' => '5th_alarm'],
+                ['desc' => 'Substandard electrical jumper wire caught fire along roof eaves.', 'cause' => 'Overheated illegal electrical connection caused insulation melting and spark ignition', 'alarm_level' => 'task_force_alpha'],
+                ['desc' => 'Residential garage workshop fire ignited by battery charger.', 'cause' => 'Short circuit in lithium motorcycle battery charger left connected overnight', 'alarm_level' => '2nd_alarm'],
             ],
             'commercial_fire' => [
-                ['desc' => 'Commercial restaurant exhaust duct fire with heavy grease accumulation.', 'cause' => 'Grease buildup in commercial kitchen exhaust hood ignited by cooking flames', 'sev' => 'high'],
-                ['desc' => 'Electrical fire inside retail grocery store along national road.', 'cause' => 'Loose wire terminal connection on main distribution panel overheated and ignited plywood backing', 'sev' => 'moderate'],
-                ['desc' => 'Bakery flour and cardboard packaging fire behind commercial oven.', 'cause' => 'Radiant heat from commercial brick oven ignited adjacent dry cardboard packaging stacks', 'sev' => 'moderate'],
-                ['desc' => 'Motorcycle repair shop fire sparked during fuel tank draining.', 'cause' => 'Sparks from angle grinder ignited open pan of drained gasoline and solvent', 'sev' => 'critical'],
-                ['desc' => 'Commercial beach resort pavilion electrical fire.', 'cause' => 'Moisture ingress into coastal electrical junction box caused phase-to-phase arcing', 'sev' => 'moderate'],
-                ['desc' => 'Hardware store paint section fire.', 'cause' => 'Leaking aerosol lacquer spray punctured and ignited by electrical spark', 'sev' => 'critical'],
+                ['desc' => 'Commercial restaurant exhaust duct fire with heavy grease accumulation.', 'cause' => 'Grease buildup in commercial kitchen exhaust hood ignited by cooking flames', 'alarm_level' => '4th_alarm'],
+                ['desc' => 'Electrical fire inside retail grocery store along national road.', 'cause' => 'Loose wire terminal connection on main distribution panel overheated and ignited plywood backing', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Bakery flour and cardboard packaging fire behind commercial oven.', 'cause' => 'Radiant heat from commercial brick oven ignited adjacent dry cardboard packaging stacks', 'alarm_level' => '3rd_alarm'],
+                ['desc' => 'Motorcycle repair shop fire sparked during fuel tank draining.', 'cause' => 'Sparks from angle grinder ignited open pan of drained gasoline and solvent', 'alarm_level' => 'task_force_bravo'],
+                ['desc' => 'Commercial beach resort pavilion electrical fire.', 'cause' => 'Moisture ingress into coastal electrical junction box caused phase-to-phase arcing', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Hardware store paint section fire.', 'cause' => 'Leaking aerosol lacquer spray punctured and ignited by electrical spark', 'alarm_level' => 'general_alarm'],
             ],
             'vehicular_fire' => [
-                ['desc' => 'Passenger jeepney engine bay fire while travelling on highway.', 'cause' => 'Ruptured fuel line sprayed gasoline onto hot exhaust manifold', 'sev' => 'moderate'],
-                ['desc' => 'Commercial delivery truck rear brake and tire fire.', 'cause' => 'Binding brake shoe overheated during steep descent, igniting dual rear tires', 'sev' => 'moderate'],
-                ['desc' => 'Delivery van caught fire while idling along roadside.', 'cause' => 'Severe electrical short circuit in battery main cable', 'sev' => 'low'],
-                ['desc' => 'Agricultural tractor fire during sugarcane harvesting.', 'cause' => 'Accumulated dry sugarcane trash around exhaust pipe ignited during heavy field operation', 'sev' => 'low'],
-                ['desc' => 'Private passenger car engine fire in commercial parking lot.', 'cause' => 'Faulty aftermarket electrical amplifier wiring ignited engine cowl insulation', 'sev' => 'low'],
+                ['desc' => 'Passenger jeepney engine bay fire while travelling on highway.', 'cause' => 'Ruptured fuel line sprayed gasoline onto hot exhaust manifold', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Commercial delivery truck rear brake and tire fire.', 'cause' => 'Binding brake shoe overheated during steep descent, igniting dual rear tires', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Delivery van caught fire while idling along roadside.', 'cause' => 'Severe electrical short circuit in battery main cable', 'alarm_level' => '1st_alarm'],
+                ['desc' => 'Agricultural tractor fire during sugarcane harvesting.', 'cause' => 'Accumulated dry sugarcane trash around exhaust pipe ignited during heavy field operation', 'alarm_level' => '1st_alarm'],
+                ['desc' => 'Private passenger car engine fire in commercial parking lot.', 'cause' => 'Faulty aftermarket electrical amplifier wiring ignited engine cowl insulation', 'alarm_level' => '1st_alarm'],
             ],
             'storage_fire' => [
-                ['desc' => 'Commercial bodega pallet and inventory storage fire.', 'cause' => 'High-intensity halogen flood lamp positioned too close to wooden shipping pallets', 'sev' => 'high'],
-                ['desc' => 'Agricultural feed and grain warehouse fire.', 'cause' => 'Spontaneous heating and combustion in damp stored copra and animal feeds', 'sev' => 'moderate'],
-                ['desc' => 'Solvent and paint storage shed caught fire in commercial compound.', 'cause' => 'Vapor buildup in unventilated storage room ignited by electrical light switch spark', 'sev' => 'critical'],
-                ['desc' => 'Dry lumber storage facility fire along municipal boundary.', 'cause' => 'Lightning strike ignited dry timber framing and stored dressed lumber', 'sev' => 'high'],
+                ['desc' => 'Commercial bodega pallet and inventory storage fire.', 'cause' => 'High-intensity halogen flood lamp positioned too close to wooden shipping pallets', 'alarm_level' => '4th_alarm'],
+                ['desc' => 'Agricultural feed and grain warehouse fire.', 'cause' => 'Spontaneous heating and combustion in damp stored copra and animal feeds', 'alarm_level' => '3rd_alarm'],
+                ['desc' => 'Solvent and paint storage shed caught fire in commercial compound.', 'cause' => 'Vapor buildup in unventilated storage room ignited by electrical light switch spark', 'alarm_level' => 'task_force_charlie'],
+                ['desc' => 'Dry lumber storage facility fire along municipal boundary.', 'cause' => 'Lightning strike ignited dry timber framing and stored dressed lumber', 'alarm_level' => '5th_alarm'],
             ],
             'rubbish_fire' => [
-                ['desc' => 'Uncontrolled agricultural sugarcane field trash burning (kaingin) spreading rapidly.', 'cause' => 'Agricultural field clearing fire got out of hand due to sudden strong coastal wind gusts', 'sev' => 'moderate'],
-                ['desc' => 'Dry grass and cogon wildfire spreading along highway road shoulder.', 'cause' => 'Lighted cigarette butt thrown out of passing vehicle into parched roadside brush', 'sev' => 'low'],
-                ['desc' => 'Backyard leaf burning (siga) spread to boundary bamboo fence.', 'cause' => 'Unattended burning pile of dry mango leaves and twigs caught nearby timber structure', 'sev' => 'low'],
-                ['desc' => 'Vacant lot rubbish fire threatening adjacent residential properties.', 'cause' => 'Spontaneous combustion of decomposing household waste and glass bottles under direct sunlight', 'sev' => 'low'],
-                ['desc' => 'Brush fire spreading across vacant subdivision lots.', 'cause' => 'Open bonfire embers carried by wind into dry scrub vegetation', 'sev' => 'low'],
+                ['desc' => 'Uncontrolled agricultural sugarcane field trash burning (kaingin) spreading rapidly.', 'cause' => 'Agricultural field clearing fire got out of hand due to sudden strong coastal wind gusts', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Dry grass and cogon wildfire spreading along highway road shoulder.', 'cause' => 'Lighted cigarette butt thrown out of passing vehicle into parched roadside brush', 'alarm_level' => '1st_alarm'],
+                ['desc' => 'Backyard leaf burning (siga) spread to boundary bamboo fence.', 'cause' => 'Unattended burning pile of dry mango leaves and twigs caught nearby timber structure', 'alarm_level' => '1st_alarm'],
+                ['desc' => 'Vacant lot rubbish fire threatening adjacent residential properties.', 'cause' => 'Spontaneous combustion of decomposing household waste and glass bottles under direct sunlight', 'alarm_level' => '1st_alarm'],
+                ['desc' => 'Brush fire spreading across vacant subdivision lots.', 'cause' => 'Open bonfire embers carried by wind into dry scrub vegetation', 'alarm_level' => '1st_alarm'],
             ],
             'others' => [
-                ['desc' => 'Downed utility line sparking and burning on tree branches and zinc fence.', 'cause' => 'Tree branch fell onto 220V electric service lines, creating sustained electrical arc', 'sev' => 'low'],
-                ['desc' => 'Distribution transformer pole fire with leaking burning insulating oil.', 'cause' => 'Lightning-induced dielectric breakdown of transformer windings', 'sev' => 'moderate'],
-                ['desc' => 'Electrical service drop cable catching fire along public street.', 'cause' => 'Overheated secondary distribution drop wire caused by illegal consumer taps', 'sev' => 'low'],
+                ['desc' => 'Downed utility line sparking and burning on tree branches and zinc fence.', 'cause' => 'Tree branch fell onto 220V electric service lines, creating sustained electrical arc', 'alarm_level' => '1st_alarm'],
+                ['desc' => 'Distribution transformer pole fire with leaking burning insulating oil.', 'cause' => 'Lightning-induced dielectric breakdown of transformer windings', 'alarm_level' => '2nd_alarm'],
+                ['desc' => 'Electrical service drop cable catching fire along public street.', 'cause' => 'Overheated secondary distribution drop wire caused by illegal consumer taps', 'alarm_level' => '1st_alarm'],
             ],
         ];
 
@@ -844,13 +845,13 @@ class IncidentReportSeeder extends Seeder
                 ]);
 
                 // IncidentRecord
-                $casualties = ($scenario['sev'] === 'critical' && $k % 4 === 0) ? 1 : 0;
+                $casualties = (in_array($scenario['alarm_level'], AlarmLevel::criticalValues(), true) && $k % 4 === 0) ? 1 : 0;
                 IncidentRecord::create([
                     'report_id' => $report->report_id,
                     'barangay_id' => $barangayId,
                     'incident_datetime' => $report->updated_at,
                     'incident_type' => $type,
-                    'severity_level' => $scenario['sev'],
+                    'alarm_level' => $scenario['alarm_level'],
                     'cause_of_fire' => $scenario['cause'],
                     'casualties' => $casualties,
                     'notes' => "Incident declared completely out after {$report->created_at->diffInMinutes($report->updated_at)} minutes of operations. Property damage assessment filed.",

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AlarmLevel;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Support\BarangayRiskSnapshot;
@@ -64,7 +65,7 @@ class DashboardController extends Controller
         $activeComparison = ($activeDelta > 0 ? "+{$activeDelta}" : (string) $activeDelta).' since yesterday';
 
         $dispatchedCount = CommunityReport::where('status', CommunityReport::STATUS_DISPATCHED)->count();
-        $criticalActiveCount = IncidentRecord::where('severity_level', 'critical')
+        $criticalActiveCount = IncidentRecord::whereIn('alarm_level', AlarmLevel::criticalValues())
             ->whereHas('report', fn ($q) => $q->whereIn('status', $activeStatuses))
             ->count();
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RiskLevel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -22,31 +23,12 @@ class RiskAssessment extends Model
         return [
             'date' => 'date',
             'prediction_score' => 'decimal:4',
+            'risk_level' => RiskLevel::class,
         ];
     }
 
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
-    }
-
-    /**
-     * Normalizes legacy `severe` to canonical `critical` when reading risk_level.
-     */
-    public function getRiskLevelAttribute(mixed $value): ?string
-    {
-        if ($value === 'severe') {
-            return 'critical';
-        }
-
-        return $value;
-    }
-
-    /**
-     * Normalizes legacy `severe` to canonical `critical` when writing risk_level.
-     */
-    public function setRiskLevelAttribute(mixed $value): void
-    {
-        $this->attributes['risk_level'] = $value === 'severe' ? 'critical' : $value;
     }
 }

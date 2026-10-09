@@ -1,6 +1,6 @@
 import {
     STATUS_CFG,
-    SEVERITY_CFG,
+    ALARM_LEVEL_CFG,
     RISK_CFG,
     ANNOUNCEMENT_CFG,
     ROLE_CFG,
@@ -10,7 +10,7 @@ import {
 } from '@/lib/fire-status';
 import type {
     ReportStatus,
-    SeverityLevel,
+    AlarmLevel,
     RiskLevel,
     AnnouncementType,
     PersonnelRole,
@@ -35,8 +35,16 @@ export function StatusBadge({ status }: { status: ReportStatus }) {
     );
 }
 
-export function SeverityBadge({ severity }: { severity: SeverityLevel }) {
-    const cfg = SEVERITY_CFG[severity];
+export function AlarmLevelBadge({ alarmLevel }: { alarmLevel: AlarmLevel }) {
+    const cfg = ALARM_LEVEL_CFG[alarmLevel];
+
+    if (!cfg) {
+        return (
+            <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700">
+                {alarmLevel}
+            </span>
+        );
+    }
 
     return (
         <span
@@ -50,6 +58,14 @@ export function SeverityBadge({ severity }: { severity: SeverityLevel }) {
 
 export function RiskBadge({ level }: { level: RiskLevel }) {
     const cfg = RISK_CFG[level];
+
+    if (!cfg) {
+        return (
+            <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700">
+                {level}
+            </span>
+        );
+    }
 
     return (
         <span

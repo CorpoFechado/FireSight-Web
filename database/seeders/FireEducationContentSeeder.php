@@ -62,7 +62,7 @@ class FireEducationContentSeeder extends Seeder
             'content_id' => 5,
             'title' => 'Understanding Barangay Fire Risk Levels',
             'category' => 'awareness',
-            'summary' => 'How FireSight calculates Low, Moderate, and High risk levels for your barangay.',
+            'summary' => 'How FireSight calculates Mild, Moderate, and High risk levels for your barangay.',
             'body' => 'Risk levels are generated from historical incident data and demographic density, helping residents understand why their barangay is flagged at a particular risk level.',
             'image_path' => null,
             'read_minutes' => 4,

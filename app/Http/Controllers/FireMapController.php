@@ -33,7 +33,21 @@ class FireMapController extends Controller
     ];
 
     /** @var list<string> */
-    private const VALID_SEVERITIES = ['low', 'moderate', 'high', 'critical'];
+    private const VALID_ALARM_LEVELS = [
+        '1st_alarm',
+        '2nd_alarm',
+        '3rd_alarm',
+        '4th_alarm',
+        '5th_alarm',
+        'task_force_alpha',
+        'task_force_bravo',
+        'task_force_charlie',
+        'task_force_delta',
+        'task_force_echo',
+        'task_force_hotel',
+        'task_force_india',
+        'general_alarm',
+    ];
 
     public function index(Request $request): Response
     {
@@ -50,16 +64,16 @@ class FireMapController extends Controller
 
         [$rangeStart, $rangeEnd] = DateRange::resolve($period, $dateFrom, $dateTo, $now);
 
-        // ── Type / severity filters ─────────────────────────────────────────
+        // ── Type / alarm level filters ──────────────────────────────────────
         // Any value not in the whitelist (including '' or 'all') means no filter.
         $incidentType = $request->string('incident_type')->trim()->value();
         if (! in_array($incidentType, self::VALID_TYPES, true)) {
             $incidentType = 'all';
         }
 
-        $severityLevel = $request->string('severity_level')->trim()->value();
-        if (! in_array($severityLevel, self::VALID_SEVERITIES, true)) {
-            $severityLevel = 'all';
+        $alarmLevel = $request->string('alarm_level')->trim()->value();
+        if (! in_array($alarmLevel, self::VALID_ALARM_LEVELS, true)) {
+            $alarmLevel = 'all';
         }
 
         // ── Query ───────────────────────────────────────────────────────────
@@ -72,8 +86,8 @@ class FireMapController extends Controller
                 fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('incident_type', $incidentType))
             )
             ->when(
-                $severityLevel !== 'all',
-                fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('severity_level', $severityLevel))
+                $alarmLevel !== 'all',
+                fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('alarm_level', $alarmLevel))
             )
             ->with('incidentRecord.barangay')
             ->orderByDesc('created_at')
@@ -83,7 +97,7 @@ class FireMapController extends Controller
                 'reference' => sprintf('INC-%s-%04d', $report->created_at->format('Y'), $report->report_id),
                 'type' => $report->incidentRecord?->incident_type,
                 'typeLabel' => AnalyticsController::TYPE_LABELS[$report->incidentRecord?->incident_type ?? ''] ?? null,
-                'severity' => $report->incidentRecord?->severity_level,
+                'alarm_level' => $report->incidentRecord?->alarm_level?->value ?? $report->incidentRecord?->alarm_level,
                 'barangay' => $report->incidentRecord?->barangay?->barangay_name,
                 'latitude' => (float) $report->latitude,
                 'longitude' => (float) $report->longitude,
@@ -99,7 +113,7 @@ class FireMapController extends Controller
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
                 'incident_type' => $incidentType,
-                'severity_level' => $severityLevel,
+                'alarm_level' => $alarmLevel,
             ],
         ]);
     }

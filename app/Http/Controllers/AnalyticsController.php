@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AlarmLevel;
 use App\Models\IncidentRecord;
 use App\Support\DateRange;
 use Carbon\CarbonInterface;
@@ -33,11 +34,20 @@ class AnalyticsController extends Controller
     ];
 
     /** @var array<string, string> */
-    public const SEVERITY_COLORS = [
-        'critical' => '#1D3557',
-        'high' => '#205B67',
-        'moderate' => '#2A9D8F',
-        'low' => '#62C5B5',
+    public const ALARM_LEVEL_COLORS = [
+        '1st_alarm' => '#34D399',
+        '2nd_alarm' => '#10B981',
+        '3rd_alarm' => '#FBBF24',
+        '4th_alarm' => '#F59E0B',
+        '5th_alarm' => '#F97316',
+        'task_force_alpha' => '#EA580C',
+        'task_force_bravo' => '#EF4444',
+        'task_force_charlie' => '#DC2626',
+        'task_force_delta' => '#B91C1C',
+        'task_force_echo' => '#991B1B',
+        'task_force_hotel' => '#BE123C',
+        'task_force_india' => '#9F1239',
+        'general_alarm' => '#881337',
     ];
 
     public function index(Request $request): Response
@@ -65,7 +75,7 @@ class AnalyticsController extends Controller
         return Inertia::render('analytics/index', [
             'incidentsByType' => $this->incidentsByType($rangeStart, $rangeEnd),
             'monthlyTrend' => $this->monthlyTrend($trendYear, $now),
-            'incidentsBySeverity' => $this->incidentsBySeverity($rangeStart, $rangeEnd),
+            'incidentsByAlarmLevel' => $this->incidentsByAlarmLevel($rangeStart, $rangeEnd),
             'barangaysWithMostIncidents' => $this->barangaysWithMostIncidents($rangeStart, $rangeEnd),
             'periodLabel' => DateRange::label($period, $rangeStart, $rangeEnd, $now),
             'filters' => [
@@ -136,25 +146,25 @@ class AnalyticsController extends Controller
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function incidentsBySeverity(
+    private function incidentsByAlarmLevel(
         CarbonInterface $start,
         CarbonInterface $end,
     ): array {
-        // severity_level is only recorded once an incident is marked
-        // Complete (post-assessment), so exclude the still-unassessed rows.
+        // alarm_level is only recorded once an incident is marked
+        // Resolved (post-assessment), so exclude the still-unassessed rows.
         $counts = IncidentRecord::query()
-            ->whereNotNull('severity_level')
+            ->whereNotNull('alarm_level')
             ->whereBetween('incident_datetime', [$start, $end])
-            ->selectRaw('severity_level, count(*) as total')
-            ->groupBy('severity_level')
-            ->pluck('total', 'severity_level');
+            ->selectRaw('alarm_level, count(*) as total')
+            ->groupBy('alarm_level')
+            ->pluck('total', 'alarm_level');
 
-        return collect(['critical', 'high', 'moderate', 'low'])
-            ->map(fn (string $level) => [
-                'level' => $level,
-                'label' => ucfirst($level),
-                'count' => (int) ($counts[$level] ?? 0),
-                'color' => self::SEVERITY_COLORS[$level],
+        return collect(AlarmLevel::cases())
+            ->map(fn (AlarmLevel $level) => [
+                'level' => $level->value,
+                'label' => $level->label(),
+                'count' => (int) ($counts[$level->value] ?? 0),
+                'color' => self::ALARM_LEVEL_COLORS[$level->value] ?? '#6B7A8D',
             ])
             ->all();
     }

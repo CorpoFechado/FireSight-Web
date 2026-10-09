@@ -13,7 +13,7 @@ export function IncidentActions({
     status: ReportStatus;
     assessmentValues?: {
         incident_type: string | null;
-        severity_level: string | null;
+        alarm_level: string | null;
         cause_of_fire: string | null;
         casualties: number | null;
         notes: string | null;

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\CommunityReport;
+use App\Models\IncidentRecord;
 use App\Models\ReportStatusHistory;
 use App\Models\User;
 
@@ -205,5 +206,80 @@ test('dashboard kpis handle edge cases when pending is empty or less than 1 hour
     $response2->assertOk();
     $response2->assertInertia(fn ($page) => $page
         ->where('kpis.pendingComparison', 'Oldest waiting <1h')
+    );
+});
+
+test('dashboard accurately counts critical active incidents for 5th alarm, task force, and general alarm', function () {
+    $user = User::factory()->bfpAdmin()->create();
+    $resident = User::factory()->create();
+    $this->actingAs($user);
+
+    $base = [
+        'user_id' => $resident->id,
+        'reporter_name' => 'Citizen Reporter',
+        'contact_number' => '09123456789',
+        'description' => 'Fire test',
+        'latitude' => 13.95,
+        'longitude' => 120.65,
+    ];
+
+    // Active (dispatched) with 1st alarm -> not critical
+    $rep1 = CommunityReport::create(array_merge($base, ['status' => CommunityReport::STATUS_DISPATCHED]));
+    IncidentRecord::create([
+        'report_id' => $rep1->report_id,
+        'incident_datetime' => now(),
+        'incident_type' => 'residential_fire',
+        'alarm_level' => '1st_alarm',
+    ]);
+
+    // Active (dispatched) with 3rd alarm -> not critical
+    $rep2 = CommunityReport::create(array_merge($base, ['status' => CommunityReport::STATUS_DISPATCHED]));
+    IncidentRecord::create([
+        'report_id' => $rep2->report_id,
+        'incident_datetime' => now(),
+        'incident_type' => 'residential_fire',
+        'alarm_level' => '3rd_alarm',
+    ]);
+
+    // Active (dispatched) with 5th alarm -> critical!
+    $rep3 = CommunityReport::create(array_merge($base, ['status' => CommunityReport::STATUS_DISPATCHED]));
+    IncidentRecord::create([
+        'report_id' => $rep3->report_id,
+        'incident_datetime' => now(),
+        'incident_type' => 'residential_fire',
+        'alarm_level' => '5th_alarm',
+    ]);
+
+    // Active (accepted) with task_force_alpha -> critical!
+    $rep4 = CommunityReport::create(array_merge($base, ['status' => CommunityReport::STATUS_ACCEPTED]));
+    IncidentRecord::create([
+        'report_id' => $rep4->report_id,
+        'incident_datetime' => now(),
+        'incident_type' => 'commercial_fire',
+        'alarm_level' => 'task_force_alpha',
+    ]);
+
+    // Active (dispatched) with general_alarm -> critical!
+    $rep5 = CommunityReport::create(array_merge($base, ['status' => CommunityReport::STATUS_DISPATCHED]));
+    IncidentRecord::create([
+        'report_id' => $rep5->report_id,
+        'incident_datetime' => now(),
+        'incident_type' => 'commercial_fire',
+        'alarm_level' => 'general_alarm',
+    ]);
+
+    // Resolved report with general_alarm -> NOT active, so should not count
+    $rep6 = CommunityReport::create(array_merge($base, ['status' => CommunityReport::STATUS_RESOLVED]));
+    IncidentRecord::create([
+        'report_id' => $rep6->report_id,
+        'incident_datetime' => now(),
+        'incident_type' => 'commercial_fire',
+        'alarm_level' => 'general_alarm',
+    ]);
+
+    $response = $this->get(route('dashboard'));
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->where('kpis.criticalActiveCount', 3)
     );
 });

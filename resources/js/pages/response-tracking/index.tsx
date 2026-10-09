@@ -11,7 +11,7 @@ type Incident = {
     reference: string;
     type: string;
     barangay: string;
-    severity: string;
+    alarm_level: string;
     reporter: string;
     latitude: number;
     longitude: number;
@@ -137,7 +137,7 @@ export default function ResponseTracking({
                                 [
                                     ['Type', incident.type],
                                     ['Barangay', incident.barangay],
-                                    ['Severity', incident.severity],
+                                    ['Alarm Level', incident.alarm_level],
                                     ['Reporter', incident.reporter],
                                 ] as const
                             ).map(([label, value]) => (

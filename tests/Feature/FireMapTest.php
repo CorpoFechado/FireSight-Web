@@ -38,7 +38,7 @@ function makeResolved(array $reportAttrs = [], array $recordAttrs = []): Communi
     IncidentRecord::create(array_merge([
         'report_id' => $report->report_id,
         'incident_type' => 'residential_fire',
-        'severity_level' => 'high',
+        'alarm_level' => '3rd_alarm',
         'incident_datetime' => now(),
     ], $recordAttrs));
 
@@ -142,7 +142,7 @@ test('default period is this_year when no period passed', function () {
     Date::setTestNow();
 });
 
-// ─── Type / severity filtering ────────────────────────────────────────────────
+// ─── Type / alarm level filtering ───────────────────────────────────────────
 
 test('incident_type filter returns only matching type', function () {
     $this->actingAs(User::factory()->bfpAdmin()->create());
@@ -162,19 +162,19 @@ test('incident_type filter returns only matching type', function () {
     Date::setTestNow();
 });
 
-test('severity_level filter returns only matching severity', function () {
+test('alarm_level filter returns only matching alarm level', function () {
     $this->actingAs(User::factory()->bfpAdmin()->create());
 
     Date::setTestNow(Carbon::create(2026, 6, 1));
 
-    makeResolved(['created_at' => now()], ['severity_level' => 'critical']);
-    makeResolved(['created_at' => now()], ['severity_level' => 'low']);
+    makeResolved(['created_at' => now()], ['alarm_level' => '5th_alarm']);
+    makeResolved(['created_at' => now()], ['alarm_level' => '1st_alarm']);
 
-    $this->get(route('map', ['severity_level' => 'critical']))
+    $this->get(route('map', ['alarm_level' => '5th_alarm']))
         ->assertInertia(
             fn ($page) => $page
                 ->has('incidents', 1)
-                ->where('incidents.0.severity', 'critical'),
+                ->where('incidents.0.alarm_level', '5th_alarm'),
         );
 
     Date::setTestNow();
@@ -201,30 +201,30 @@ test('residential incidents in the last 3 months — key use-case', function () 
     Date::setTestNow();
 });
 
-test('type and severity combined with period', function () {
+test('type and alarm level combined with period', function () {
     $this->actingAs(User::factory()->bfpAdmin()->create());
 
     Date::setTestNow(Carbon::create(2026, 6, 1));
 
     makeResolved(
         ['created_at' => now()],
-        ['incident_type' => 'residential_fire', 'severity_level' => 'critical'],
+        ['incident_type' => 'residential_fire', 'alarm_level' => '5th_alarm'],
     );
 
     makeResolved(
         ['created_at' => now()],
-        ['incident_type' => 'residential_fire', 'severity_level' => 'low'],
+        ['incident_type' => 'residential_fire', 'alarm_level' => '1st_alarm'],
     );
 
     makeResolved(
         ['created_at' => now()],
-        ['incident_type' => 'vehicular_fire', 'severity_level' => 'critical'],
+        ['incident_type' => 'vehicular_fire', 'alarm_level' => '5th_alarm'],
     );
 
     $this->get(route('map', [
         'period' => 'this_year',
         'incident_type' => 'residential_fire',
-        'severity_level' => 'critical',
+        'alarm_level' => '5th_alarm',
     ]))->assertInertia(fn ($page) => $page->has('incidents', 1));
 
     Date::setTestNow();
@@ -249,20 +249,20 @@ test('invalid incident_type does not error and shows all types', function () {
     Date::setTestNow();
 });
 
-test('invalid severity_level does not error and shows all severities', function () {
+test('invalid alarm_level does not error and shows all alarm levels', function () {
     $this->actingAs(User::factory()->bfpAdmin()->create());
 
     Date::setTestNow(Carbon::create(2026, 6, 1));
 
-    makeResolved(['created_at' => now()], ['severity_level' => 'critical']);
-    makeResolved(['created_at' => now()], ['severity_level' => 'low']);
+    makeResolved(['created_at' => now()], ['alarm_level' => '5th_alarm']);
+    makeResolved(['created_at' => now()], ['alarm_level' => '1st_alarm']);
 
-    $this->get(route('map', ['severity_level' => 'extreme']))
+    $this->get(route('map', ['alarm_level' => 'extreme']))
         ->assertOk()
         ->assertInertia(
             fn ($page) => $page
                 ->has('incidents', 2)
-                ->where('filters.severity_level', 'all'),
+                ->where('filters.alarm_level', 'all'),
         );
 
     Date::setTestNow();
@@ -275,7 +275,7 @@ test('returned incident shape has all required fields', function () {
 
     $report = makeResolved(
         ['created_at' => now(), 'latitude' => 13.9354, 'longitude' => 120.6560],
-        ['incident_type' => 'residential_fire', 'severity_level' => 'high'],
+        ['incident_type' => 'residential_fire', 'alarm_level' => '3rd_alarm'],
     );
 
     $this->get(route('map'))
@@ -285,7 +285,7 @@ test('returned incident shape has all required fields', function () {
                 ->where('incidents.0.report_id', $report->report_id)
                 ->where('incidents.0.type', 'residential_fire')
                 ->where('incidents.0.typeLabel', 'Residential Fire')
-                ->where('incidents.0.severity', 'high')
+                ->where('incidents.0.alarm_level', '3rd_alarm')
                 ->where('incidents.0.latitude', 13.9354)
                 ->where('incidents.0.longitude', 120.6560)
                 ->has('incidents.0.dateTime')
@@ -301,11 +301,11 @@ test('filters prop echoes the active values', function () {
     $this->get(route('map', [
         'period' => 'last_3_months',
         'incident_type' => 'residential_fire',
-        'severity_level' => 'critical',
+        'alarm_level' => '5th_alarm',
     ]))->assertInertia(
         fn ($page) => $page
             ->where('filters.period', 'last_3_months')
             ->where('filters.incident_type', 'residential_fire')
-            ->where('filters.severity_level', 'critical'),
+            ->where('filters.alarm_level', '5th_alarm'),
     );
 });

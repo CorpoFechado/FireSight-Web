@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\RiskLevel;
 use App\Models\Barangay;
 
 /**
@@ -21,12 +22,17 @@ class BarangayRiskSnapshot
             ->map(function (Barangay $barangay) {
                 $latest = $barangay->riskAssessments->first();
 
+                $riskLevel = $latest?->risk_level;
+                if ($riskLevel instanceof RiskLevel) {
+                    $riskLevel = $riskLevel->value;
+                }
+
                 return [
                     'barangay_id' => $barangay->barangay_id,
                     'barangay_name' => $barangay->barangay_name,
                     'latitude' => (float) $barangay->latitude,
                     'longitude' => (float) $barangay->longitude,
-                    'risk_level' => $latest?->risk_level,
+                    'risk_level' => $riskLevel,
                     'prediction_score' => $latest ? (float) $latest->prediction_score : null,
                 ];
             })

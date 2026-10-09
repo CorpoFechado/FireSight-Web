@@ -3,9 +3,9 @@ import { Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PaginationBar } from '@/components/portal/pagination-bar';
 import { PortalCard } from '@/components/portal/portal-card';
-import { AiFireBadge, SeverityBadge, StatusBadge } from '@/components/portal/status-badge';
+import { AiFireBadge, AlarmLevelBadge, StatusBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
-import type { ReportStatus, SeverityLevel } from '@/lib/fire-status';
+import { ALARM_LEVEL_CFG, type AlarmLevel, type ReportStatus } from '@/lib/fire-status';
 import { index as incidentsIndex, show as showIncident } from '@/routes/incidents';
 import type { Paginated } from '@/types/pagination';
 
@@ -16,7 +16,7 @@ type IncidentRow = {
     contact_number: string;
     barangay: string | null;
     type: string | null;
-    severity: SeverityLevel | null;
+    alarm_level: AlarmLevel | null;
     status: ReportStatus;
     dateTime: string;
     ai_fire_label: string | null;
@@ -31,7 +31,7 @@ type Filters = {
     date_to: string;
     barangay_id: string;
     incident_type: string;
-    severity_level: string;
+    alarm_level: string;
 };
 
 type BarangayOption = {
@@ -57,12 +57,10 @@ const TYPE_OPTIONS: { label: string; value: string }[] = [
     { label: 'Others', value: 'others' },
 ];
 
-const SEVERITY_OPTIONS: { label: string; value: string }[] = [
-    { label: 'Critical', value: 'critical' },
-    { label: 'High', value: 'high' },
-    { label: 'Moderate', value: 'moderate' },
-    { label: 'Low', value: 'low' },
-];
+const ALARM_LEVEL_OPTIONS = Object.entries(ALARM_LEVEL_CFG).map(([value, cfg]) => ({
+    label: cfg.label,
+    value,
+}));
 
 const inputClass =
     'rounded-lg border bg-brand-bg py-2 px-3 text-sm text-brand-navy outline-none focus:ring-1 focus:ring-brand-navy/20';
@@ -90,7 +88,7 @@ export default function IncidentsIndex({
             date_to: filters.date_to,
             barangay_id: filters.barangay_id,
             incident_type: filters.incident_type,
-            severity_level: filters.severity_level,
+            alarm_level: filters.alarm_level,
             ...overrides,
         };
         router.get(incidentsIndex().url, params, { preserveState: true, replace: true });
@@ -118,10 +116,10 @@ export default function IncidentsIndex({
         filters.date_to !== '' ||
         filters.barangay_id !== '' ||
         filters.incident_type !== '' ||
-        filters.severity_level !== '';
+        filters.alarm_level !== '';
 
     const clearSecondaryFilters = () =>
-        navigate({ date_from: '', date_to: '', barangay_id: '', incident_type: '', severity_level: '' });
+        navigate({ date_from: '', date_to: '', barangay_id: '', incident_type: '', alarm_level: '' });
 
     return (
         <PortalLayout title="Incident Reports" subtitle={`${totalCount} total reports — showing ${reports.total}`}>
@@ -194,15 +192,15 @@ export default function IncidentsIndex({
                             ))}
                         </select>
 
-                        {/* Severity dropdown */}
+                        {/* Alarm Level dropdown */}
                         <select
-                            value={filters.severity_level}
-                            onChange={(e) => navigate({ severity_level: e.target.value })}
+                            value={filters.alarm_level}
+                            onChange={(e) => navigate({ alarm_level: e.target.value })}
                             className={`${inputClass} pr-8`}
                             style={inputStyle}
                         >
-                            <option value="">All Severities</option>
-                            {SEVERITY_OPTIONS.map((s) => (
+                            <option value="">All Alarm Levels</option>
+                            {ALARM_LEVEL_OPTIONS.map((s) => (
                                 <option key={s.value} value={s.value}>
                                     {s.label}
                                 </option>
@@ -250,7 +248,7 @@ export default function IncidentsIndex({
                                         'Reporter',
                                         'Barangay',
                                         'Type',
-                                        'Severity',
+                                        'Alarm Level',
                                         'Status',
                                         'AI Check',
                                         'Date / Time',
@@ -287,7 +285,7 @@ export default function IncidentsIndex({
                                         <td className="px-4 py-3 text-xs text-brand-navy">{r.barangay ?? '—'}</td>
                                         <td className="px-4 py-3 text-xs text-brand-navy">{r.type ?? '—'}</td>
                                         <td className="px-4 py-3">
-                                            {r.severity ? <SeverityBadge severity={r.severity} /> : <span className="text-xs text-brand-muted">—</span>}
+                                            {r.alarm_level ? <AlarmLevelBadge alarmLevel={r.alarm_level} /> : <span className="text-xs text-brand-muted">—</span>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <StatusBadge status={r.status} />
