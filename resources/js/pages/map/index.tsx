@@ -152,6 +152,7 @@ export default function FireIncidentsMap({
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<Geometry, BarangayGeoProperties> | null>(null);
     const mapRef = useRef<L.Map | null>(null);
+    const incidentMarkerRefs = useRef(new Map<number, L.CircleMarker>());
 
     // Clear selection when it's no longer in the filtered list
     useEffect(() => {
@@ -240,6 +241,7 @@ export default function FireIncidentsMap({
 
     const focusIncident = (inc: MapIncident) => {
         setSelectedId(inc.report_id);
+        incidentMarkerRefs.current.get(inc.report_id)?.openPopup();
         mapRef.current?.flyTo([inc.latitude, inc.longitude], 15, { duration: 0.6 });
     };
 
@@ -546,6 +548,13 @@ export default function FireIncidentsMap({
                                     incidents.map((inc) => (
                                         <CircleMarker
                                             key={inc.report_id}
+                                            ref={(marker) => {
+                                                if (marker) {
+                                                    incidentMarkerRefs.current.set(inc.report_id, marker);
+                                                } else {
+                                                    incidentMarkerRefs.current.delete(inc.report_id);
+                                                }
+                                            }}
                                             center={[inc.latitude, inc.longitude]}
                                             radius={selectedId === inc.report_id ? 11 : 8}
                                             pathOptions={{
