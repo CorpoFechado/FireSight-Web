@@ -18,9 +18,9 @@ class DatabaseSeeder extends Seeder
             BarangaySeeder::class,
             BarangayContactSeeder::class,
             BfpAccountSeeder::class,
+            BfpPersonnelSeeder::class,
             DummyDataSeeder::class,
             IncidentReportSeeder::class,
-            DutyScheduleSeeder::class,
             FireEducationContentSeeder::class,
         ]);
     }

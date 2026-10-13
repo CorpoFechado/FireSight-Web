@@ -29,6 +29,7 @@ test('bfp admin can create a new personnel account', function () {
         'contact_number' => '09171234567',
         'email' => 'juan.delacruz@example.com',
         'role' => 'bfp_personnel',
+        'duty_group' => 'A',
     ]);
 
     $response->assertRedirect();
@@ -49,6 +50,7 @@ test('bfp admin can create a new personnel account', function () {
         'user_id' => $created->id,
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
+        'duty_group' => 'A',
     ]);
 });
 
@@ -62,6 +64,7 @@ test('bfp admin can update a personnel account, including status', function () {
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-100',
+        'duty_group' => 'A',
     ]);
 
     $response = $this->patch(route('personnel.update', $personnel), [
@@ -71,6 +74,7 @@ test('bfp admin can update a personnel account, including status', function () {
         'email' => $personnel->email,
         'role' => 'bfp_personnel',
         'status' => 'inactive',
+        'duty_group' => 'B',
     ]);
 
     $response->assertRedirect();
@@ -85,6 +89,7 @@ test('bfp admin can update a personnel account, including status', function () {
     $this->assertDatabaseHas('bfp_personnel_details', [
         'user_id' => $personnel->id,
         'rank' => 'Fire Officer 2',
+        'duty_group' => 'B',
     ]);
 });
 

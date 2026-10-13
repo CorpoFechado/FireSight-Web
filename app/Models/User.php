@@ -153,11 +153,11 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * Duty shifts assigned to this personnel member.
+     * Duty rotation overrides assigned to this personnel member.
      */
-    public function dutySchedules(): HasMany
+    public function dutyOverrides(): HasMany
     {
-        return $this->hasMany(DutySchedule::class, 'user_id');
+        return $this->hasMany(DutyOverride::class, 'user_id');
     }
 
     public function residentAddress(): HasMany

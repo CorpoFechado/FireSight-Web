@@ -84,10 +84,10 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/PersonnelController.php": {
-    "mtime": 1785151288.6542053,
-    "seen": 1789390676.6392145,
-    "ast_hash": "518e5169e3ca14bd5d8fe97963a990a6",
-    "semantic_hash": "518e5169e3ca14bd5d8fe97963a990a6"
+    "mtime": 1791855248.602887,
+    "seen": 1791856905.9846802,
+    "ast_hash": "aea7336458e59b968cf591b56d6aafe7",
+    "semantic_hash": ""
   },
   "app/Http/Controllers/RiskAnalyticsController.php": {
     "mtime": 1785089698.072524,
@@ -168,10 +168,10 @@
     "semantic_hash": ""
   },
   "app/Models/BfpPersonnelDetails.php": {
-    "mtime": 1785047783.913071,
-    "seen": 1789390676.6392267,
-    "ast_hash": "2e6fc8e02c315c3cf6d7e18b5ddbadad",
-    "semantic_hash": "2e6fc8e02c315c3cf6d7e18b5ddbadad"
+    "mtime": 1791855089.5095017,
+    "seen": 1791856905.986967,
+    "ast_hash": "75a4cd1c2ff98e6b028351d7b92c12ed",
+    "semantic_hash": ""
   },
   "app/Models/CommunityReport.php": {
     "mtime": 1790227892.3139036,
@@ -198,9 +198,9 @@
     "semantic_hash": ""
   },
   "app/Models/User.php": {
-    "mtime": 1790184575.5493693,
-    "seen": 1790193193.849831,
-    "ast_hash": "02b1bffd451190941082937517311c41",
+    "mtime": 1791855129.0722387,
+    "seen": 1791856905.9881797,
+    "ast_hash": "cdbaab1888d2ac9c31fe8c57ab88a7fc",
     "semantic_hash": ""
   },
   "app/Providers/AppServiceProvider.php": {
@@ -462,22 +462,22 @@
     "semantic_hash": "fed645d1c75b424f5a0d493e8cfe6af3"
   },
   "database/seeders/BfpAccountSeeder.php": {
-    "mtime": 1785047784.0018094,
-    "seen": 1789390676.6392674,
-    "ast_hash": "5fff338509babd0fc454d7939be8e5c1",
-    "semantic_hash": "5fff338509babd0fc454d7939be8e5c1"
+    "mtime": 1791855316.440513,
+    "seen": 1791856905.9950483,
+    "ast_hash": "eb454d909f9f89abc346be622dcb58c3",
+    "semantic_hash": ""
   },
   "database/seeders/DatabaseSeeder.php": {
-    "mtime": 1790237381.9646971,
-    "seen": 1791111315.17536,
-    "ast_hash": "23d7fbca21113f58ef72df9248564e90",
+    "mtime": 1791855136.510315,
+    "seen": 1791856905.995052,
+    "ast_hash": "96bc452f5bf8cb5f48e5fd5e175ff705",
     "semantic_hash": ""
   },
   "database/seeders/DummyDataSeeder.php": {
-    "mtime": 1785064582.9679527,
-    "seen": 1789390676.6392689,
-    "ast_hash": "597c947bfcc263d53838c4fdbe7f9c82",
-    "semantic_hash": "597c947bfcc263d53838c4fdbe7f9c82"
+    "mtime": 1791855415.5371232,
+    "seen": 1791856905.9950535,
+    "ast_hash": "e1689993a0346be565c585ae3b4d3a18",
+    "semantic_hash": ""
   },
   "database/seeders/sql/firesight_dummy_data.sql": {
     "mtime": 1785064582.9763274,
@@ -690,10 +690,10 @@
     "semantic_hash": "b785ee1df5cc30cd01a7f00cea272f63"
   },
   "resources/js/components/personnel/personnel-form-modal.tsx": {
-    "mtime": 1785151288.7065277,
-    "seen": 1789390676.6393008,
-    "ast_hash": "337b690676e59a3e1d0d0ca1310cba66",
-    "semantic_hash": "337b690676e59a3e1d0d0ca1310cba66"
+    "mtime": 1791858282.1197565,
+    "seen": 1791859290.8992443,
+    "ast_hash": "a159a5527f59ba324d5b467e2aa85268",
+    "semantic_hash": ""
   },
   "resources/js/components/portal/kpi-card.tsx": {
     "mtime": 1791354004.0124946,
@@ -1134,9 +1134,9 @@
     "semantic_hash": ""
   },
   "resources/js/pages/map/index.tsx": {
-    "mtime": 1791524248.997638,
-    "seen": 1791525149.480914,
-    "ast_hash": "28dd0c6742734def2a1fa89be96a6485",
+    "mtime": 1791812311.3026755,
+    "seen": 1791856906.0083945,
+    "ast_hash": "9cd012e5c536f0550cff8ac7a0f1e3bb",
     "semantic_hash": ""
   },
   "resources/js/pages/notifications/index.tsx": {
@@ -1146,9 +1146,9 @@
     "semantic_hash": ""
   },
   "resources/js/pages/personnel/index.tsx": {
-    "mtime": 1789469036.8883035,
-    "seen": 1789558113.6057222,
-    "ast_hash": "57e8c61dcc69f3f10c0397d420e9b734",
+    "mtime": 1791858255.5195148,
+    "seen": 1791859290.9074166,
+    "ast_hash": "8da02b43787b80fcb1d09a62e0ef1cf5",
     "semantic_hash": ""
   },
   "resources/js/pages/placeholder.tsx": {
@@ -1254,9 +1254,9 @@
     "semantic_hash": "eb08d515cde3d3c778d7ce69893d2831"
   },
   "routes/web.php": {
-    "mtime": 1791427534.0896347,
-    "seen": 1791429651.7947643,
-    "ast_hash": "7a11fb1a2ed2ebd82713e1d4d3dd6270",
+    "mtime": 1791855259.741456,
+    "seen": 1791856906.0101244,
+    "ast_hash": "daea79936618b1ed8bcf9665737221fa",
     "semantic_hash": ""
   },
   "tests/Feature/AnnouncementTest.php": {
@@ -1326,10 +1326,10 @@
     "semantic_hash": ""
   },
   "tests/Feature/PersonnelTest.php": {
-    "mtime": 1785151288.7782557,
-    "seen": 1789390676.6394107,
-    "ast_hash": "b04b2b0e1eebc0400fa6a1ff9621ee61",
-    "semantic_hash": "b04b2b0e1eebc0400fa6a1ff9621ee61"
+    "mtime": 1791855954.7959392,
+    "seen": 1791856906.0118628,
+    "ast_hash": "550e5516770654f0d5e92d5c3455fdc0",
+    "semantic_hash": ""
   },
   "tests/Feature/Settings/ProfileUpdateTest.php": {
     "mtime": 1789567154.9312828,
@@ -1589,28 +1589,10 @@
     "ast_hash": "26c3938511d15ae4780c528c3dd0d19c",
     "semantic_hash": ""
   },
-  "app/Models/DutySchedule.php": {
-    "mtime": 1790191524.7332945,
-    "seen": 1790193193.8495758,
-    "ast_hash": "de0474680709dc99e5e611a9baf86d87",
-    "semantic_hash": ""
-  },
-  "database/factories/DutyScheduleFactory.php": {
-    "mtime": 1789563835.4522252,
-    "seen": 1789567210.506001,
-    "ast_hash": "21bb5e5714af78dd8a9716cb7b01e64a",
-    "semantic_hash": ""
-  },
   "database/migrations/2026_09_16_130000_create_duty_schedules_table.php": {
     "mtime": 1789563632.505129,
     "seen": 1789567210.5082548,
     "ast_hash": "ae50440d0aa750be76b01ce578a30672",
-    "semantic_hash": ""
-  },
-  "tests/Feature/DutyScheduleOnDutyTest.php": {
-    "mtime": 1789563987.082083,
-    "seen": 1789567210.522777,
-    "ast_hash": "be769786d8852992cf247d0e19201976",
     "semantic_hash": ""
   },
   "public/images/firesight-logo-original.png": {
@@ -1626,33 +1608,21 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/DutyScheduleController.php": {
-    "mtime": 1790191524.161621,
-    "seen": 1790193193.8475432,
-    "ast_hash": "b5f4f0946ed8abfb9ceffc7c86f0512f",
-    "semantic_hash": ""
-  },
-  "resources/js/components/duty-schedule/delete-shift-dialog.tsx": {
-    "mtime": 1790092359.6963658,
-    "seen": 1790193193.8582811,
-    "ast_hash": "874103fc94adc105691389080adcea90",
-    "semantic_hash": ""
-  },
-  "resources/js/components/duty-schedule/duty-shift-form-modal.tsx": {
-    "mtime": 1789819196.293149,
-    "seen": 1789882559.0786493,
-    "ast_hash": "bedba34315a99973b3c788376f8d514e",
+    "mtime": 1791855221.7359488,
+    "seen": 1791856905.9840982,
+    "ast_hash": "c8918182c1eea8b4234e80bd22360e72",
     "semantic_hash": ""
   },
   "resources/js/lib/duty-schedule.ts": {
-    "mtime": 1789826088.806216,
-    "seen": 1789882559.0984836,
-    "ast_hash": "87af81a7fc6b1d52dcb9d542c1167729",
+    "mtime": 1791858255.5195148,
+    "seen": 1791859290.905429,
+    "ast_hash": "0c9cf954045196e737136f6eb0add3a0",
     "semantic_hash": ""
   },
   "resources/js/pages/duty-schedule/index.tsx": {
-    "mtime": 1789819023.218014,
-    "seen": 1789882559.1021998,
-    "ast_hash": "c73b3a159bee933992c99082b55fd01e",
+    "mtime": 1791858272.1804168,
+    "seen": 1791859290.9069269,
+    "ast_hash": "226f5e888de0f31f141a2831170e99f7",
     "semantic_hash": ""
   },
   "app/Support/DateRange.php": {
@@ -1764,9 +1734,9 @@
     "semantic_hash": ""
   },
   "database/seeders/IncidentReportSeeder.php": {
-    "mtime": 1791428199.4531355,
-    "seen": 1791429651.7809122,
-    "ast_hash": "12d46e7165ebec836230c534b12b6da9",
+    "mtime": 1791856564.605502,
+    "seen": 1791856905.995168,
+    "ast_hash": "5e113f8f7a828afc5fdafb97c1b23d2c",
     "semantic_hash": ""
   },
   "resources/js/components/barangay-contacts/contact-form-modal.tsx": {
@@ -1794,8 +1764,8 @@
     "semantic_hash": ""
   },
   "resources/js/lib/status-history.ts": {
-    "mtime": 1790225181.5147185,
-    "seen": 1790226390.7993925,
+    "mtime": 1791525425.968495,
+    "seen": 1791856906.0068574,
     "ast_hash": "8cdbfeb271c8be8f685edcc4c1966b25",
     "semantic_hash": ""
   },
@@ -1895,12 +1865,6 @@
     "ast_hash": "f873bf6de837d642b6fbe9ea3ef42b66",
     "semantic_hash": ""
   },
-  "database/seeders/DutyScheduleSeeder.php": {
-    "mtime": 1790237262.6476753,
-    "seen": 1791111315.1754534,
-    "ast_hash": "eff92d5e4ad13ae37b9718e2431ed2e9",
-    "semantic_hash": ""
-  },
   "tests/Feature/NotificationControllerTest.php": {
     "mtime": 1790309182.1441143,
     "seen": 1791111315.1906397,
@@ -1959,6 +1923,90 @@
     "mtime": 1791447252.3810256,
     "seen": 1791449974.401032,
     "ast_hash": "b2327c433eb8ab29a4d3db4b5001f173",
+    "semantic_hash": ""
+  },
+  "app/Enums/DutyGroup.php": {
+    "mtime": 1791855022.5104463,
+    "seen": 1791856905.982878,
+    "ast_hash": "c8a11adfcf0385ab5a49da2b05ceb6ce",
+    "semantic_hash": ""
+  },
+  "app/Models/DutyOverride.php": {
+    "mtime": 1791856089.0401714,
+    "seen": 1791856905.987083,
+    "ast_hash": "a3a3c6a8e67a700422c18f1e2056cd45",
+    "semantic_hash": ""
+  },
+  "app/Support/DutyRotation.php": {
+    "mtime": 1791855174.3338056,
+    "seen": 1791856905.988637,
+    "ast_hash": "072d95bdfc6e4b39498dbc04e1a3bbf2",
+    "semantic_hash": ""
+  },
+  "config/duty.php": {
+    "mtime": 1791855028.4660692,
+    "seen": 1791856905.989872,
+    "ast_hash": "de09c18ffc628d39f2bd78d34e131750",
+    "semantic_hash": ""
+  },
+  "database/factories/DutyOverrideFactory.php": {
+    "mtime": 1791855122.0280437,
+    "seen": 1791856905.9907355,
+    "ast_hash": "b17e86fafae1e2d4268c5cdfc4f854df",
+    "semantic_hash": ""
+  },
+  "database/migrations/2026_10_13_093044_add_duty_group_to_bfp_personnel_details_table.php": {
+    "mtime": 1791855067.27361,
+    "seen": 1791856905.9946969,
+    "ast_hash": "a41a9bc5ce952742e3c8578b5ae5b5de",
+    "semantic_hash": ""
+  },
+  "database/migrations/2026_10_13_093053_create_duty_overrides_table.php": {
+    "mtime": 1791855074.3479357,
+    "seen": 1791856905.9946985,
+    "ast_hash": "a4aa47d0fdd57e2dfb3223d84a98d6ed",
+    "semantic_hash": ""
+  },
+  "database/migrations/2026_10_13_093101_drop_duty_schedule_table.php": {
+    "mtime": 1791855081.9391737,
+    "seen": 1791856905.9947,
+    "ast_hash": "42e2b6fe2a1b00546ba9465469d7e8e9",
+    "semantic_hash": ""
+  },
+  "database/seeders/BfpPersonnelSeeder.php": {
+    "mtime": 1791855355.3188417,
+    "seen": 1791856905.99505,
+    "ast_hash": "0235b160be0967ae4fde7382eaedd144",
+    "semantic_hash": ""
+  },
+  "tests/Feature/DutyRotationTest.php": {
+    "mtime": 1791855912.0914881,
+    "seen": 1791856906.0112054,
+    "ast_hash": "bbfbaaefd01e3863caad978eae20e001",
+    "semantic_hash": ""
+  },
+  "tests/Feature/DutyScheduleTest.php": {
+    "mtime": 1791855935.843221,
+    "seen": 1791856906.011207,
+    "ast_hash": "da7b30acf2734c4fb7e89f04bf6ad56d",
+    "semantic_hash": ""
+  },
+  "tests/Feature/SeederTest.php": {
+    "mtime": 1791855964.5325167,
+    "seen": 1791856906.0119524,
+    "ast_hash": "912b603b1f61228001b25c66ab82f78e",
+    "semantic_hash": ""
+  },
+  "resources/js/components/duty-schedule/duty-override-modal.tsx": {
+    "mtime": 1791858314.5282798,
+    "seen": 1791859290.8968155,
+    "ast_hash": "7c14241028bb2071428fe61ee970095f",
+    "semantic_hash": ""
+  },
+  "resources/js/components/duty-schedule/remove-override-dialog.tsx": {
+    "mtime": 1791858255.5195148,
+    "seen": 1791859290.8968182,
+    "ast_hash": "f07337756a8881b5607d15bd0c4844b8",
     "semantic_hash": ""
   }
 }

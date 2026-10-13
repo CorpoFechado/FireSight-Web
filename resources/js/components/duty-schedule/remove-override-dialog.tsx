@@ -8,32 +8,37 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { destroy } from '@/routes/dutySchedule';
-import type { ShiftRow } from './duty-shift-form-modal';
+import {
+    formatWeekRange,
+    groupLabel
+    
+} from '@/lib/duty-schedule';
+import type {Override} from '@/lib/duty-schedule';
+import { destroy as destroyOverride } from '@/routes/dutySchedule/overrides';
 
-export function DeleteShiftDialog({
-    shift,
+export function RemoveOverrideDialog({
+    override,
     open,
     onOpenChange,
 }: {
-    shift: ShiftRow | null;
+    override: Override | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
     const [processing, setProcessing] = useState(false);
 
-    if (!shift) {
+    if (!override) {
         return null;
     }
 
     const confirmDelete = () => {
         setProcessing(true);
 
-        router.delete(destroy(shift.schedule_id).url, {
+        router.delete(destroyOverride(override.override_id).url, {
             preserveScroll: true,
             onError: (errors) =>
                 toast.error(
-                    Object.values(errors)[0] ?? "Couldn't remove this shift.",
+                    Object.values(errors)[0] ?? "Couldn't remove this reassignment.",
                 ),
             onFinish: () => {
                 setProcessing(false);
@@ -42,44 +47,44 @@ export function DeleteShiftDialog({
         });
     };
 
+    const range = formatWeekRange(override.starts_on, override.ends_on);
+    const returnGroup = groupLabel(override.from_group);
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="bg-white text-brand-navy sm:max-w-sm">
                 <DialogHeader>
                     <DialogTitle className="text-brand-navy">
-                        Remove Shift?
+                        Remove Reassignment?
                     </DialogTitle>
                 </DialogHeader>
 
                 <p className="text-sm text-brand-muted">
-                    This will permanently remove{' '}
+                    This will remove the temporary reassignment for{' '}
                     <span className="font-semibold text-brand-navy">
-                        {shift.name ?? 'this personnel'}
-                    </span>
-                    &apos;s shift on{' '}
-                    <span className="font-semibold text-brand-navy">
-                        {shift.duty_date}
+                        {override.name}
                     </span>{' '}
-                    ({shift.time_start} – {shift.time_end}). This can&apos;t be
-                    undone.
+                    ({range}). They will return to {returnGroup}.
                 </p>
 
-                <DialogFooter>
+                <DialogFooter className="mt-4 gap-2">
                     <button
                         type="button"
+                        id="cancel-remove-override-btn"
                         onClick={() => onOpenChange(false)}
-                        className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted"
+                        className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted hover:bg-neutral-100 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         type="button"
+                        id="confirm-remove-override-btn"
                         onClick={confirmDelete}
                         disabled={processing}
-                        className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                        className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition-colors"
                         style={{ background: '#E63946' }}
                     >
-                        {processing ? 'Removing…' : 'Remove Shift'}
+                        {processing ? 'Removing…' : 'Remove Reassignment'}
                     </button>
                 </DialogFooter>
             </DialogContent>

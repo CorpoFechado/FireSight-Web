@@ -1,23 +1,18 @@
 -- ============================================================
 -- FireSight Dummy Data Seed
--- Generated dummy data for existing FireSight schema
+-- Generated dummy data for existing FireSight schema.
+-- Assumes BfpAccountSeeder + BfpPersonnelSeeder ran first and
+-- occupy ids 1–8 and 34–43.
 -- Default password for ALL seeded accounts below: 'password'
--- (uses the same bcrypt hash already present in the dump)
--- Safe to run AFTER the original schema/data dump.
 -- ============================================================
 
 SET FOREIGN_KEY_CHECKS=0;
+SET sql_mode='';
 
 -- --------------------------------------------------------
--- Additional users (bfp_personnel + residents)
+-- Additional users (residents)
 -- --------------------------------------------------------
 INSERT INTO `users` (`id`, `role`, `first_name`, `last_name`, `email`, `contact_number`, `username`, `email_verified_at`, `password`, `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at`, `remember_token`, `created_at`, `updated_at`) VALUES
-(3, 'bfp_personnel', 'Maria', 'Corpuz', 'mcorpuz@firesight.bfp.lian', '09445310485', 'mcorpuz', '2026-01-24 18:38:21', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-01-24 18:38:21', '2026-01-24 18:38:21'),
-(4, 'bfp_personnel', 'Vicente', 'Garcia', 'vgarcia@firesight.bfp.lian', '09876600539', 'vgarcia', '2026-02-22 22:47:46', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-02-22 22:47:46', '2026-02-22 22:47:46'),
-(5, 'bfp_personnel', 'Bernardo', 'Santos', 'bsantos@firesight.bfp.lian', '09181994523', 'bsantos', '2026-01-10 02:19:32', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-01-10 02:19:32', '2026-01-10 02:19:32'),
-(6, 'bfp_personnel', 'Arnel', 'Malabanan', 'amalabanan@firesight.bfp.lian', '09178492780', 'amalabanan', '2026-02-24 11:47:44', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-02-24 11:47:44', '2026-02-24 11:47:44'),
-(7, 'bfp_personnel', 'Michael', 'Mercado', 'mmercado@firesight.bfp.lian', '09735126461', 'mmercado', '2026-02-10 17:33:07', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-02-10 17:33:07', '2026-02-10 17:33:07'),
-(8, 'bfp_personnel', 'Mark', 'Rivera', 'mrivera@firesight.bfp.lian', '09156977991', 'mrivera', '2026-01-16 12:01:59', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-01-16 12:01:59', '2026-01-16 12:01:59'),
 (9, 'resident', 'Jennifer', 'Rivera', 'jrivera@gmail.com', '09316944844', 'jrivera', '2026-03-29 22:52:10', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-03-29 22:52:10', '2026-03-29 22:52:10'),
 (10, 'resident', 'Jennifer', 'Garcia', 'jgarcia@gmail.com', '09249585092', 'jgarcia', '2026-06-01 21:10:44', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-06-01 21:10:44', '2026-06-01 21:10:44'),
 (11, 'resident', 'Ricardo', 'Malabanan', 'rmalabanan@gmail.com', '09434027113', 'rmalabanan', '2026-01-22 04:59:14', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-01-22 04:59:14', '2026-01-22 04:59:14'),
@@ -44,16 +39,6 @@ INSERT INTO `users` (`id`, `role`, `first_name`, `last_name`, `email`, `contact_
 (32, 'resident', 'Juan', 'Corpuz', 'jcorpuz@gmail.com', '09922751234', 'jcorpuz', '2026-04-17 14:57:49', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-04-17 14:57:49', '2026-04-17 14:57:49'),
 (33, 'resident', 'Kristine', 'Mendoza', 'kmendoza@gmail.com', '09695119047', 'kmendoza', '2026-02-15 15:49:14', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-02-15 15:49:14', '2026-02-15 15:49:14');
 
--- --------------------------------------------------------
--- BFP personnel details for the new personnel users
--- --------------------------------------------------------
-INSERT INTO `bfp_personnel_details` (`details_id`, `user_id`, `rank`, `station_assigned`, `employee_number`) VALUES
-(3, 3, 'Inspector', 'BFP Lian Fire Station', 'EMP-003'),
-(4, 4, 'Senior Fire Officer 3', 'BFP Lian Fire Station', 'EMP-004'),
-(5, 5, 'Fire Officer 3', 'BFP Lian Fire Station', 'EMP-005'),
-(6, 6, 'Inspector', 'BFP Lian Fire Station', 'EMP-006'),
-(7, 7, 'Senior Fire Officer 3', 'BFP Lian Fire Station', 'EMP-007'),
-(8, 8, 'Senior Fire Officer 2', 'BFP Lian Fire Station', 'EMP-008');
 
 -- --------------------------------------------------------
 -- Community reports
@@ -123,7 +108,7 @@ INSERT INTO `community_report` (`report_id`, `user_id`, `reporter_name`, `contac
 -- --------------------------------------------------------
 -- Incident records (linked to verified/dispatched/resolved reports)
 -- --------------------------------------------------------
-INSERT INTO `incident_record` (`incident_id`, `report_id`, `barangay_id`, `data_time`, `incident_type`, `alarm_level`, `cause_of_fire`, `casualties`, `notes`) VALUES
+INSERT INTO `incident_record` (`incident_id`, `report_id`, `barangay_id`, `incident_datetime`, `incident_type`, `alarm_level`, `cause_of_fire`, `casualties`, `notes`) VALUES
 (1, 1, 1, '2026-07-25 06:33:17', 'electrical', '3rd_alarm', 'Candle left unattended', 0, 'Minor property damage reported, no injuries recorded.'),
 (2, 3, 16, '2026-03-22 22:54:58', 'electrical', '2nd_alarm', 'Unattended cooking', 0, 'Fire was extinguished using indigenous methods before BFP arrival.'),
 (3, 4, 6, '2026-04-02 03:09:25', 'grass', '5th_alarm', 'Gas leak', 0, 'Fire was extinguished using indigenous methods before BFP arrival.'),

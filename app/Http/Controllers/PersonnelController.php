@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DutyGroup;
 use App\Models\BfpPersonnelDetails;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -64,6 +65,7 @@ class PersonnelController extends Controller
             'contact_number' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', Rule::in(self::ROLES)],
+            'duty_group' => ['nullable', Rule::enum(DutyGroup::class)],
         ]);
 
         [$firstName, $lastName] = $this->splitName($data['full_name']);
@@ -86,6 +88,7 @@ class PersonnelController extends Controller
             BfpPersonnelDetails::create([
                 'user_id' => $user->id,
                 'rank' => $data['rank'],
+                'duty_group' => $data['duty_group'] ?? null,
                 'station_assigned' => 'BFP Lian Fire Station',
                 'employee_number' => $this->nextEmployeeNumber(),
             ]);
@@ -111,6 +114,7 @@ class PersonnelController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'role' => ['required', Rule::in(self::ROLES)],
             'status' => ['required', Rule::in(self::STATUSES)],
+            'duty_group' => ['nullable', Rule::enum(DutyGroup::class)],
         ]);
 
         if ($user->id === $request->user()->id && $data['status'] === User::STATUS_INACTIVE) {
@@ -131,7 +135,10 @@ class PersonnelController extends Controller
                 'status' => $data['status'],
             ]);
 
-            $user->personnelDetails()->update(['rank' => $data['rank']]);
+            $user->personnelDetails()->update([
+                'rank' => $data['rank'],
+                'duty_group' => $data['duty_group'] ?? null,
+            ]);
         });
 
         return back()->with('toast', [
@@ -197,6 +204,7 @@ class PersonnelController extends Controller
             'employee_number' => $user->personnelDetails?->employee_number,
             'name' => $user->name,
             'rank' => $user->personnelDetails?->rank,
+            'duty_group' => $user->personnelDetails?->duty_group?->value,
             'role' => $user->role,
             'status' => $user->status,
             'contact_number' => $user->contact_number,

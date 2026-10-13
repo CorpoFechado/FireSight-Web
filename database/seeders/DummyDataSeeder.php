@@ -10,11 +10,10 @@ class DummyDataSeeder extends Seeder
     /**
      * Loads the hand-crafted dummy dataset (community reports, incident
      * records, risk assessments, announcements, notifications, plus
-     * additional personnel/resident users) from a raw .sql file.
+     * additional resident users) from a raw .sql file.
      *
-     * Assumes BarangaySeeder and BfpAccountSeeder already ran — this file's
-     * rows start at the IDs that come right after the admin/personnel test
-     * accounts those seeders create (user_id 3+, etc).
+     * Assumes BfpAccountSeeder + BfpPersonnelSeeder ran first and occupy
+     * ids 1–8 and 34–43.
      */
     public function run(): void
     {

@@ -1,113 +1,200 @@
 /**
- * Date + shift helpers for the Duty Schedule page.
+ * Date, rotation, and platoon helpers for the BFP Lian Duty Schedule.
  *
- * IMPORTANT: never do `new Date('2026-08-03')` for an ISO date string.
- * JS parses that as UTC midnight, then your browser renders it in local
- * time — in any timezone behind UTC that silently shifts the date back
- * a day. `parseISODate` below builds the Date from its y/m/d parts
- * directly in local time instead, so there's no implicit UTC step.
+ * IMPORTANT: Never parse 'YYYY-MM-DD' with native `new Date('YYYY-MM-DD')`
+ * directly without adjusting for timezone, as JavaScript interprets ISO date-only
+ * strings as UTC midnight, which shifts backwards in timezones behind UTC.
  */
 
-const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-const MONTH_LABELS = [
-    'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+export type DutyGroup = 'A' | 'B' | 'regular' | 'detached';
+
+export type Member = {
+    id: number;
+    name: string;
+    rank: string | null;
+    base_group: string | null;
+    effective_group: string | null;
+    is_overridden: boolean;
+    override_id: number | null;
+    is_on_duty: boolean;
+};
+
+export type Override = {
+    override_id: number;
+    user_id: number;
+    name: string;
+    duty_group: string;
+    from_group: string | null;
+    starts_on: string;
+    ends_on: string;
+    reason: string | null;
+    created_by_name: string | null;
+};
+
+export type WeekInfo = {
+    start: string;
+    end: string;
+    activeGroup: 'A' | 'B';
+    isCurrent: boolean;
+};
+
+export type UpcomingWeek = {
+    week_start: string;
+    week_end: string;
+    group: 'A' | 'B';
+};
+
+export type GroupOption = {
+    value: string;
+    label: string;
+};
+
+export type PersonnelOption = {
+    id: number;
+    name: string;
+    rank: string | null;
+};
+
+export type Roster = {
+    regular: Member[];
+    A: Member[];
+    B: Member[];
+    detached: Member[];
+    unassigned: Member[];
+};
+
+export type DutySchedulePageProps = {
+    week: WeekInfo;
+    roster: Roster;
+    overrides: Override[];
+    upcoming: UpcomingWeek[];
+    groups: GroupOption[];
+    personnel: PersonnelOption[];
+    filters: { date: string };
+};
+
+const MONTH_NAMES = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
 /** Parse a 'YYYY-MM-DD' string into a local-time Date (no UTC shift). */
 export function parseISODate(iso: string): Date {
     const [y, m, d] = iso.split('-').map(Number);
-    return new Date(y, m - 1, d);
+
+    return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
-/** Format a Date back to 'YYYY-MM-DD', in local time. */
+/** Format a Date back to 'YYYY-MM-DD' in local time. */
 export function toISODate(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
+
     return `${y}-${m}-${d}`;
 }
 
-/** Add `days` days to a Date, returning a new Date (doesn't mutate). */
+/** Add `days` days to a Date, returning a new Date. */
 export function addDays(date: Date, days: number): Date {
     const copy = new Date(date);
     copy.setDate(copy.getDate() + days);
+
     return copy;
 }
 
+/** Snap any date string to the Monday of its week ('YYYY-MM-DD'). */
+export function snapToMonday(iso: string): string {
+    const d = parseISODate(iso);
+    const day = d.getDay(); // 0 is Sunday, 1 is Monday ...
+    const diff = day === 0 ? -6 : 1 - day;
+
+    return toISODate(addDays(d, diff));
+}
+
 /**
- * Build the 7 dates (Mon–Sun) for the week that `weekStartISO` starts.
- * `weekStartISO` should already be the Monday of that week (as returned
- * by DutyScheduleController@index) — this just fans it out to an array
- * so the header labels and the column lookup keys always agree.
+ * Given a Monday ISO date string and number of weeks (1-12),
+ * calculate the ending Sunday's ISO date string.
  */
-export function getWeekDates(weekStartISO: string): Date[] {
-    const start = parseISODate(weekStartISO);
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+export function computeWeekEnd(startMondayISO: string, numberOfWeeks: number): string {
+    const monday = parseISODate(startMondayISO);
+    const totalDays = Math.max(1, numberOfWeeks) * 7 - 1;
+
+    return toISODate(addDays(monday, totalDays));
 }
 
-/** e.g. { dow: 'MON', label: 'AUG 3' } for a grid column header. */
-export function dayHeader(date: Date): { dow: string; label: string } {
-    // getDay(): 0=Sun..6=Sat. Shift so Monday is index 0.
-    const dow = DAY_LABELS[(date.getDay() + 6) % 7];
-    const label = `${MONTH_LABELS[date.getMonth()]} ${date.getDate()}`;
-    return { dow, label };
+/**
+ * Format a start and end date range into: "Oct 12 – Oct 18, 2026"
+ * or "Dec 28, 2026 – Jan 3, 2027" if spanning a year boundary.
+ */
+export function formatWeekRange(startISO: string, endISO: string): string {
+    const start = parseISODate(startISO);
+    const end = parseISODate(endISO);
+
+    const startMonth = MONTH_NAMES[start.getMonth()];
+    const endMonth = MONTH_NAMES[end.getMonth()];
+    const startYear = start.getFullYear();
+    const endYear = end.getFullYear();
+
+    if (startYear === endYear) {
+        return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${startYear}`;
+    }
+
+    return `${startMonth} ${start.getDate()}, ${startYear} – ${endMonth} ${end.getDate()}, ${endYear}`;
 }
 
-/** e.g. "Aug 3 – Aug 9" for the week navigator, from the same dates. */
-export function weekRangeLabel(weekDates: Date[]): string {
-    const start = weekDates[0];
-    const end = weekDates[weekDates.length - 1];
-    const startLabel = `${capitalize(MONTH_LABELS[start.getMonth()])} ${start.getDate()}`;
-    const endLabel = `${capitalize(MONTH_LABELS[end.getMonth()])} ${end.getDate()}`;
-    return `${startLabel} – ${endLabel}`;
+/**
+ * Format a short start date for rotation chips: "Oct 12"
+ */
+export function formatChipDate(iso: string): string {
+    const d = parseISODate(iso);
+
+    return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
 }
 
-function capitalize(word: string): string {
-    return word.charAt(0) + word.slice(1).toLowerCase();
+/** Human-friendly group label. */
+export function groupLabel(group: string | null | undefined): string {
+    if (!group) {
+return 'Unassigned';
 }
 
-/** "18:00:00" or "18:00" -> "6:00 PM" for display in shift chips. */
-export function formatTime(time: string): string {
-    const [hStr, mStr] = time.split(':');
-    let h = Number(hStr);
-    const m = mStr ?? '00';
-    const suffix = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return `${h}:${m} ${suffix}`;
+    switch (group) {
+        case 'A':
+            return 'Duty A';
+        case 'B':
+            return 'Duty B';
+        case 'regular':
+            return 'Always on Duty';
+        case 'detached':
+            return 'Detached';
+        default:
+            return group;
+    }
 }
 
-// ---------------------------------------------------------------------
-// Shift presets — Morning (06:00–18:00) and Night (18:00–06:00, crosses
-// midnight). Keeping these as the only two options means the underlying
-// time_start/time_end columns don't change at all; we're just
-// constraining what values the UI is allowed to write.
-// ---------------------------------------------------------------------
-
-export const SHIFT_PRESETS = {
-    morning: { label: 'Morning Shift', sublabel: '6:00 AM – 6:00 PM', time_start: '06:00', time_end: '18:00' },
-    night: { label: 'Night Shift', sublabel: '6:00 PM – 6:00 AM', time_start: '18:00', time_end: '06:00' },
+/**
+ * Color palette for Duty A and Duty B platoons:
+ * Duty A: Navy / Indigo accent
+ * Duty B: Amber / Terracotta accent
+ */
+export const DUTY_COLORS = {
+    A: {
+        badgeBg: 'bg-indigo-50 border-indigo-200 text-indigo-800',
+        activeBadgeBg: 'bg-indigo-600 text-white',
+        dot: 'bg-indigo-500',
+        border: 'border-indigo-400',
+        ring: 'ring-indigo-500',
+        chipActive: 'bg-indigo-600 text-white font-semibold shadow-sm',
+        chipInactive: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200',
+        subtle: 'text-indigo-600',
+    },
+    B: {
+        badgeBg: 'bg-amber-50 border-amber-200 text-amber-800',
+        activeBadgeBg: 'bg-amber-600 text-white',
+        dot: 'bg-amber-500',
+        border: 'border-amber-400',
+        ring: 'ring-amber-500',
+        chipActive: 'bg-amber-600 text-white font-semibold shadow-sm',
+        chipInactive: 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200',
+        subtle: 'text-amber-700',
+    },
 } as const;
-
-export type ShiftPresetKey = keyof typeof SHIFT_PRESETS;
-
-/** Which preset key matches a given time_start/time_end pair, if any. */
-export function presetKeyFor(timeStart: string, timeEnd: string): ShiftPresetKey | null {
-    const start = timeStart.slice(0, 5);
-    const end = timeEnd.slice(0, 5);
-    for (const key of Object.keys(SHIFT_PRESETS) as ShiftPresetKey[]) {
-        if (SHIFT_PRESETS[key].time_start === start && SHIFT_PRESETS[key].time_end === end) {
-            return key;
-        }
-    }
-    return null;
-}
-
-/** Short label for a shift chip: "Morning Shift" or the raw time range as a fallback. */
-export function shiftLabel(timeStart: string, timeEnd: string): string {
-    const key = presetKeyFor(timeStart, timeEnd);
-    if (key) {
-        return `${SHIFT_PRESETS[key].label} (${SHIFT_PRESETS[key].sublabel})`;
-    }
-    return `${formatTime(timeStart)} – ${formatTime(timeEnd)}`;
-}

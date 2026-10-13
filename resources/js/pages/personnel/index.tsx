@@ -1,6 +1,17 @@
 import { router } from '@inertiajs/react';
 import { Filter, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { DeletePersonnelDialog } from '@/components/personnel/delete-personnel-dialog';
+import {
+    PersonnelFormModal
+    
+} from '@/components/personnel/personnel-form-modal';
+import type {PersonnelRow} from '@/components/personnel/personnel-form-modal';
+import { PortalCard } from '@/components/portal/portal-card';
+import {
+    PersonnelStatusBadge,
+    RoleBadge,
+} from '@/components/portal/status-badge';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,18 +21,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { PortalCard } from '@/components/portal/portal-card';
-import {
-    PersonnelStatusBadge,
-    RoleBadge,
-} from '@/components/portal/status-badge';
-import { DeletePersonnelDialog } from '@/components/personnel/delete-personnel-dialog';
-import {
-    PersonnelFormModal,
-    type PersonnelRow,
-} from '@/components/personnel/personnel-form-modal';
 import { useInitials } from '@/hooks/use-initials';
 import PortalLayout from '@/layouts/portal-layout';
+import { groupLabel } from '@/lib/duty-schedule';
 import { personnel as personnelIndex } from '@/routes';
 
 const ROLE_FILTERS = [
@@ -57,6 +59,7 @@ export default function PersonnelIndex({
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
+
             return;
         }
 
@@ -247,7 +250,22 @@ export default function PersonnelIndex({
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-xs text-brand-navy">
-                                            {p.rank ?? '—'}
+                                            <div>{p.rank ?? '—'}</div>
+                                            {p.duty_group && (
+                                                <span
+                                                    className={`mt-1 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold border ${
+                                                        p.duty_group === 'A'
+                                                            ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                                                            : p.duty_group === 'B'
+                                                              ? 'border-amber-200 bg-amber-50 text-amber-800'
+                                                              : p.duty_group === 'regular'
+                                                                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                                                : 'border-neutral-200 bg-neutral-100 text-neutral-600'
+                                                    }`}
+                                                >
+                                                    {groupLabel(p.duty_group)}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <RoleBadge role={p.role} />

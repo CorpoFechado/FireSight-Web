@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState  } from 'react';
+import type {FormEvent} from 'react';
 import {
     Dialog,
     DialogContent,
@@ -15,14 +16,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { store, update } from '@/routes/personnel';
 import type { PersonnelRole, PersonnelStatus } from '@/lib/fire-status';
+import { store, update } from '@/routes/personnel';
 
 export type PersonnelRow = {
     id: number;
     employee_number: string | null;
     name: string;
     rank: string | null;
+    duty_group?: string | null;
     role: PersonnelRole;
     status: PersonnelStatus;
     contact_number: string | null;
@@ -37,6 +39,14 @@ const ROLE_OPTIONS: { value: PersonnelRole; label: string }[] = [
 const STATUS_OPTIONS: { value: PersonnelStatus; label: string }[] = [
     { value: 'active', label: 'Active' },
     { value: 'inactive', label: 'Inactive' },
+];
+
+const DUTY_GROUP_OPTIONS: { value: string; label: string }[] = [
+    { value: 'unassigned', label: 'Unassigned' },
+    { value: 'A', label: 'Duty A' },
+    { value: 'B', label: 'Duty B' },
+    { value: 'regular', label: 'Always on Duty' },
+    { value: 'detached', label: 'Detached' },
 ];
 
 export function PersonnelFormModal({
@@ -61,13 +71,22 @@ export function PersonnelFormModal({
         errors,
         reset,
         clearErrors,
-    } = useForm({
+    } = useForm<{
+        full_name: string;
+        rank: string;
+        contact_number: string;
+        email: string;
+        role: PersonnelRole;
+        status: PersonnelStatus;
+        duty_group: string | null;
+    }>({
         full_name: personnel?.name ?? '',
         rank: personnel?.rank ?? '',
         contact_number: personnel?.contact_number ?? '',
         email: personnel?.email ?? '',
         role: personnel?.role ?? 'bfp_personnel',
         status: personnel?.status ?? 'active',
+        duty_group: personnel?.duty_group ?? null,
     });
 
     // Re-seed the form whenever the modal is (re)opened, so stale edits
@@ -81,7 +100,9 @@ export function PersonnelFormModal({
                 email: personnel?.email ?? '',
                 role: personnel?.role ?? 'bfp_personnel',
                 status: personnel?.status ?? 'active',
+                duty_group: personnel?.duty_group ?? null,
             });
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setConfirming(false);
             clearErrors();
         }
@@ -127,6 +148,7 @@ export function PersonnelFormModal({
 
         if (mode === 'edit') {
             submitUpdate(e);
+
             return;
         }
 
@@ -281,6 +303,35 @@ export function PersonnelFormModal({
                                     </p>
                                 )}
                             </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label>Duty Group (Optional)</Label>
+                        <Select
+                            value={data.duty_group ?? 'unassigned'}
+                            onValueChange={(v) =>
+                                setData('duty_group', v === 'unassigned' ? null : v)
+                            }
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white text-brand-navy">
+                                {DUTY_GROUP_OPTIONS.map((g) => (
+                                    <SelectItem
+                                        key={g.value}
+                                        value={g.value}
+                                    >
+                                        {g.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.duty_group && (
+                            <p className="text-xs text-brand-red">
+                                {errors.duty_group}
+                            </p>
                         )}
                     </div>
 

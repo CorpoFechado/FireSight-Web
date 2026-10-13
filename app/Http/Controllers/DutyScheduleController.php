@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DutySchedule;
+use App\Enums\DutyGroup;
+use App\Models\DutyOverride;
 use App\Models\User;
-use Illuminate\Database\QueryException;
+use App\Support\DutyRotation;
+use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -17,229 +19,366 @@ use Inertia\Response;
 class DutyScheduleController extends Controller
 {
     /**
-     * Only field personnel can be assigned duty shifts — admins monitor
-     * the schedule but aren't the ones responding to incidents, so they
-     * never appear as a row or a selectable option in the form.
+     * Only field personnel can be assigned to platoons and duty shifts.
      *
      * @var array<int, string>
      */
     private const ASSIGNABLE_ROLES = [User::ROLE_BFP_PERSONNEL];
 
     /**
-     * The only two shift windows the UI offers. Kept here (not just in
-     * the frontend) so a request that bypasses the UI — a stale client,
-     * a direct API call — can't sneak in an arbitrary time range.
+     * Ranks sorted by seniority (Senior Fire Officer 4 down to Fire Officer 1).
+     * Unknown ranks sort last.
      *
-     * @var array<int, string>
+     * @var array<string, int>
      */
-    private const VALID_SHIFT_TIMES = ['06:00', '18:00'];
+    private const RANK_SENIORITY = [
+        'Senior Fire Officer 4' => 1,
+        'Senior Fire Officer 3' => 2,
+        'Senior Fire Officer 2' => 3,
+        'Senior Fire Officer 1' => 4,
+        'Fire Officer 3' => 5,
+        'Fire Officer 2' => 6,
+        'Fire Officer 1' => 7,
+    ];
 
     public function index(Request $request): Response
     {
         $dateParam = $request->string('date')->trim()->value();
-        $personnelId = $request->integer('personnel_id') ?: null;
-        $search = $request->string('search')->trim()->value();
-
         $date = $dateParam !== '' ? Carbon::parse($dateParam) : now();
-        $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
-        $weekEnd = $date->copy()->endOfWeek(Carbon::SUNDAY);
 
-        $shifts = DutySchedule::query()
-            ->with('user')
-            ->whereBetween('duty_date', [$weekStart->toDateString(), $weekEnd->toDateString()])
-            ->when($personnelId !== null, fn ($q) => $q->where('user_id', $personnelId))
-            ->when($search !== '', function ($q) use ($search) {
-                $q->whereHas('user', function ($q) use ($search) {
-                    $q->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('duty_date')
-            ->orderBy('time_start')
-            ->get()
-            ->map(fn (DutySchedule $schedule) => $this->toRow($schedule));
+        $weekStart = DutyRotation::weekStartFor($date);
+        $weekEnd = $weekStart->endOfWeek(CarbonInterface::SUNDAY)->startOfDay();
+        $activeGroup = DutyRotation::activeGroupFor($date);
+        $isCurrent = DutyRotation::weekStartFor(now())->toDateString() === $weekStart->toDateString();
 
-        // Personnel-only: this list feeds both the roster grid rows and
-        // the "Personnel" dropdown in the add/edit modal, so filtering
-        // here is enough to keep admins out of both places at once.
-        $personnel = User::query()
+        $overrides = DutyOverride::query()
+            ->with(['user.personnelDetails', 'creator'])
+            ->coveringWeek($weekStart)
+            ->get();
+
+        $overrideRows = $overrides->map(fn (DutyOverride $override) => [
+            'override_id' => $override->override_id,
+            'user_id' => $override->user_id,
+            'name' => $override->user?->name,
+            'duty_group' => $override->duty_group->value,
+            'from_group' => $override->user?->personnelDetails?->duty_group?->value,
+            'starts_on' => $override->starts_on->toDateString(),
+            'ends_on' => $override->ends_on->toDateString(),
+            'reason' => $override->reason,
+            'created_by_name' => $override->creator?->name,
+        ])->values()->all();
+
+        $users = User::query()
             ->whereIn('role', self::ASSIGNABLE_ROLES)
             ->where('status', User::STATUS_ACTIVE)
             ->with('personnelDetails')
-            ->orderBy('first_name')
-            ->get()
-            ->map(fn (User $user) => [
+            ->get();
+
+        $overridesByUser = $overrides->keyBy('user_id');
+
+        $roster = [
+            'regular' => [],
+            'A' => [],
+            'B' => [],
+            'detached' => [],
+            'unassigned' => [],
+        ];
+
+        foreach ($users as $user) {
+            $override = $overridesByUser->get($user->id);
+            $baseGroup = $user->personnelDetails?->duty_group;
+            $effectiveGroup = $override?->duty_group ?? $baseGroup;
+            $isOnDuty = ($effectiveGroup === DutyGroup::Regular)
+                || ($effectiveGroup !== null && $effectiveGroup !== DutyGroup::Detached && $effectiveGroup === $activeGroup);
+
+            $member = [
                 'id' => $user->id,
                 'name' => $user->name,
                 'rank' => $user->personnelDetails?->rank,
-            ]);
+                'base_group' => $baseGroup?->value,
+                'effective_group' => $effectiveGroup?->value,
+                'is_overridden' => $override !== null,
+                'override_id' => $override?->override_id,
+                'is_on_duty' => $isOnDuty,
+                '_rank' => $user->personnelDetails?->rank,
+                '_last_name' => $user->last_name,
+            ];
 
-        $onDutyNow = DutySchedule::onDutyAt(now())
-            ->with('user')
-            ->get()
-            ->map(fn (DutySchedule $schedule) => [
-                'id' => $schedule->user_id,
-                'name' => $schedule->user?->name,
-                'shift_end_time' => $schedule->time_end,
-            ]);
+            $bucketKey = match ($effectiveGroup) {
+                DutyGroup::Regular => 'regular',
+                DutyGroup::A => 'A',
+                DutyGroup::B => 'B',
+                DutyGroup::Detached => 'detached',
+                null => 'unassigned',
+            };
+
+            $roster[$bucketKey][] = $member;
+        }
+
+        foreach ($roster as $key => $bucket) {
+            usort($bucket, function (array $a, array $b) {
+                $rankA = self::RANK_SENIORITY[$a['_rank'] ?? ''] ?? PHP_INT_MAX;
+                $rankB = self::RANK_SENIORITY[$b['_rank'] ?? ''] ?? PHP_INT_MAX;
+
+                if ($rankA !== $rankB) {
+                    return $rankA <=> $rankB;
+                }
+
+                return strcasecmp((string) ($a['_last_name'] ?? ''), (string) ($b['_last_name'] ?? ''));
+            });
+
+            $roster[$key] = array_values(array_map(function (array $m) {
+                unset($m['_rank'], $m['_last_name']);
+
+                return $m;
+            }, $bucket));
+        }
+
+        $groups = [
+            ['value' => DutyGroup::A->value, 'label' => DutyGroup::A->label()],
+            ['value' => DutyGroup::B->value, 'label' => DutyGroup::B->label()],
+            ['value' => DutyGroup::Regular->value, 'label' => DutyGroup::Regular->label()],
+            ['value' => DutyGroup::Detached->value, 'label' => DutyGroup::Detached->label()],
+        ];
+
+        $personnel = $users->sortBy(fn (User $u) => $u->first_name)->map(fn (User $user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'rank' => $user->personnelDetails?->rank,
+        ])->values()->all();
 
         return Inertia::render('duty-schedule/index', [
-            'shifts' => $shifts,
+            'week' => [
+                'start' => $weekStart->toDateString(),
+                'end' => $weekEnd->toDateString(),
+                'activeGroup' => $activeGroup->value,
+                'isCurrent' => $isCurrent,
+            ],
+            'roster' => $roster,
+            'overrides' => $overrideRows,
+            'upcoming' => DutyRotation::upcomingWeeks($weekStart, 8),
+            'groups' => $groups,
             'personnel' => $personnel,
-            'onDutyNow' => $onDutyNow,
-            'weekStart' => $weekStart->toDateString(),
-            'weekEnd' => $weekEnd->toDateString(),
             'filters' => [
                 'date' => $date->toDateString(),
-                'personnel_id' => $personnelId,
-                'search' => $search,
             ],
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function updateGroup(Request $request, User $user): RedirectResponse
     {
-        $data = $this->validated($request);
+        abort_unless(in_array($user->role, self::ASSIGNABLE_ROLES, true), 404);
 
-        try {
-            DB::transaction(function () use ($data, $request) {
-                DutySchedule::create([
-                    'user_id' => $data['user_id'],
-                    'duty_date' => $data['duty_date'],
-                    'time_start' => $data['time_start'],
-                    'time_end' => $data['time_end'],
-                    'created_by' => $request->user()->id,
-                ]);
-            });
-        } catch (QueryException $e) {
-            if ($this->isUniqueConstraintViolation($e)) {
-                throw ValidationException::withMessages([
-                    'time_start' => 'This person already has a shift starting at that time.',
-                ]);
-            }
+        $data = $request->validate([
+            'duty_group' => ['nullable', Rule::enum(DutyGroup::class)],
+        ]);
 
-            throw $e;
-        }
+        $user->personnelDetails()->updateOrCreate(
+            ['user_id' => $user->id],
+            ['duty_group' => $data['duty_group']],
+        );
 
-        $name = User::find($data['user_id'])?->name ?? 'Personnel';
+        $groupEnum = DutyGroup::tryFrom((string) $data['duty_group']);
+        $label = $groupEnum ? $groupEnum->label() : 'Unassigned';
 
         return back()->with('toast', [
             'type' => 'success',
-            'message' => "Shift for {$name} on {$data['duty_date']} was added.",
+            'message' => "{$user->name} moved to {$label}.",
         ]);
     }
 
-    public function update(Request $request, DutySchedule $schedule): RedirectResponse
+    public function storeOverride(Request $request): RedirectResponse
     {
-        $data = $this->validated($request);
-
-        try {
-            DB::transaction(function () use ($schedule, $data) {
-                $schedule->update([
-                    'user_id' => $data['user_id'],
-                    'duty_date' => $data['duty_date'],
-                    'time_start' => $data['time_start'],
-                    'time_end' => $data['time_end'],
-                ]);
-            });
-        } catch (QueryException $e) {
-            if ($this->isUniqueConstraintViolation($e)) {
-                throw ValidationException::withMessages([
-                    'time_start' => 'This person already has a shift starting at that time.',
-                ]);
-            }
-
-            throw $e;
-        }
-
-        $name = User::find($data['user_id'])?->name ?? 'Personnel';
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => "{$name}'s shift on {$data['duty_date']} was updated.",
-        ]);
-    }
-
-    public function destroy(DutySchedule $schedule): RedirectResponse
-    {
-        $name = $schedule->user?->name ?? 'Personnel';
-        $date = $schedule->duty_date->toDateString();
-
-        $schedule->delete();
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => "{$name}'s shift on {$date} was removed.",
-        ]);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function validated(Request $request): array
-    {
-        return $request->validate([
+        $data = $request->validate([
             'user_id' => [
                 'required',
                 'integer',
-                // Only field personnel can be assigned — this is the
-                // server-side half of the "no admin accounts" rule;
-                // the frontend dropdown already only lists personnel,
-                // but this stops a direct POST from assigning an admin.
-                Rule::exists('users', 'id')->where(function ($query) {
-                    $query->whereIn('role', self::ASSIGNABLE_ROLES);
-                }),
+                Rule::exists('users', 'id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
             ],
-            'duty_date' => ['required', 'date', 'after_or_equal:today'],
-            'time_start' => ['required', Rule::in(self::VALID_SHIFT_TIMES)],
-            'time_end' => [
+            'duty_group' => ['required', Rule::enum(DutyGroup::class)],
+            'starts_on' => [
                 'required',
-                Rule::in(self::VALID_SHIFT_TIMES),
-                // Only the two real shift pairs are valid — this is NOT
-                // a "time_end must be after time_start" check, because
-                // that's false for the Night shift (18:00 -> 06:00
-                // crosses midnight). Instead we check the pair matches
-                // one of the two allowed windows exactly.
-                function (string $attribute, mixed $value, \Closure $fail) use ($request) {
-                    $start = $request->input('time_start');
-                    $validPairs = [
-                        ['06:00', '18:00'], // Morning
-                        ['18:00', '06:00'], // Night (overnight)
-                    ];
-
-                    $isValidPair = collect($validPairs)
-                        ->contains(fn ($pair) => $pair[0] === $start && $pair[1] === $value);
-
-                    if (! $isValidPair) {
-                        $fail('Choose a valid shift: Morning (6:00 AM – 6:00 PM) or Night (6:00 PM – 6:00 AM).');
+                'date',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (Carbon::parse($value)->dayOfWeek !== CarbonInterface::MONDAY) {
+                        $fail('The starts on date must be a Monday.');
                     }
                 },
             ],
+            'ends_on' => [
+                'required',
+                'date',
+                'after_or_equal:starts_on',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (Carbon::parse($value)->dayOfWeek !== CarbonInterface::SUNDAY) {
+                        $fail('The ends on date must be a Sunday.');
+                    }
+                },
+            ],
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $user = User::with('personnelDetails')->findOrFail($data['user_id']);
+        $baseGroup = $user->personnelDetails?->duty_group;
+
+        if ($baseGroup !== null && $baseGroup->value === $data['duty_group']) {
+            throw ValidationException::withMessages([
+                'duty_group' => "The override group cannot match the user's base duty group.",
+            ]);
+        }
+
+        $hasOverlap = DutyOverride::query()
+            ->where('user_id', $user->id)
+            ->where(function ($q) use ($data) {
+                $q->where('starts_on', '<=', $data['ends_on'])
+                    ->where('ends_on', '>=', $data['starts_on']);
+            })
+            ->exists();
+
+        if ($hasOverlap) {
+            throw ValidationException::withMessages([
+                'starts_on' => 'This personnel member already has an override overlapping that date range.',
+            ]);
+        }
+
+        DB::transaction(function () use ($data, $request) {
+            DutyOverride::create([
+                'user_id' => $data['user_id'],
+                'duty_group' => $data['duty_group'],
+                'starts_on' => $data['starts_on'],
+                'ends_on' => $data['ends_on'],
+                'reason' => $data['reason'] ?? null,
+                'created_by' => $request->user()->id,
+            ]);
+        });
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "Override for {$user->name} was added.",
         ]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function toRow(DutySchedule $schedule): array
+    public function swap(Request $request): RedirectResponse
     {
-        return [
-            'schedule_id' => $schedule->schedule_id,
-            'user_id' => $schedule->user_id,
-            'name' => $schedule->user?->name,
-            'duty_date' => $schedule->duty_date->toDateString(),
-            'time_start' => $schedule->time_start,
-            'time_end' => $schedule->time_end,
-        ];
+        $data = $request->validate([
+            'user_id' => [
+                'required',
+                'integer',
+                'different:swap_with_id',
+                Rule::exists('users', 'id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
+            ],
+            'swap_with_id' => [
+                'required',
+                'integer',
+                'different:user_id',
+                Rule::exists('users', 'id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
+            ],
+            'starts_on' => [
+                'required',
+                'date',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (Carbon::parse($value)->dayOfWeek !== CarbonInterface::MONDAY) {
+                        $fail('The starts on date must be a Monday.');
+                    }
+                },
+            ],
+            'ends_on' => [
+                'required',
+                'date',
+                'after_or_equal:starts_on',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (Carbon::parse($value)->dayOfWeek !== CarbonInterface::SUNDAY) {
+                        $fail('The ends on date must be a Sunday.');
+                    }
+                },
+            ],
+            'reason' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $userA = User::with('personnelDetails')->findOrFail($data['user_id']);
+        $userB = User::with('personnelDetails')->findOrFail($data['swap_with_id']);
+
+        $groupA = $userA->personnelDetails?->duty_group;
+        $groupB = $userB->personnelDetails?->duty_group;
+
+        $validGroups = [DutyGroup::A, DutyGroup::B];
+
+        if (! in_array($groupA, $validGroups, true) || ! in_array($groupB, $validGroups, true)) {
+            throw ValidationException::withMessages([
+                'swap_with_id' => 'Both personnel must have a base group of either Duty A or Duty B to swap.',
+            ]);
+        }
+
+        if ($groupA === $groupB) {
+            throw ValidationException::withMessages([
+                'swap_with_id' => 'Personnel in the same duty group cannot swap with each other.',
+            ]);
+        }
+
+        $hasOverlapA = DutyOverride::query()
+            ->where('user_id', $userA->id)
+            ->where(function ($q) use ($data) {
+                $q->where('starts_on', '<=', $data['ends_on'])
+                    ->where('ends_on', '>=', $data['starts_on']);
+            })
+            ->exists();
+
+        if ($hasOverlapA) {
+            throw ValidationException::withMessages([
+                'starts_on' => "{$userA->name} already has an override overlapping that date range.",
+            ]);
+        }
+
+        $hasOverlapB = DutyOverride::query()
+            ->where('user_id', $userB->id)
+            ->where(function ($q) use ($data) {
+                $q->where('starts_on', '<=', $data['ends_on'])
+                    ->where('ends_on', '>=', $data['starts_on']);
+            })
+            ->exists();
+
+        if ($hasOverlapB) {
+            throw ValidationException::withMessages([
+                'starts_on' => "{$userB->name} already has an override overlapping that date range.",
+            ]);
+        }
+
+        DB::transaction(function () use ($userA, $userB, $groupA, $groupB, $data, $request) {
+            DutyOverride::create([
+                'user_id' => $userA->id,
+                'duty_group' => $groupB->value,
+                'starts_on' => $data['starts_on'],
+                'ends_on' => $data['ends_on'],
+                'reason' => $data['reason'] ?? null,
+                'created_by' => $request->user()->id,
+            ]);
+
+            DutyOverride::create([
+                'user_id' => $userB->id,
+                'duty_group' => $groupA->value,
+                'starts_on' => $data['starts_on'],
+                'ends_on' => $data['ends_on'],
+                'reason' => $data['reason'] ?? null,
+                'created_by' => $request->user()->id,
+            ]);
+        });
+
+        $range = Carbon::parse($data['starts_on'])->format('M j').' – '.Carbon::parse($data['ends_on'])->format('M j');
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "{$userA->name} and {$userB->name} swapped for {$range}.",
+        ]);
     }
 
-    /**
-     * Detect a unique constraint violation across MySQL (1062) and SQLite (19).
-     */
-    private function isUniqueConstraintViolation(QueryException $e): bool
+    public function destroyOverride(DutyOverride $override): RedirectResponse
     {
-        $code = (int) $e->errorInfo[1];
+        $name = $override->user?->name ?? 'Personnel';
+        $override->delete();
 
-        return in_array($code, [1062, 19], true);
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => "Override for {$name} was removed.",
+        ]);
     }
 }

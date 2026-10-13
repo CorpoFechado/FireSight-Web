@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\AlarmLevel;
-use App\Models\BfpPersonnelDetails;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Models\ReportStatusHistory;
@@ -36,114 +35,43 @@ class IncidentReportSeeder extends Seeder
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
 
-        // ── 1. Ensure actual BFP personnel exist ──────────────────────────────
-        $personnelConfigs = [
-            [
-                'email' => 'admin@firesight.bfp.lian',
-                'first_name' => 'Ricardo',
-                'last_name' => 'Dela Cruz',
-                'role' => User::ROLE_BFP_ADMIN,
-                'contact_number' => '09171234567',
-                'username' => 'rdelacruz',
-                'rank' => 'Senior Fire Officer 4',
-                'emp' => 'EMP-001',
-            ],
-            [
-                'email' => 'personnel@firesight.bfp.lian',
-                'first_name' => 'Maria',
-                'last_name' => 'Santos',
-                'role' => User::ROLE_BFP_PERSONNEL,
-                'contact_number' => '09181234568',
-                'username' => 'msantos',
-                'rank' => 'Fire Officer 2',
-                'emp' => 'EMP-002',
-            ],
-            [
-                'email' => 'mcorpuz@firesight.bfp.lian',
-                'first_name' => 'Maria',
-                'last_name' => 'Corpuz',
-                'role' => User::ROLE_BFP_PERSONNEL,
-                'contact_number' => '09445310485',
-                'username' => 'mcorpuz',
-                'rank' => 'Inspector',
-                'emp' => 'EMP-003',
-            ],
-            [
-                'email' => 'bsantos@firesight.bfp.lian',
-                'first_name' => 'Bernardo',
-                'last_name' => 'Santos',
-                'role' => User::ROLE_BFP_PERSONNEL,
-                'contact_number' => '09181994523',
-                'username' => 'bsantos',
-                'rank' => 'Fire Officer 3',
-                'emp' => 'EMP-005',
-            ],
-            [
-                'email' => 'amalabanan@firesight.bfp.lian',
-                'first_name' => 'Arnel',
-                'last_name' => 'Malabanan',
-                'role' => User::ROLE_BFP_PERSONNEL,
-                'contact_number' => '09178492780',
-                'username' => 'amalabanan',
-                'rank' => 'Inspector',
-                'emp' => 'EMP-006',
-            ],
-            [
-                'email' => 'mmercado@firesight.bfp.lian',
-                'first_name' => 'Michael',
-                'last_name' => 'Mercado',
-                'role' => User::ROLE_BFP_PERSONNEL,
-                'contact_number' => '09735126461',
-                'username' => 'mmercado',
-                'rank' => 'Senior Fire Officer 3',
-                'emp' => 'EMP-007',
-            ],
-            [
-                'email' => 'mrivera@firesight.bfp.lian',
-                'first_name' => 'Mark',
-                'last_name' => 'Rivera',
-                'role' => User::ROLE_BFP_PERSONNEL,
-                'contact_number' => '09156977991',
-                'username' => 'mrivera',
-                'rank' => 'Senior Fire Officer 2',
-                'emp' => 'EMP-008',
-            ],
+        // ── 1. Load actual BFP personnel from BfpPersonnelSeeder ─────────────
+        $getUser = function (string $email): User {
+            $user = User::with('personnelDetails')->where('email', $email)->first();
+            if (! $user) {
+                throw new \RuntimeException("BFP personnel with email '{$email}' not found. Ensure BfpPersonnelSeeder has run.");
+            }
+
+            return $user;
+        };
+
+        // Verifying / accepting / completing entries (Command Group)
+        $sfo4Barcelon = $getUser('fbarcelon@firesight.bfp.lian');
+        $sfo3Lapitan = $getUser('elapitan@firesight.bfp.lian');
+        $sfo2Tenorio = $getUser('mtenorio@firesight.bfp.lian');
+
+        // Investigation entries
+        $fo3Lagrisola = $getUser('mlagrisola@firesight.bfp.lian');
+
+        // Dispatch / response / resolve entries (Duty A & Duty B)
+        $sfo2Lainez = $getUser('alainez@firesight.bfp.lian');
+        $sfo1Vergara = $getUser('avergara@firesight.bfp.lian');
+        $fo1Pantas = $getUser('personnel@firesight.bfp.lian');
+        $fo2Asaytuno = $getUser('rasaytuno@firesight.bfp.lian');
+        $fo2Pagsaligan = $getUser('jpagsaligan@firesight.bfp.lian');
+        $fo2Lopez = $getUser('plopez@firesight.bfp.lian');
+        $fo1Gutierrez = $getUser('egutierrez@firesight.bfp.lian');
+
+        $bfpResponders = [
+            $sfo2Lainez,
+            $sfo1Vergara,
+            $fo1Pantas,
+            $fo2Asaytuno,
+            $fo2Lopez,
+            $fo2Pagsaligan,
+            $fo1Gutierrez,
         ];
-
-        foreach ($personnelConfigs as $cfg) {
-            $user = User::firstOrCreate(
-                ['email' => $cfg['email']],
-                [
-                    'role' => $cfg['role'],
-                    'first_name' => $cfg['first_name'],
-                    'last_name' => $cfg['last_name'],
-                    'contact_number' => $cfg['contact_number'],
-                    'username' => $cfg['username'],
-                    'password' => Hash::make('password'),
-                    'email_verified_at' => now(),
-                ]
-            );
-
-            BfpPersonnelDetails::firstOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'rank' => $cfg['rank'],
-                    'station_assigned' => 'BFP Lian Fire Station',
-                    'employee_number' => $cfg['emp'],
-                ]
-            );
-        }
-
-        // Personnel handles for history transitions
-        $sfo4DelaCruz = User::where('email', 'admin@firesight.bfp.lian')->first();
-        $fo2Santos = User::where('email', 'personnel@firesight.bfp.lian')->first();
-        $inspCorpuz = User::where('email', 'mcorpuz@firesight.bfp.lian')->first() ?? $sfo4DelaCruz;
-        $fo3Santos = User::where('email', 'bsantos@firesight.bfp.lian')->first() ?? $fo2Santos;
-        $inspMalabanan = User::where('email', 'amalabanan@firesight.bfp.lian')->first() ?? $sfo4DelaCruz;
-        $sfo3Mercado = User::where('email', 'mmercado@firesight.bfp.lian')->first() ?? $sfo4DelaCruz;
-        $sfo2Rivera = User::where('email', 'mrivera@firesight.bfp.lian')->first() ?? $fo2Santos;
-
-        $bfpResponders = [$fo2Santos, $inspCorpuz, $fo3Santos, $inspMalabanan, $sfo3Mercado, $sfo2Rivera];
+        $verifiers = [$sfo3Lapitan, $sfo4Barcelon, $sfo2Tenorio];
 
         // ── 2. Ensure resident reporters exist ──────────────────────────────
         $residentConfigs = [
@@ -292,8 +220,8 @@ class IncidentReportSeeder extends Seeder
         ReportStatusHistory::create([
             'report_id' => $a1->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
-            'notes' => 'Verified by duty verifier FO2 Maria Santos. Assigned to Bungahan. BATELEC power company alerted.',
-            'changed_by' => $fo2Santos->id,
+            'notes' => 'Verified by duty verifier SFO3 Enrico Lapitan. Assigned to Bungahan. BATELEC power company alerted.',
+            'changed_by' => $sfo3Lapitan->id,
             'created_at' => $a1->updated_at,
         ]);
 
@@ -326,15 +254,15 @@ class IncidentReportSeeder extends Seeder
         ReportStatusHistory::create([
             'report_id' => $d1->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
-            'notes' => 'Verified high-hazard industrial warehouse fire. Priority alarm raised by FO3 Bernardo Santos.',
-            'changed_by' => $fo3Santos->id,
+            'notes' => 'Verified high-hazard industrial warehouse fire. Priority alarm raised by SFO2 Ma. Carmela Tenorio.',
+            'changed_by' => $sfo2Tenorio->id,
             'created_at' => $d1->created_at->copy()->addMinutes(5),
         ]);
         ReportStatusHistory::create([
             'report_id' => $d1->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
-            'notes' => 'Engine 1 and Tanker 1 dispatched from Lian Station under SFO3 Michael Mercado. Responders on scene actively containing boundary.',
-            'changed_by' => $sfo3Mercado->id,
+            'notes' => 'Engine 1 and Tanker 1 dispatched from Lian Station under SFO1 Alejandro Vergara. Responders on scene actively containing boundary.',
+            'changed_by' => $sfo1Vergara->id,
             'created_at' => $d1->updated_at,
         ]);
         IncidentRecord::create([
@@ -378,14 +306,14 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $d2->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'Merged with main incident record for San Diego commercial depot.',
-            'changed_by' => $fo2Santos->id,
+            'changed_by' => $sfo3Lapitan->id,
             'created_at' => $d2->created_at->copy()->addMinutes(4),
         ]);
         ReportStatusHistory::create([
             'report_id' => $d2->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
             'notes' => 'Linked to Incident #4.',
-            'changed_by' => $sfo2Rivera->id,
+            'changed_by' => $sfo1Vergara->id,
             'created_at' => $d2->updated_at,
         ]);
         DB::table('report_link')->insert([
@@ -422,22 +350,22 @@ class IncidentReportSeeder extends Seeder
         ReportStatusHistory::create([
             'report_id' => $rToday->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
-            'notes' => 'High-priority residential structure fire verified by FO2 Maria Santos.',
-            'changed_by' => $fo2Santos->id,
+            'notes' => 'High-priority residential structure fire verified by SFO4 Felonia Amor Barcelon.',
+            'changed_by' => $sfo4Barcelon->id,
             'created_at' => $rToday->created_at->copy()->addMinutes(4),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rToday->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
-            'notes' => 'Engine 1 dispatched with 5 firefighters under SFO2 Mark Rivera.',
-            'changed_by' => $sfo2Rivera->id,
+            'notes' => 'Engine 1 dispatched with 5 firefighters under SFO2 Ana Maria Lainez.',
+            'changed_by' => $sfo2Lainez->id,
             'created_at' => $rToday->created_at->copy()->addMinutes(8),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rToday->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
-            'notes' => 'Fire extinguished and declared fire out by ground commander Inspector Arnel Malabanan. Tank removed safely.',
-            'changed_by' => $inspMalabanan->id,
+            'notes' => 'Fire extinguished and declared fire out by ground commander FO2 Patricio Lopez. Tank removed safely.',
+            'changed_by' => $fo2Lopez->id,
             'created_at' => $rToday->updated_at,
         ]);
         IncidentRecord::create([
@@ -480,22 +408,22 @@ class IncidentReportSeeder extends Seeder
         ReportStatusHistory::create([
             'report_id' => $rYest->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
-            'notes' => 'Verified and accepted by FO3 Bernardo Santos; assigned to Balibago.',
-            'changed_by' => $fo3Santos->id,
+            'notes' => 'Verified and accepted by SFO2 Ma. Carmela Tenorio; assigned to Balibago.',
+            'changed_by' => $sfo2Tenorio->id,
             'created_at' => $rYest->created_at->copy()->addMinutes(5),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rYest->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
-            'notes' => 'Engine 1 and Tanker 1 dispatched from Lian Station under SFO3 Michael Mercado.',
-            'changed_by' => $sfo3Mercado->id,
+            'notes' => 'Engine 1 and Tanker 1 dispatched from Lian Station under FO2 Reylan Asaytuno.',
+            'changed_by' => $fo2Asaytuno->id,
             'created_at' => $rYest->created_at->copy()->addMinutes(9),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rYest->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
-            'notes' => 'Fire extinguished and power isolated by Inspector Maria Corpuz.',
-            'changed_by' => $inspCorpuz->id,
+            'notes' => 'Fire extinguished and power isolated by FO2 Jerome Pagsaligan.',
+            'changed_by' => $fo2Pagsaligan->id,
             'created_at' => $rYest->updated_at,
         ]);
         IncidentRecord::create([
@@ -538,8 +466,8 @@ class IncidentReportSeeder extends Seeder
         ReportStatusHistory::create([
             'report_id' => $inv->report_id,
             'status' => CommunityReport::STATUS_INVALID,
-            'notes' => 'Barangay tanod and BFP inspector verified heavy truck blown tire, no fire or hazard found. Cleared by SFO4 Ricardo Dela Cruz.',
-            'changed_by' => $sfo4DelaCruz->id,
+            'notes' => 'Barangay tanod and BFP investigator verified heavy truck blown tire, no fire or hazard found. Cleared by FO3 Michael Angelo Lagrisola.',
+            'changed_by' => $fo3Lagrisola->id,
             'created_at' => $inv->updated_at,
         ]);
 
@@ -572,22 +500,22 @@ class IncidentReportSeeder extends Seeder
         ReportStatusHistory::create([
             'report_id' => $rW1->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
-            'notes' => 'Accepted by FO2 Maria Santos.',
-            'changed_by' => $fo2Santos->id,
+            'notes' => 'Accepted by SFO3 Enrico Lapitan.',
+            'changed_by' => $sfo3Lapitan->id,
             'created_at' => $rW1->created_at->copy()->addMinutes(4),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW1->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
-            'notes' => 'Engine 1 dispatched under SFO2 Mark Rivera.',
-            'changed_by' => $sfo2Rivera->id,
+            'notes' => 'Engine 1 dispatched under FO1 Dexter Pantas.',
+            'changed_by' => $fo1Pantas->id,
             'created_at' => $rW1->created_at->copy()->addMinutes(8),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW1->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
             'notes' => 'Engine fire extinguished with dry chemical powder. Vehicle towed safely.',
-            'changed_by' => $inspMalabanan->id,
+            'changed_by' => $fo1Gutierrez->id,
             'created_at' => $rW1->updated_at,
         ]);
         IncidentRecord::create([
@@ -630,22 +558,22 @@ class IncidentReportSeeder extends Seeder
         ReportStatusHistory::create([
             'report_id' => $rW2->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
-            'notes' => 'Accepted by FO3 Bernardo Santos.',
-            'changed_by' => $fo3Santos->id,
+            'notes' => 'Accepted by SFO2 Ma. Carmela Tenorio.',
+            'changed_by' => $sfo2Tenorio->id,
             'created_at' => $rW2->created_at->copy()->addMinutes(5),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW2->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
-            'notes' => 'Dispatched under SFO3 Michael Mercado.',
-            'changed_by' => $sfo3Mercado->id,
+            'notes' => 'Dispatched under SFO2 Ana Maria Lainez.',
+            'changed_by' => $sfo2Lainez->id,
             'created_at' => $rW2->created_at->copy()->addMinutes(9),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW2->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
             'notes' => 'Flames extinguished using fire beaters and booster hose lines.',
-            'changed_by' => $sfo3Mercado->id,
+            'changed_by' => $fo2Lopez->id,
             'created_at' => $rW2->updated_at,
         ]);
         IncidentRecord::create([
@@ -786,9 +714,9 @@ class IncidentReportSeeder extends Seeder
                 $reporter = $residents[$reportIdCounter % count($residents)];
 
                 // Responder assignments
-                $verifier = $bfpResponders[($reportIdCounter) % count($bfpResponders)];
+                $verifier = $verifiers[$reportIdCounter % count($verifiers)];
                 $commander = $bfpResponders[($reportIdCounter + 2) % count($bfpResponders)];
-                $investigator = $bfpResponders[($reportIdCounter + 4) % count($bfpResponders)];
+                $investigator = $fo3Lagrisola;
 
                 $aiConf = round(0.8800 + (($reportIdCounter * 3) % 110) / 10000, 4);
 

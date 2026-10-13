@@ -92,9 +92,10 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
 
         Route::get('duty-schedule', [DutyScheduleController::class, 'index'])->name('dutySchedule');
-        Route::post('duty-schedule', [DutyScheduleController::class, 'store'])->name('dutySchedule.store');
-        Route::patch('duty-schedule/{schedule}', [DutyScheduleController::class, 'update'])->name('dutySchedule.update');
-        Route::delete('duty-schedule/{schedule}', [DutyScheduleController::class, 'destroy'])->name('dutySchedule.destroy');
+        Route::patch('duty-schedule/personnel/{user}/group', [DutyScheduleController::class, 'updateGroup'])->name('dutySchedule.updateGroup');
+        Route::post('duty-schedule/overrides', [DutyScheduleController::class, 'storeOverride'])->name('dutySchedule.overrides.store');
+        Route::post('duty-schedule/swaps', [DutyScheduleController::class, 'swap'])->name('dutySchedule.swap');
+        Route::delete('duty-schedule/overrides/{override}', [DutyScheduleController::class, 'destroyOverride'])->name('dutySchedule.overrides.destroy');
 
         Route::get('fire-education', [FireEducationController::class, 'index'])->name('fireEducation');
         Route::post('fire-education', [FireEducationController::class, 'store'])->name('fireEducation.store');
