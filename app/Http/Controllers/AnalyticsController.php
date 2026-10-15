@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AlarmLevel;
 use App\Models\IncidentRecord;
 use App\Support\DateRange;
+use App\Support\IncidentTypeBreakdown;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -14,24 +15,10 @@ use Inertia\Response;
 class AnalyticsController extends Controller
 {
     /** @var array<string, string> */
-    public const TYPE_LABELS = [
-        'residential_fire' => 'Residential Fire',
-        'commercial_fire' => 'Commercial Fire',
-        'vehicular_fire' => 'Vehicular Fire',
-        'storage_fire' => 'Storage Fire',
-        'rubbish_fire' => 'Rubbish Fire',
-        'others' => 'Others',
-    ];
+    public const TYPE_LABELS = IncidentTypeBreakdown::TYPE_LABELS;
 
     /** @var array<string, string> */
-    public const TYPE_COLORS = [
-        'residential_fire' => '#1D3557',
-        'commercial_fire' => '#1E4D5B',
-        'vehicular_fire' => '#236B6E',
-        'storage_fire' => '#2A9D8F',
-        'rubbish_fire' => '#48B6A3',
-        'others' => '#76CEBF',
-    ];
+    public const TYPE_COLORS = IncidentTypeBreakdown::TYPE_COLORS;
 
     /** @var array<string, string> */
     public const ALARM_LEVEL_COLORS = [
@@ -73,7 +60,7 @@ class AnalyticsController extends Controller
         }
 
         return Inertia::render('analytics/index', [
-            'incidentsByType' => $this->incidentsByType($rangeStart, $rangeEnd),
+            'incidentsByType' => IncidentTypeBreakdown::forRange($rangeStart, $rangeEnd),
             'monthlyTrend' => $this->monthlyTrend($trendYear, $now),
             'incidentsByAlarmLevel' => $this->incidentsByAlarmLevel($rangeStart, $rangeEnd),
             'barangaysWithMostIncidents' => $this->barangaysWithMostIncidents($rangeStart, $rangeEnd),
@@ -85,36 +72,6 @@ class AnalyticsController extends Controller
                 'trend_year' => $trendYear ?: $now->year,
             ],
         ]);
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function incidentsByType(
-        CarbonInterface $start,
-        CarbonInterface $end,
-    ): array {
-        // incident_type is only recorded once an incident is marked
-        // Complete (post-assessment), so exclude the still-unassessed rows.
-        $query = IncidentRecord::whereNotNull('incident_type')
-            ->whereBetween('incident_datetime', [$start, $end]);
-
-        $total = (clone $query)->count();
-
-        return (clone $query)
-            ->selectRaw('incident_type, count(*) as total')
-            ->groupBy('incident_type')
-            ->pluck('total', 'incident_type')
-            ->sortDesc()
-            ->map(fn (int $count, string $type) => [
-                'type' => $type,
-                'label' => self::TYPE_LABELS[$type] ?? ucfirst($type),
-                'count' => $count,
-                'percentage' => $total > 0 ? (int) round($count / $total * 100) : 0,
-                'color' => self::TYPE_COLORS[$type] ?? '#868E96',
-            ])
-            ->values()
-            ->all();
     }
 
     /**

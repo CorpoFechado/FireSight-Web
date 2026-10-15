@@ -36,9 +36,9 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/AnalyticsController.php": {
-    "mtime": 1791427488.7634134,
-    "seen": 1791429651.769063,
-    "ast_hash": "2003c4d221a864e3dcdafddecd8356b3",
+    "mtime": 1791970946.6266916,
+    "seen": 1791971661.2033327,
+    "ast_hash": "e6045ad14c8e65c83beb60b3a5bc8e6a",
     "semantic_hash": ""
   },
   "app/Http/Controllers/AnnouncementController.php": {
@@ -54,9 +54,9 @@
     "semantic_hash": "25a307335c0719bc9a91b3f7babd186d"
   },
   "app/Http/Controllers/DashboardController.php": {
-    "mtime": 1791427521.0997224,
-    "seen": 1791429651.7694197,
-    "ast_hash": "829f1e88d579746c36ca8469dba06467",
+    "mtime": 1791970971.1245456,
+    "seen": 1791971661.2039242,
+    "ast_hash": "d277b89f51108482df627072cb4a8149",
     "semantic_hash": ""
   },
   "app/Http/Controllers/FireMapController.php": {
@@ -1116,9 +1116,9 @@
     "semantic_hash": "e2323a929692ecdbbc0346287c82b555"
   },
   "resources/js/pages/dashboard.tsx": {
-    "mtime": 1791447509.1665316,
-    "seen": 1791449974.4371943,
-    "ast_hash": "a588a01ca0603be33b56bc4506823c51",
+    "mtime": 1791971064.7258549,
+    "seen": 1791971661.2565486,
+    "ast_hash": "eabe38ec61d54707133a0e9f180aedc3",
     "semantic_hash": ""
   },
   "resources/js/pages/incidents/index.tsx": {
@@ -1308,9 +1308,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/DashboardTest.php": {
-    "mtime": 1791428781.1526842,
-    "seen": 1791429651.7956119,
-    "ast_hash": "43d02609b8289edf34a0c2e956c78d49",
+    "mtime": 1791971595.2967117,
+    "seen": 1791971661.2600653,
+    "ast_hash": "7077e95f02a6e9550353f690800c09db",
     "semantic_hash": ""
   },
   "tests/Feature/ExampleTest.php": {
@@ -2007,6 +2007,12 @@
     "mtime": 1791858255.5195148,
     "seen": 1791859290.8968182,
     "ast_hash": "f07337756a8881b5607d15bd0c4844b8",
+    "semantic_hash": ""
+  },
+  "app/Support/IncidentTypeBreakdown.php": {
+    "mtime": 1791970788.671182,
+    "seen": 1791971661.2161043,
+    "ast_hash": "d29c14b97477184e1525010de8f7c212",
     "semantic_hash": ""
   }
 }

@@ -26,6 +26,7 @@ test('authenticated bfp admin can visit the dashboard with mobile-matched kpis',
         ->has('monthlyTrend.0.month')
         ->has('monthlyTrend.0.incidents')
         ->missing('monthlyTrend.0.resolved')
+        ->has('incidentsByType')
     );
 });
 
@@ -281,5 +282,46 @@ test('dashboard accurately counts critical active incidents for 5th alarm, task 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->where('kpis.criticalActiveCount', 3)
+    );
+});
+
+test('dashboard provides incidents by type breakdown with the correct shape', function () {
+    $user = User::factory()->bfpAdmin()->create();
+    $resident = User::factory()->create();
+    $this->actingAs($user);
+
+    $report = CommunityReport::create([
+        'user_id' => $resident->id,
+        'reporter_name' => 'Citizen Reporter',
+        'contact_number' => '09123456789',
+        'description' => 'Fire test',
+        'latitude' => 13.95,
+        'longitude' => 120.65,
+        'status' => CommunityReport::STATUS_RESOLVED,
+    ]);
+
+    IncidentRecord::create([
+        'report_id' => $report->report_id,
+        'incident_datetime' => now(),
+        'incident_type' => 'residential_fire',
+        'alarm_level' => '1st_alarm',
+    ]);
+
+    $response = $this->get(route('dashboard'));
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->has('incidentsByType')
+        ->has('incidentsByType.0', fn ($page) => $page
+            ->has('type')
+            ->has('label')
+            ->has('count')
+            ->has('percentage')
+            ->has('color')
+            ->where('type', 'residential_fire')
+            ->where('label', 'Residential Fire')
+            ->where('count', 1)
+            ->where('percentage', 100)
+            ->etc()
+        )
     );
 });

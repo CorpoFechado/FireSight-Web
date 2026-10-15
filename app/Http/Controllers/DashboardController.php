@@ -6,6 +6,7 @@ use App\Enums\AlarmLevel;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Support\BarangayRiskSnapshot;
+use App\Support\IncidentTypeBreakdown;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Date;
 use Inertia\Inertia;
@@ -25,12 +26,15 @@ class DashboardController extends Controller
     public function index(): Response
     {
         $today = Date::today();
+        $now = Date::now();
+        $trendStart = $now->copy()->subMonths(6)->startOfMonth();
 
         return Inertia::render('dashboard', [
             'kpis' => $this->kpis($today),
             'recentIncidents' => $this->recentIncidents(),
             'barangayRisk' => BarangayRiskSnapshot::all(),
             'monthlyTrend' => $this->monthlyTrend(),
+            'incidentsByType' => IncidentTypeBreakdown::forRange($trendStart, $now),
         ]);
     }
 
@@ -183,14 +187,14 @@ class DashboardController extends Controller
     {
         return CommunityReport::with(['barangay', 'incidentRecord.barangay'])
             ->latest('created_at')
-            ->limit(5)
+            ->limit(7)
             ->get()
             ->map(fn (CommunityReport $report) => [
                 'report_id' => $report->report_id,
                 'reference' => sprintf('INC-%s-%04d', $report->created_at->format('Y'), $report->report_id),
                 'barangay' => $report->barangay?->barangay_name ?? $report->incidentRecord?->barangay?->barangay_name ?? 'Not assigned',
                 'type' => $report->incidentRecord?->incident_type
-                    ? AnalyticsController::TYPE_LABELS[$report->incidentRecord->incident_type] ?? ucfirst(str_replace('_', ' ', $report->incidentRecord->incident_type))
+                    ? IncidentTypeBreakdown::TYPE_LABELS[$report->incidentRecord->incident_type] ?? ucfirst(str_replace('_', ' ', $report->incidentRecord->incident_type))
                     : 'Unclassified',
                 'status' => $report->status,
                 'dateTime' => $report->created_at->format('Y-m-d H:i'),

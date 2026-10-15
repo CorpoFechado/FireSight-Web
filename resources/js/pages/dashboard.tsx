@@ -10,6 +10,9 @@ import {
     Area,
     AreaChart,
     CartesianGrid,
+    Cell,
+    Pie,
+    PieChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -58,16 +61,26 @@ type MonthlyTrendPoint = {
     resolved?: number;
 };
 
+type IncidentTypeSlice = {
+    type: string;
+    label: string;
+    count: number;
+    percentage: number;
+    color: string;
+};
+
 export default function Dashboard({
     kpis,
     recentIncidents,
     barangayRisk,
     monthlyTrend,
+    incidentsByType,
 }: {
     kpis: Kpis;
     recentIncidents: RecentIncident[];
     barangayRisk: BarangayRiskPoint[];
     monthlyTrend: MonthlyTrendPoint[];
+    incidentsByType: IncidentTypeSlice[];
 }) {
     return (
         <PortalLayout
@@ -116,6 +129,55 @@ export default function Dashboard({
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-2">
+                    {/* Risk map */}
+                    <PortalCard className="flex flex-col">
+                        <div
+                            className="flex items-center justify-between border-b px-4 py-4"
+                            style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                        >
+                            <h2 className="text-sm font-bold text-brand-navy">
+                                Barangay Risk Map
+                            </h2>
+                            <Link
+                                href={fireMap()}
+                                className="flex items-center gap-1 text-xs font-semibold text-brand-blue"
+                            >
+                                Expand <ChevronRight size={13} />
+                            </Link>
+                        </div>
+                        <div className="flex flex-1 flex-col gap-3 p-4">
+                            <BarangayRiskMap
+                                barangays={barangayRisk}
+                                height={300}
+                            />
+                            <div className="flex items-center gap-4 px-1">
+                                {(
+                                    [
+                                        'mild',
+                                        'moderate',
+                                        'high',
+                                    ] as const
+                                ).map((level) => (
+                                    <div
+                                        key={level}
+                                        className="flex items-center gap-1.5"
+                                    >
+                                        <div
+                                            className="size-2.5 rounded-full"
+                                            style={{
+                                                background:
+                                                    RISK_CFG[level].color,
+                                            }}
+                                        />
+                                        <span className="text-xs text-brand-muted">
+                                            {RISK_CFG[level].label}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </PortalCard>
+
                     {/* Recent incidents table */}
                     <PortalCard className="flex flex-col">
                         <div
@@ -196,153 +258,184 @@ export default function Dashboard({
                             </table>
                         </div>
                     </PortalCard>
+                </div>
 
-                    {/* Risk map */}
-                    <PortalCard className="flex flex-col">
+                {/* Monthly trend and Incidents by Type */}
+                <div className="grid gap-4 lg:grid-cols-3">
+                    {/* Monthly trend */}
+                    <PortalCard className="flex flex-col lg:col-span-2">
                         <div
-                            className="flex items-center justify-between border-b px-4 py-4"
+                            className="border-b px-5 py-4"
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
                         >
                             <h2 className="text-sm font-bold text-brand-navy">
-                                Barangay Risk Map
+                                Monthly Incident Trend
                             </h2>
-                            <Link
-                                href={fireMap()}
-                                className="flex items-center gap-1 text-xs font-semibold text-brand-blue"
-                            >
-                                Expand <ChevronRight size={13} />
-                            </Link>
                         </div>
-                        <div className="flex flex-1 flex-col gap-3 p-4">
-                            <BarangayRiskMap
-                                barangays={barangayRisk}
-                                height={220}
-                            />
-                            <div className="flex items-center gap-4 px-1">
-                                {(
-                                    [
-                                        'mild',
-                                        'moderate',
-                                        'high',
-                                    ] as const
-                                ).map((level) => (
-                                    <div
-                                        key={level}
-                                        className="flex items-center gap-1.5"
-                                    >
-                                        <div
-                                            className="size-2.5 rounded-full"
-                                            style={{
-                                                background:
-                                                    RISK_CFG[level].color,
-                                            }}
-                                        />
-                                        <span className="text-xs text-brand-muted">
-                                            {RISK_CFG[level].label}
-                                        </span>
+                        <div className="flex-1 p-5">
+                            <ResponsiveContainer width="100%" height={180}>
+                                <AreaChart
+                                    data={monthlyTrend}
+                                    margin={{
+                                        top: 8,
+                                        right: 8,
+                                        bottom: 0,
+                                        left: 0,
+                                    }}
+                                >
+                                    <defs>
+                                        <linearGradient
+                                            id="dashboardTrendGradient"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="#1D3557"
+                                                stopOpacity={0.28}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="#1D3557"
+                                                stopOpacity={0.02}
+                                            />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke="rgba(43,45,66,0.06)"
+                                        vertical={false}
+                                    />
+                                    <XAxis
+                                        dataKey="month"
+                                        tick={{ fontSize: 11, fill: '#6B7A8D' }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <YAxis
+                                        allowDecimals={false}
+                                        tick={{ fontSize: 11, fill: '#6B7A8D' }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        width={28}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            fontSize: 12,
+                                            borderRadius: 8,
+                                            border: '1px solid rgba(43,45,66,0.1)',
+                                            boxShadow: '0 4px 12px rgba(29, 53, 87, 0.08)',
+                                        }}
+                                        formatter={(value: number) => [
+                                            `${value} incident${value === 1 ? '' : 's'}`,
+                                            'Incidents',
+                                        ]}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="incidents"
+                                        name="Incidents"
+                                        stroke="#1D3557"
+                                        strokeWidth={2.5}
+                                        fillOpacity={1}
+                                        fill="url(#dashboardTrendGradient)"
+                                        dot={{
+                                            r: 3.5,
+                                            fill: '#1D3557',
+                                            stroke: '#ffffff',
+                                            strokeWidth: 1.5,
+                                        }}
+                                        activeDot={{
+                                            r: 5.5,
+                                            fill: '#1D3557',
+                                            stroke: '#ffffff',
+                                            strokeWidth: 2,
+                                        }}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </PortalCard>
+
+                    {/* Incidents by Type */}
+                    <PortalCard className="flex flex-col">
+                        <div
+                            className="border-b px-5 py-4"
+                            style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                        >
+                            <h2 className="text-sm font-bold text-brand-navy">
+                                Incidents by Type
+                            </h2>
+                        </div>
+                        <div className="flex flex-1 flex-col justify-between p-5">
+                            {incidentsByType.length === 0 ? (
+                                <div className="flex h-[180px] items-center justify-center">
+                                    <p className="text-xs text-brand-muted">
+                                        No classified incidents yet.
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="h-[180px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={incidentsByType}
+                                                    dataKey="count"
+                                                    nameKey="label"
+                                                    innerRadius={50}
+                                                    outerRadius={80}
+                                                    paddingAngle={2}
+                                                    stroke="none"
+                                                >
+                                                    {incidentsByType.map((slice) => (
+                                                        <Cell
+                                                            key={slice.type}
+                                                            fill={slice.color}
+                                                        />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        fontSize: 12,
+                                                        borderRadius: 8,
+                                                        border: '1px solid rgba(43,45,66,0.1)',
+                                                        boxShadow: '0 4px 12px rgba(29, 53, 87, 0.08)',
+                                                    }}
+                                                    formatter={(value: number, _name, item) => [
+                                                        `${value} (${item.payload.percentage}%)`,
+                                                        item.payload.label,
+                                                    ]}
+                                                />
+                                            </PieChart>
+                                        </ResponsiveContainer>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="mt-3 space-y-1.5">
+                                        {incidentsByType.map((slice) => (
+                                            <div
+                                                key={slice.type}
+                                                className="flex items-center gap-2 text-xs"
+                                            >
+                                                <span
+                                                    className="size-2 flex-shrink-0 rounded-full"
+                                                    style={{ background: slice.color }}
+                                                />
+                                                <span className="flex-1 truncate text-brand-navy">
+                                                    {slice.label}
+                                                </span>
+                                                <span className="font-mono text-xs font-semibold text-brand-muted">
+                                                    {slice.percentage}%
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </PortalCard>
                 </div>
-
-                {/* Monthly trend */}
-                <PortalCard>
-                    <div
-                        className="border-b px-5 py-4"
-                        style={{ borderColor: 'rgba(43,45,66,0.08)' }}
-                    >
-                        <h2 className="text-sm font-bold text-brand-navy">
-                            Monthly Incident Trend
-                        </h2>
-                    </div>
-                    <div className="p-5">
-                        <ResponsiveContainer width="100%" height={180}>
-                            <AreaChart
-                                data={monthlyTrend}
-                                margin={{
-                                    top: 8,
-                                    right: 8,
-                                    bottom: 0,
-                                    left: 0,
-                                }}
-                            >
-                                <defs>
-                                    <linearGradient
-                                        id="dashboardTrendGradient"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="5%"
-                                            stopColor="#1D3557"
-                                            stopOpacity={0.28}
-                                        />
-                                        <stop
-                                            offset="95%"
-                                            stopColor="#1D3557"
-                                            stopOpacity={0.02}
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    stroke="rgba(43,45,66,0.06)"
-                                    vertical={false}
-                                />
-                                <XAxis
-                                    dataKey="month"
-                                    tick={{ fontSize: 11, fill: '#6B7A8D' }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                />
-                                <YAxis
-                                    allowDecimals={false}
-                                    tick={{ fontSize: 11, fill: '#6B7A8D' }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    width={28}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        fontSize: 12,
-                                        borderRadius: 8,
-                                        border: '1px solid rgba(43,45,66,0.1)',
-                                        boxShadow: '0 4px 12px rgba(29, 53, 87, 0.08)',
-                                    }}
-                                    formatter={(value: number) => [
-                                        `${value} incident${value === 1 ? '' : 's'}`,
-                                        'Incidents',
-                                    ]}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="incidents"
-                                    name="Incidents"
-                                    stroke="#1D3557"
-                                    strokeWidth={2.5}
-                                    fillOpacity={1}
-                                    fill="url(#dashboardTrendGradient)"
-                                    dot={{
-                                        r: 3.5,
-                                        fill: '#1D3557',
-                                        stroke: '#ffffff',
-                                        strokeWidth: 1.5,
-                                    }}
-                                    activeDot={{
-                                        r: 5.5,
-                                        fill: '#1D3557',
-                                        stroke: '#ffffff',
-                                        strokeWidth: 2,
-                                    }}
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </PortalCard>
             </div>
         </PortalLayout>
     );
