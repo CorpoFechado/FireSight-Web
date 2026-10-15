@@ -1,0 +1,213 @@
+{
+  "generated_at": "2026-10-15T03:54:27.167541+00:00",
+  "nodes": {
+    "resources_js_components_aurora_background_aurorabackground": {
+      "code_fingerprint": "6dc1e4ab6544f51b62148401dd80e6fb45eda9f9e320b79ee6cceb01eece1b84",
+      "label": "AuroraBackground()",
+      "last": "2026-10-15T03:18:26.936323+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T03:18:26.936323+00:00",
+          "outcome": "useful",
+          "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
+        }
+      ],
+      "score": 0.999422482,
+      "source_file": "resources/js/components/aurora-background.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_components_ui_button_button": {
+      "code_fingerprint": "d3e6f02c0d80be6539278cfc9ee42e79b0e248793fb69d94680717e3d5a9bda4",
+      "label": "Button()",
+      "last": "2026-10-15T03:18:26.936323+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T03:18:26.936323+00:00",
+          "outcome": "useful",
+          "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
+        }
+      ],
+      "score": 0.999422482,
+      "source_file": "resources/js/components/ui/button.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_layouts_portal_layout": {
+      "code_fingerprint": "29b2a4b9265122375e5493864483312b4a496ee475c3f28cb813de12d6b97c74",
+      "label": "portal-layout.tsx",
+      "last": "2026-10-15T03:18:26.936323+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T03:18:26.936323+00:00",
+          "outcome": "useful",
+          "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
+        },
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 1.998160968,
+      "source_file": "resources/js/layouts/portal-layout.tsx",
+      "status": "preferred",
+      "uses": 2
+    },
+    "resources_js_pages_auth_login": {
+      "code_fingerprint": "948b1b1adf6746f25f7ced7fde9c16d86587c96e0fa374a9c6888dcdc5bfc78b",
+      "label": "login.tsx",
+      "last": "2026-10-15T02:35:46.800292+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 0.998738486,
+      "source_file": "resources/js/pages/auth/login.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_pages_auth_login_login": {
+      "code_fingerprint": "948b1b1adf6746f25f7ced7fde9c16d86587c96e0fa374a9c6888dcdc5bfc78b",
+      "label": "Login()",
+      "last": "2026-10-15T02:35:46.800292+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 0.998738486,
+      "source_file": "resources/js/pages/auth/login.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_pages_dashboard": {
+      "code_fingerprint": "0c9b8114e0e97e1d6faf66fc033fd7e06b69beea04e8bfce7889ad77002ac5d2",
+      "label": "dashboard.tsx",
+      "last": "2026-10-15T03:18:26.936323+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T03:18:26.936323+00:00",
+          "outcome": "useful",
+          "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
+        }
+      ],
+      "score": 0.999422482,
+      "source_file": "resources/js/pages/dashboard.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_pages_dashboard_dashboard": {
+      "code_fingerprint": "0c9b8114e0e97e1d6faf66fc033fd7e06b69beea04e8bfce7889ad77002ac5d2",
+      "label": "Dashboard()",
+      "last": "2026-10-15T03:18:26.936323+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T03:18:26.936323+00:00",
+          "outcome": "useful",
+          "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
+        }
+      ],
+      "score": 0.999422482,
+      "source_file": "resources/js/pages/dashboard.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_pages_notifications_index": {
+      "code_fingerprint": "3668a6cdbe73bd36dd3c92ff30e6a850c6d12eb20b952a81f31594d4ef094936",
+      "label": "notifications/index.tsx",
+      "last": "2026-10-15T02:35:46.800292+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 0.998738486,
+      "source_file": "resources/js/pages/notifications/index.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_pages_personnel_index": {
+      "code_fingerprint": "66aff9a9a236c925022b3650341fa6fb695f5788301fc2c94e5c9f264fcff7c4",
+      "label": "personnel/index.tsx",
+      "last": "2026-10-15T02:35:46.800292+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 0.998738486,
+      "source_file": "resources/js/pages/personnel/index.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_pages_risk_analytics_index": {
+      "code_fingerprint": "8cecd11a8753def645d99273ba0bdf908cbec95d7ccfda98b82870e3625f1a97",
+      "label": "risk-analytics/index.tsx",
+      "last": "2026-10-15T02:35:46.800292+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 0.998738486,
+      "source_file": "resources/js/pages/risk-analytics/index.tsx",
+      "status": "tentative",
+      "uses": 1
+    },
+    "resources_js_pages_welcome": {
+      "code_fingerprint": "a53d2978829a564db04591e24025a712dd46a118f361f25e1975fa8e7ec2ddf7",
+      "label": "welcome.tsx",
+      "last": "2026-10-15T03:18:26.936323+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T03:18:26.936323+00:00",
+          "outcome": "useful",
+          "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
+        },
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 1.998160968,
+      "source_file": "resources/js/pages/welcome.tsx",
+      "status": "preferred",
+      "uses": 2
+    },
+    "resources_js_pages_welcome_welcome": {
+      "code_fingerprint": "a53d2978829a564db04591e24025a712dd46a118f361f25e1975fa8e7ec2ddf7",
+      "label": "Welcome()",
+      "last": "2026-10-15T03:18:26.936323+00:00",
+      "provenance": [
+        {
+          "date": "2026-10-15T03:18:26.936323+00:00",
+          "outcome": "useful",
+          "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
+        },
+        {
+          "date": "2026-10-15T02:35:46.800292+00:00",
+          "outcome": "useful",
+          "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
+        }
+      ],
+      "score": 1.998160968,
+      "source_file": "resources/js/pages/welcome.tsx",
+      "status": "preferred",
+      "uses": 2
+    }
+  },
+  "version": 1
+}

@@ -72,6 +72,17 @@
     --color-brand-bg: #f8f9fa;
     --color-brand-muted: #6b7a8d;
 
+    /* FireSight public landing page */
+    --color-firesight-navy: #0b1b3f;
+    --color-firesight-navy-mid: #0f2552;
+    --color-firesight-navy-highlight: #13306b;
+    --color-firesight-orange: #ff6a13;
+    --color-firesight-orange-light: #ff8a2b;
+    --color-firesight-orange-pale: #fff1e6;
+    --color-firesight-blue-pale: #eef4ff;
+    --color-firesight-blue-soft: #f5f8ff;
+    --color-firesight-copy: #5b6b8c;
+
     /* Premium/"aurora" design tokens layered on top of the existing brand
      * palette — see resources/js/components/aurora-background.tsx. These
      * only add soft depth/gradient accents; no brand colors change. */
@@ -158,12 +169,49 @@
 }
 
 @layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
     * {
         @apply border-border;
     }
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+.landing-section {
+    scroll-margin-top: 5rem;
+}
+
+@keyframes firesight-marker-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 106, 19, 0.45);
+    }
+    50% {
+        box-shadow: 0 0 0 12px rgba(255, 106, 19, 0);
+    }
+}
+
+.firesight-marker-pulse {
+    animation: firesight-marker-pulse 1.8s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .firesight-marker-pulse,
+    .animate-fade-up {
+        animation: none;
+    }
+
+    .landing-card {
+        transform: none !important;
     }
 }
 
@@ -217,37 +265,42 @@
     --ring: #1d3557;
 }
 
-.auth-card-light input[data-slot="input"],
-.auth-card-light [data-slot="input"] {
+.auth-card-light input[data-slot='input'],
+.auth-card-light [data-slot='input'] {
     background-color: #ffffff;
     border-color: #94a3b8;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
-.auth-card-light input[data-slot="input"]:hover,
-.auth-card-light [data-slot="input"]:hover {
+.auth-card-light input[data-slot='input']:hover,
+.auth-card-light [data-slot='input']:hover {
     border-color: #64748b;
 }
 
-.auth-card-light input[data-slot="input"]:focus-visible,
-.auth-card-light [data-slot="input"]:focus-visible {
+.auth-card-light input[data-slot='input']:focus-visible,
+.auth-card-light [data-slot='input']:focus-visible {
     border-color: #1d3557;
     box-shadow: 0 0 0 3px rgba(29, 53, 87, 0.15);
 }
 
-.auth-card-light [data-slot="checkbox"] {
+.auth-card-light [data-slot='checkbox'] {
     background-color: #ffffff;
     border: 1.5px solid #94a3b8;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
-.auth-card-light [data-slot="checkbox"]:hover {
+.auth-card-light [data-slot='checkbox']:hover {
     border-color: #64748b;
 }
 
-.auth-card-light [data-slot="checkbox"][data-state="checked"] {
+.auth-card-light [data-slot='checkbox'][data-state='checked'] {
     background-color: #1d3557;
     border-color: #1d3557;
     color: #ffffff;

@@ -1188,10 +1188,10 @@
     "semantic_hash": "1b0689dadf0cbdb974cd4432a657adf6"
   },
   "resources/js/pages/welcome.tsx": {
-    "mtime": 1785042517.3173196,
-    "seen": 1789390676.6393886,
-    "ast_hash": "abf65a6126013e5497d09b4f9a338ff5",
-    "semantic_hash": "abf65a6126013e5497d09b4f9a338ff5"
+    "mtime": 1792036659.7452104,
+    "seen": 1792036884.6988924,
+    "ast_hash": "647b24aa10ce74b9d5e8b52ec5fa6628",
+    "semantic_hash": ""
   },
   "resources/js/types/auth.ts": {
     "mtime": 1785149992.9647448,
@@ -1254,9 +1254,9 @@
     "semantic_hash": "eb08d515cde3d3c778d7ce69893d2831"
   },
   "routes/web.php": {
-    "mtime": 1791855259.741456,
-    "seen": 1791856906.0101244,
-    "ast_hash": "daea79936618b1ed8bcf9665737221fa",
+    "mtime": 1792033524.3570092,
+    "seen": 1792036884.6998458,
+    "ast_hash": "dc5d8eb30d9bc7695046c03dbf433e04",
     "semantic_hash": ""
   },
   "tests/Feature/AnnouncementTest.php": {
@@ -2013,6 +2013,78 @@
     "mtime": 1791970788.671182,
     "seen": 1791971661.2161043,
     "ast_hash": "d29c14b97477184e1525010de8f7c212",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/app-cta-section.tsx": {
+    "mtime": 1792039217.7273717,
+    "seen": 1792039245.403894,
+    "ast_hash": "c290bdd6b4f64fc774fd9888b38d50d0",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/audience-section.tsx": {
+    "mtime": 1792036669.9179187,
+    "seen": 1792036884.689426,
+    "ast_hash": "05055f54d2ee7bb1f8a75badd3c2389e",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/coming-soon-button.tsx": {
+    "mtime": 1792036559.0692518,
+    "seen": 1792036884.6894271,
+    "ast_hash": "b7a018f947684877fdbf82b7274e2e0e",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/features-section.tsx": {
+    "mtime": 1792038670.6330452,
+    "seen": 1792038703.504533,
+    "ast_hash": "74b5f2940bd862dcede8ccc322ad339f",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/hero-section.tsx": {
+    "mtime": 1792039234.0013478,
+    "seen": 1792039245.4042642,
+    "ast_hash": "61fcdd9a3af6d1208dc6d3523b409c3e",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/how-it-works-section.tsx": {
+    "mtime": 1792036669.994292,
+    "seen": 1792036884.6894312,
+    "ast_hash": "207390aa213138e6e0e46fb62b365d0e",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/landing-footer.tsx": {
+    "mtime": 1792036819.8940995,
+    "seen": 1792036884.6894588,
+    "ast_hash": "b4ac27d1b2362c59b526bfaa3f43754b",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/landing-header.tsx": {
+    "mtime": 1792036802.2831051,
+    "seen": 1792036884.6894603,
+    "ast_hash": "f0183c584bfddf47dcf29c7c62e5a11b",
+    "semantic_hash": ""
+  },
+  "resources/js/components/landing/phone-mockup.tsx": {
+    "mtime": 1792038671.1410327,
+    "seen": 1792038703.5048206,
+    "ast_hash": "b75bffcd5197a9a4feaeb6bddd630e82",
+    "semantic_hash": ""
+  },
+  "tests/Feature/WelcomePageTest.php": {
+    "mtime": 1792036653.5828242,
+    "seen": 1792036884.7022433,
+    "ast_hash": "a0fe3beeec28bbe777f0fb13b6bdd498",
+    "semantic_hash": ""
+  },
+  "graphify-out/memory/query_20261015_023546_f3f063cc_create_a_prompt_to_implement_the_firesight_landing.md": {
+    "mtime": 1792031746.8002925,
+    "seen": 1792036884.7069085,
+    "ast_hash": "c531a4071f68250444b2517c997bff7e",
+    "semantic_hash": ""
+  },
+  "graphify-out/memory/query_20261015_031826_f5acbc31_analyze_the_current_landing_page__explain_why_it_l.md": {
+    "mtime": 1792034306.9365165,
+    "seen": 1792036884.7069106,
+    "ast_hash": "8f2d78048d792600bddcd1d203875b2b",
     "semantic_hash": ""
   }
 }

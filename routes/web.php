@@ -13,8 +13,12 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\RiskAnalyticsController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use Inertia\Response;
 
-Route::redirect('/', '/login')->name('home');
+Route::get('/', function (): Response {
+    return Inertia::render('welcome');
+})->name('home');
 
 Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
