@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -18,11 +17,7 @@ class NotificationController extends Controller
         $weekAgo = Carbon::today()->subDays(7);
         $isAdmin = $user->isBfpAdmin();
 
-        $query = $isAdmin
-            ? Notification::with('user')->latest('created_at')
-            : $user->appNotifications()->latest('created_at');
-
-        $notifications = $query->get();
+        $notifications = $user->appNotifications()->latest('created_at')->get();
 
         $todayGroup = $notifications->filter(fn (Notification $n) => $n->created_at->gte($today));
         $recent = $notifications->filter(fn (Notification $n) => $n->created_at->lt($today) && $n->created_at->gte($weekAgo));
@@ -31,9 +26,9 @@ class NotificationController extends Controller
         return Inertia::render('notifications/index', [
             'isAdmin' => $isAdmin,
             'groups' => [
-                'today' => $todayGroup->map(fn (Notification $n) => $this->toRow($n, $isAdmin))->values(),
-                'recent' => $recent->map(fn (Notification $n) => $this->toRow($n, $isAdmin))->values(),
-                'earlier' => $earlier->map(fn (Notification $n) => $this->toRow($n, $isAdmin))->values(),
+                'today' => $todayGroup->map(fn (Notification $n) => $this->toRow($n))->values(),
+                'recent' => $recent->map(fn (Notification $n) => $this->toRow($n))->values(),
+                'earlier' => $earlier->map(fn (Notification $n) => $this->toRow($n))->values(),
             ],
             'unreadCount' => $notifications->where('is_read', false)->count(),
         ]);
@@ -61,9 +56,9 @@ class NotificationController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function toRow(Notification $notification, bool $includeUser = false): array
+    private function toRow(Notification $notification): array
     {
-        $row = [
+        return [
             'id' => $notification->notification_id,
             'type' => $notification->notification_type,
             'title' => $notification->title,
@@ -71,11 +66,5 @@ class NotificationController extends Controller
             'is_read' => $notification->is_read,
             'created_at' => $notification->created_at->toIso8601String(),
         ];
-
-        if ($includeUser && $notification->relationLoaded('user') && $notification->user instanceof User) {
-            $row['user_name'] = $notification->user->name;
-        }
-
-        return $row;
     }
 }

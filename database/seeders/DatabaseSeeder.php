@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             BfpPersonnelSeeder::class,
             DummyDataSeeder::class,
             IncidentReportSeeder::class,
+            AdminNotificationSeeder::class,
             FireEducationContentSeeder::class,
         ]);
     }

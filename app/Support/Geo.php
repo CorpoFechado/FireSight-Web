@@ -34,4 +34,20 @@ class Geo
 
         return $inside;
     }
+
+    /**
+     * Great-circle (haversine) distance between two coordinates, in meters.
+     */
+    public static function distanceInMeters(float $fromLat, float $fromLng, float $toLat, float $toLng): float
+    {
+        $earthRadiusMeters = 6371000;
+
+        $latDelta = deg2rad($toLat - $fromLat);
+        $lngDelta = deg2rad($toLng - $fromLng);
+
+        $a = sin($latDelta / 2) ** 2
+            + cos(deg2rad($fromLat)) * cos(deg2rad($toLat)) * sin($lngDelta / 2) ** 2;
+
+        return $earthRadiusMeters * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
 }

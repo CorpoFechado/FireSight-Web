@@ -3,7 +3,7 @@
 use App\Models\Notification;
 use App\Models\User;
 
-it('admin sees all notifications from all users', function () {
+it('admin only sees their own notifications, not residents\'', function () {
     $admin = User::factory()->create([
         'role' => User::ROLE_BFP_ADMIN,
         'email_verified_at' => now(),
@@ -16,8 +16,16 @@ it('admin sees all notifications from all users', function () {
 
     Notification::create([
         'user_id' => $resident->id,
-        'title' => 'Test Alert',
+        'title' => 'Resident Alert',
         'message' => 'Something happened',
+        'notification_type' => 'status_update',
+        'is_read' => false,
+    ]);
+
+    Notification::create([
+        'user_id' => $admin->id,
+        'title' => 'New Community Report',
+        'message' => 'Report #1 is awaiting verification.',
         'notification_type' => 'incident_alert',
         'is_read' => false,
     ]);
@@ -28,7 +36,10 @@ it('admin sees all notifications from all users', function () {
     $response->assertInertia(fn ($page) => $page
         ->component('notifications/index')
         ->where('isAdmin', true)
-        ->has('groups')
+        ->has('groups.today', 1)
+        ->where('groups.today.0.title', 'New Community Report')
+        ->missing('groups.today.0.user_name')
+        ->where('unreadCount', 1)
     );
 });
 

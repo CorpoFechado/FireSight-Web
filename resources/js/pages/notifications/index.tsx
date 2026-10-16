@@ -1,10 +1,11 @@
-﻿import { router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { CheckCheck } from 'lucide-react';
-import { PortalCard } from '@/components/portal/portal-card';
 import {
-    NotificationItem,
-    type NotificationRow,
+    NotificationItem
+    
 } from '@/components/notifications/notification-item';
+import type {NotificationRow} from '@/components/notifications/notification-item';
+import { PortalCard } from '@/components/portal/portal-card';
 import PortalLayout from '@/layouts/portal-layout';
 import { readAll } from '@/routes/notifications';
 
@@ -33,22 +34,18 @@ export default function NotificationsIndex({
     };
 
     return (
-        <PortalLayout title={isAdmin ? 'All Notifications' : 'Notifications'}>
+        <PortalLayout title="Notifications">
             <div className="space-y-4">
                 {/* Page header */}
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-brand-navy">
-                            {isAdmin ? 'All Notifications' : 'Notifications'}
+                            Notifications
                         </h1>
                         <p className="mt-1 text-sm text-brand-muted">
-                            {isAdmin
-                                ? unreadCount > 0
-                                    ? `${unreadCount} unread across all users`
-                                    : 'All caught up'
-                                : unreadCount > 0
-                                  ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
-                                  : "You're all caught up"}
+                            {unreadCount > 0
+                                ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
+                                : "You're all caught up"}
                         </p>
                     </div>
                     <button
@@ -68,7 +65,7 @@ export default function NotificationsIndex({
                         </p>
                         <p className="max-w-sm text-xs text-brand-muted">
                             {isAdmin
-                                ? 'Notifications sent to users will appear here.'
+                                ? 'New reports, AI alerts, and status updates from personnel will appear here.'
                                 : 'Updates on your reports and station announcements will show up here.'}
                         </p>
                     </PortalCard>

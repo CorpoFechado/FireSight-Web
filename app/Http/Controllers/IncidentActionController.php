@@ -8,6 +8,7 @@ use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Models\Notification;
 use App\Models\ReportStatusHistory;
+use App\Support\AdminNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -174,7 +175,7 @@ class IncidentActionController extends Controller
      * Updates assessment details for a resolved incident record.
      * Open to any BFP staff / admin.
      */
-    public function updateDetails(Request $request, CommunityReport $report): RedirectResponse
+    public function updateDetails(Request $request, CommunityReport $report, AdminNotifier $adminNotifier): RedirectResponse
     {
         $record = $report->incidentRecord;
         if (! $record) {
@@ -213,6 +214,8 @@ class IncidentActionController extends Controller
                 'Incident assessment details updated by BFP personnel.'
             );
         });
+
+        $adminNotifier->incidentDetailsUpdated($report, $request->user());
 
         return back()->with('toast', [
             'type' => 'success',
