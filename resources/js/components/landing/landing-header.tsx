@@ -98,14 +98,19 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                 <button
                     type="button"
                     onClick={() => scrollToSection('home')}
-                    className="rounded-lg focus-visible:ring-2 focus-visible:ring-firesight-orange focus-visible:ring-offset-2 focus-visible:ring-offset-firesight-navy focus-visible:outline-none"
+                    className="flex items-center gap-2.5 rounded-lg focus-visible:ring-2 focus-visible:ring-firesight-orange focus-visible:ring-offset-2 focus-visible:ring-offset-firesight-navy focus-visible:outline-none"
                     aria-label="FireSight, return to home"
                 >
                     <img
                         src="/images/firesight-logo.png"
-                        alt="FireSight"
+                        alt=""
                         className="h-9 w-auto object-contain"
+                        aria-hidden="true"
                     />
+                    <span className="text-xl font-extrabold tracking-tight sm:text-5xl">
+                        <span className="text-firesight-orange">Fire</span>
+                        <span className="text-white">Sight</span>
+                    </span>
                 </button>
 
                 <nav

@@ -27,14 +27,26 @@ export function PhoneMockup({ compact = false }: { compact?: boolean }) {
                 <div className="absolute top-2 left-1/2 z-10 h-4 w-20 -translate-x-1/2 rounded-full bg-[#071126]" />
                 <div className="overflow-hidden rounded-[2rem] bg-firesight-blue-soft">
                     <div
-                        className={`flex items-center justify-between bg-white px-4 ${compact ? 'pt-6 pb-2' : 'pt-7 pb-3'}`}
+                        className={`flex items-center justify-between bg-firesight-navy-mid px-4 ${compact ? 'pt-6 pb-2' : 'pt-7 pb-3'}`}
                     >
-                        <img
-                            src="/images/firesight-logo.png"
-                            alt=""
-                            className={compact ? 'h-4 w-auto' : 'h-5 w-auto'}
-                        />
-                        <Bell className="size-4 text-firesight-navy" />
+                        <div className="flex items-center gap-1.5">
+                            <img
+                                src="/images/firesight-logo.png"
+                                alt=""
+                                className={
+                                    compact ? 'h-3.5 w-auto' : 'h-4 w-auto'
+                                }
+                            />
+                            <span
+                                className={`font-extrabold tracking-tight ${compact ? 'text-[8px]' : 'text-[10px]'}`}
+                            >
+                                <span className="text-firesight-orange">
+                                    Fire
+                                </span>
+                                <span className="text-white">Sight</span>
+                            </span>
+                        </div>
+                        <Bell className="size-4 text-white" />
                     </div>
                     <div
                         className={compact ? 'space-y-2 p-3' : 'space-y-3 p-4'}
