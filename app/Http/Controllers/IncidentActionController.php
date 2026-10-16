@@ -114,12 +114,10 @@ class IncidentActionController extends Controller
     }
 
     /**
-     * Resolves the incident: dispatched/accepted -> resolved.
-     * This is where the assessment details are recorded, and ONLY now
-     * is the community report inserted into the incident_record table.
-     * Open to any bfp staff.
+     * Resolves the incident and creates a record ready for later assessment.
+     * Open to any BFP staff.
      */
-    public function resolve(Request $request, CommunityReport $report): RedirectResponse
+    public function resolve(CommunityReport $report): RedirectResponse
     {
         $this->assertStatus(
             $report,
@@ -127,47 +125,27 @@ class IncidentActionController extends Controller
             'resolve'
         );
 
-        $data = $request->validate([
-            'incident_type' => ['required', Rule::in([
-                'residential_fire',
-                'commercial_fire',
-                'vehicular_fire',
-                'storage_fire',
-                'rubbish_fire',
-                'others',
-            ])],
-            'alarm_level' => ['required', Rule::enum(AlarmLevel::class)],
-            'cause_of_fire' => ['nullable', 'string', 'max:150'],
-            'casualties' => ['nullable', 'integer', 'min:0'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        DB::transaction(function () use ($report, $data) {
+        DB::transaction(function () use ($report) {
             IncidentRecord::create([
                 'report_id' => $report->report_id,
                 'barangay_id' => $report->barangay_id,
                 'incident_datetime' => now(),
-                'incident_type' => $data['incident_type'],
-                'alarm_level' => $data['alarm_level'],
-                'cause_of_fire' => $data['cause_of_fire'] ?? null,
-                'casualties' => $data['casualties'] ?? 0,
-                'notes' => $data['notes'] ?? null,
             ]);
 
             $report->update(['status' => CommunityReport::STATUS_RESOLVED]);
 
-            $historyNotes = ! empty($data['notes'])
-                ? "Incident declared resolved: {$data['notes']}"
-                : 'Fire declared extinguished; incident marked resolved by responding crew.';
-
-            $this->logStatusHistory($report, CommunityReport::STATUS_RESOLVED, $historyNotes);
+            $this->logStatusHistory(
+                $report,
+                CommunityReport::STATUS_RESOLVED,
+                'Fire declared extinguished; incident marked resolved by responding crew.'
+            );
         });
 
         $this->notifyReporter($report, 'The fire incident you reported has been marked as resolved.');
 
         return back()->with('toast', [
             'type' => 'success',
-            'message' => 'Report resolved and incident record saved.',
+            'message' => 'Report marked as resolved.',
         ]);
     }
 
@@ -177,12 +155,7 @@ class IncidentActionController extends Controller
      */
     public function updateDetails(Request $request, CommunityReport $report, AdminNotifier $adminNotifier): RedirectResponse
     {
-        $record = $report->incidentRecord;
-        if (! $record) {
-            throw ValidationException::withMessages([
-                'details' => 'No incident assessment record found to edit.',
-            ]);
-        }
+        $this->assertStatus($report, [CommunityReport::STATUS_RESOLVED], 'update details for');
 
         $data = $request->validate([
             'incident_type' => ['required', Rule::in([
@@ -199,14 +172,23 @@ class IncidentActionController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $record = IncidentRecord::firstOrNew(['report_id' => $report->report_id]);
+
         DB::transaction(function () use ($record, $report, $data) {
-            $record->update([
+            if (! $record->exists) {
+                $record->fill([
+                    'barangay_id' => $report->barangay_id,
+                    'incident_datetime' => now(),
+                ]);
+            }
+
+            $record->fill([
                 'incident_type' => $data['incident_type'],
                 'alarm_level' => $data['alarm_level'],
                 'cause_of_fire' => $data['cause_of_fire'] ?? null,
                 'casualties' => $data['casualties'] ?? 0,
                 'notes' => $data['notes'] ?? null,
-            ]);
+            ])->save();
 
             $this->logStatusHistory(
                 $report,

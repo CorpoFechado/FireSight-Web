@@ -101,7 +101,7 @@ test('staff can advance accepted report to dispatched without creating incident_
         ->count())->toBe(1);
 });
 
-test('resolving a dispatched report requires incident details and inserts incident_record', function () {
+test('staff can resolve a dispatched report without assessment details', function () {
     $report = CommunityReport::create([
         'user_id' => $this->resident->id,
         'reporter_name' => 'Crisostomo Ibarra',
@@ -114,13 +114,7 @@ test('resolving a dispatched report requires incident details and inserts incide
     ]);
 
     $response = $this->actingAs($this->staff)
-        ->post(route('incidents.resolve', $report), [
-            'incident_type' => 'residential_fire',
-            'alarm_level' => '2nd_alarm',
-            'cause_of_fire' => 'Gas stove unattended',
-            'casualties' => 0,
-            'notes' => 'Extinguished by responding fire personnel.',
-        ]);
+        ->post(route('incidents.resolve', $report));
 
     $response->assertRedirect();
     $report->refresh();
@@ -129,18 +123,18 @@ test('resolving a dispatched report requires incident details and inserts incide
 
     $record = IncidentRecord::where('report_id', $report->report_id)->first();
     expect($record)->not->toBeNull()
-        ->and($record->incident_type)->toBe('residential_fire')
-        ->and($record->alarm_level->value)->toBe('2nd_alarm')
-        ->and($record->cause_of_fire)->toBe('Gas stove unattended')
-        ->and($record->casualties)->toBe(0)
-        ->and($record->notes)->toBe('Extinguished by responding fire personnel.');
+        ->and($record->incident_type)->toBeNull()
+        ->and($record->alarm_level)->toBeNull()
+        ->and($record->cause_of_fire)->toBeNull()
+        ->and($record->casualties)->toBeNull()
+        ->and($record->notes)->toBeNull();
 
     expect(ReportStatusHistory::where('report_id', $report->report_id)
         ->where('status', CommunityReport::STATUS_RESOLVED)
         ->count())->toBe(1);
 });
 
-test('resolve validates incident_type to canonical mobile fire types', function () {
+test('adding incident details validates incident_type to canonical mobile fire types', function () {
     $report = CommunityReport::create([
         'user_id' => $this->resident->id,
         'reporter_name' => 'Test',
@@ -149,11 +143,11 @@ test('resolve validates incident_type to canonical mobile fire types', function 
         'latitude' => 13.95,
         'longitude' => 120.65,
         'barangay_id' => $this->barangay->barangay_id,
-        'status' => CommunityReport::STATUS_DISPATCHED,
+        'status' => CommunityReport::STATUS_RESOLVED,
     ]);
 
     $response = $this->actingAs($this->staff)
-        ->post(route('incidents.resolve', $report), [
+        ->patch(route('incidents.updateDetails', $report), [
             'incident_type' => 'structural', // legacy type, should fail validation
             'alarm_level' => '2nd_alarm',
         ]);
@@ -162,7 +156,7 @@ test('resolve validates incident_type to canonical mobile fire types', function 
     expect(IncidentRecord::where('report_id', $report->report_id)->count())->toBe(0);
 });
 
-test('resolve accepts valid alarm levels and rejects invalid or legacy values', function () {
+test('adding incident details accepts valid alarm levels and rejects invalid or legacy values', function () {
     $report1 = CommunityReport::create([
         'user_id' => $this->resident->id,
         'reporter_name' => 'Test 1',
@@ -171,11 +165,11 @@ test('resolve accepts valid alarm levels and rejects invalid or legacy values', 
         'latitude' => 13.95,
         'longitude' => 120.65,
         'barangay_id' => $this->barangay->barangay_id,
-        'status' => CommunityReport::STATUS_DISPATCHED,
+        'status' => CommunityReport::STATUS_RESOLVED,
     ]);
 
     $this->actingAs($this->staff)
-        ->post(route('incidents.resolve', $report1), [
+        ->patch(route('incidents.updateDetails', $report1), [
             'incident_type' => 'residential_fire',
             'alarm_level' => '5th_alarm',
         ])
@@ -192,19 +186,19 @@ test('resolve accepts valid alarm levels and rejects invalid or legacy values', 
         'latitude' => 13.95,
         'longitude' => 120.65,
         'barangay_id' => $this->barangay->barangay_id,
-        'status' => CommunityReport::STATUS_DISPATCHED,
+        'status' => CommunityReport::STATUS_RESOLVED,
     ]);
 
     // Legacy values and invalid alarm levels must fail validation
     $this->actingAs($this->staff)
-        ->post(route('incidents.resolve', $report2), [
+        ->patch(route('incidents.updateDetails', $report2), [
             'incident_type' => 'residential_fire',
             'alarm_level' => 'medium',
         ])
         ->assertSessionHasErrors('alarm_level');
 
     $this->actingAs($this->staff)
-        ->post(route('incidents.resolve', $report2), [
+        ->patch(route('incidents.updateDetails', $report2), [
             'incident_type' => 'residential_fire',
             'alarm_level' => 'critical',
         ])

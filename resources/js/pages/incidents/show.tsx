@@ -1,14 +1,15 @@
-import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Building2, Camera, Clock, Edit, FileText, MapPin, Phone, ShieldCheck, UserCheck } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { ArrowLeft, Building2, Camera, Edit, FileText, MapPin, Phone, ShieldCheck, UserCheck } from 'lucide-react';
 import { useState } from 'react';
-import { IncidentActions } from '@/components/incidents/incident-actions';
 import { AiVerificationCard } from '@/components/incidents/ai-verification-card';
 import { EditDetailsModal } from '@/components/incidents/edit-details-modal';
+import { IncidentActions } from '@/components/incidents/incident-actions';
 import { PortalCard } from '@/components/portal/portal-card';
-import { AiFireBadge, AlarmLevelBadge, StatusBadge } from '@/components/portal/status-badge';
 import { SinglePointMap } from '@/components/portal/single-point-map';
+import { AiFireBadge, AlarmLevelBadge, StatusBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
-import { STATUS_CFG, type AlarmLevel, type ReportStatus } from '@/lib/fire-status';
+import { STATUS_CFG } from '@/lib/fire-status';
+import type { AlarmLevel, ReportStatus } from '@/lib/fire-status';
 import type { StatusHistoryEntry } from '@/lib/status-history';
 import { index as incidentsIndex, show as showIncident } from '@/routes/incidents';
 
@@ -75,14 +76,11 @@ function ReportPhoto({ path }: { path: string }) {
         />
     );
 }
-
 type Barangay = { barangay_id: number; barangay_name: string };
 
 export default function IncidentShow({
     report,
     linkedReports,
-    barangays,
-    suggestedBarangayId,
     statusHistory = [],
 }: {
     report: ReportDetail;
@@ -91,7 +89,6 @@ export default function IncidentShow({
     suggestedBarangayId: number | null;
     statusHistory?: StatusHistoryEntry[];
 }) {
-    const { auth } = usePage().props;
     const [editOpen, setEditOpen] = useState(false);
     const assessmentValues = {
         incident_type: report.raw_incident_type,
@@ -112,7 +109,13 @@ export default function IncidentShow({
                 personnel: null,
             },
         ];
-    const hasAssessment = Boolean(report.cause_of_fire || report.notes || report.casualties !== null);
+    const hasAssessment = Boolean(
+        report.raw_incident_type ||
+            report.raw_alarm_level ||
+            report.cause_of_fire ||
+            report.notes ||
+            report.casualties !== null,
+    );
 
     return (
         <PortalLayout title={report.reference} subtitle={`${report.type ?? 'Unclassified'} · ${report.barangay ?? 'Barangay not yet assigned'}`}>

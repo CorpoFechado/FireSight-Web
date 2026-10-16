@@ -21,6 +21,14 @@ export function IncidentActions({
 }) {
     const [resolveOpen, setResolveOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
+    const hasAssessmentDetails = Boolean(
+        assessmentValues?.incident_type ||
+        assessmentValues?.alarm_level ||
+        assessmentValues?.cause_of_fire ||
+        assessmentValues?.notes ||
+        (assessmentValues?.casualties !== null &&
+            assessmentValues?.casualties !== undefined),
+    );
 
     if (status === 'invalid') {
         return null;
@@ -28,10 +36,11 @@ export function IncidentActions({
 
     if (status === 'pending') {
         return (
-            <div className="flex items-center gap-2 rounded-lg bg-brand-bg px-3.5 py-2 text-xs text-brand-muted border border-[rgba(43,45,66,0.08)]">
-                <Smartphone size={14} className="text-brand-blue shrink-0" />
+            <div className="flex items-center gap-2 rounded-lg border border-[rgba(43,45,66,0.08)] bg-brand-bg px-3.5 py-2 text-xs text-brand-muted">
+                <Smartphone size={14} className="shrink-0 text-brand-blue" />
                 <span>
-                    Pending triage & dispatch are managed by field personnel on the FireSight Mobile app.
+                    Pending triage & dispatch are managed by field personnel on
+                    the FireSight Mobile app.
                 </span>
             </div>
         );
@@ -39,10 +48,11 @@ export function IncidentActions({
 
     if (status === 'accepted') {
         return (
-            <div className="flex items-center gap-2 rounded-lg bg-brand-bg px-3.5 py-2 text-xs text-brand-muted border border-[rgba(43,45,66,0.08)]">
-                <Smartphone size={14} className="text-brand-blue shrink-0" />
+            <div className="flex items-center gap-2 rounded-lg border border-[rgba(43,45,66,0.08)] bg-brand-bg px-3.5 py-2 text-xs text-brand-muted">
+                <Smartphone size={14} className="shrink-0 text-brand-blue" />
                 <span>
-                    Report accepted · Unit dispatching is managed by field personnel on the mobile app.
+                    Report accepted · Unit dispatching is managed by field
+                    personnel on the mobile app.
                 </span>
             </div>
         );
@@ -53,10 +63,10 @@ export function IncidentActions({
             <div className="flex flex-wrap items-center gap-2">
                 <button
                     onClick={() => setResolveOpen(true)}
-                    className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:opacity-90 transition-opacity"
+                    className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
                     style={{ background: '#2A9D8F' }}
                 >
-                    <CheckCircle size={14} /> Mark as Resolved / Add Details
+                    <CheckCircle size={14} /> Mark as Resolved
                 </button>
                 <ResolveReportModal
                     reportId={reportId}
@@ -72,9 +82,12 @@ export function IncidentActions({
             <div className="flex flex-wrap items-center gap-2">
                 <button
                     onClick={() => setEditOpen(true)}
-                    className="flex items-center gap-1.5 rounded-lg border border-[rgba(43,45,66,0.18)] bg-white px-3.5 py-2 text-xs font-semibold text-brand-navy shadow-xs transition hover:bg-brand-bg hover:border-brand-navy/30"
+                    className="flex items-center gap-1.5 rounded-lg border border-[rgba(43,45,66,0.18)] bg-white px-3.5 py-2 text-xs font-semibold text-brand-navy shadow-xs transition hover:border-brand-navy/30 hover:bg-brand-bg"
                 >
-                    <Edit size={14} className="text-brand-blue" /> Edit Incident Details
+                    <Edit size={14} className="text-brand-blue" />{' '}
+                    {hasAssessmentDetails
+                        ? 'Edit Incident Details'
+                        : 'Add Incident Details'}
                 </button>
                 {assessmentValues && (
                     <EditDetailsModal

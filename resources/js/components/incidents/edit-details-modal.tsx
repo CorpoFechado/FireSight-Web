@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, type FormEvent } from 'react';
+import { useEffect } from 'react';
+import type { FormEvent } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -15,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { updateDetails } from '@/routes/incidents';
 
 const INCIDENT_TYPES = [
     { value: 'residential_fire', label: 'Residential Fire' },
@@ -58,16 +60,24 @@ export function EditDetailsModal({
         notes: string | null;
     };
 }) {
-    const { data, setData, patch, processing, errors, reset, clearErrors } =
-        useForm({
-            incident_type: initialValues.incident_type ?? '',
-            alarm_level: initialValues.alarm_level ?? '',
-            cause_of_fire: initialValues.cause_of_fire ?? '',
-            casualties: initialValues.casualties !== null && initialValues.casualties !== undefined
+    const hasExistingDetails = Boolean(
+        initialValues.incident_type ||
+        initialValues.alarm_level ||
+        initialValues.cause_of_fire ||
+        initialValues.notes ||
+        initialValues.casualties !== null,
+    );
+    const { data, setData, patch, processing, errors, clearErrors } = useForm({
+        incident_type: initialValues.incident_type ?? '',
+        alarm_level: initialValues.alarm_level ?? '',
+        cause_of_fire: initialValues.cause_of_fire ?? '',
+        casualties:
+            initialValues.casualties !== null &&
+            initialValues.casualties !== undefined
                 ? initialValues.casualties.toString()
                 : '0',
-            notes: initialValues.notes ?? '',
-        });
+        notes: initialValues.notes ?? '',
+    });
 
     useEffect(() => {
         if (open) {
@@ -75,18 +85,20 @@ export function EditDetailsModal({
                 incident_type: initialValues.incident_type ?? '',
                 alarm_level: initialValues.alarm_level ?? '',
                 cause_of_fire: initialValues.cause_of_fire ?? '',
-                casualties: initialValues.casualties !== null && initialValues.casualties !== undefined
-                    ? initialValues.casualties.toString()
-                    : '0',
+                casualties:
+                    initialValues.casualties !== null &&
+                    initialValues.casualties !== undefined
+                        ? initialValues.casualties.toString()
+                        : '0',
                 notes: initialValues.notes ?? '',
             });
         }
-    }, [open, initialValues]);
+    }, [open, initialValues, setData]);
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
 
-        patch(`/incidents/${reportId}/details`, {
+        patch(updateDetails(reportId).url, {
             preserveScroll: true,
             onSuccess: () => {
                 onOpenChange(false);
@@ -98,6 +110,7 @@ export function EditDetailsModal({
         if (!next) {
             clearErrors();
         }
+
         onOpenChange(next);
     };
 
@@ -106,13 +119,15 @@ export function EditDetailsModal({
             <DialogContent className="bg-white text-brand-navy sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="text-brand-navy">
-                        Edit Incident Assessment Details
+                        {hasExistingDetails ? 'Edit' : 'Add'} Incident
+                        Assessment Details
                     </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={submit} className="space-y-4">
                     <p className="text-xs text-brand-muted">
-                        Update the official BFP investigation findings, fire classification, and casualty counts.
+                        Update the official BFP investigation findings, fire
+                        classification, and casualty counts.
                     </p>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -149,9 +164,7 @@ export function EditDetailsModal({
                             <Label>Alarm Level</Label>
                             <Select
                                 value={data.alarm_level}
-                                onValueChange={(v) =>
-                                    setData('alarm_level', v)
-                                }
+                                onValueChange={(v) => setData('alarm_level', v)}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select alarm level" />
@@ -247,7 +260,11 @@ export function EditDetailsModal({
                             className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                             style={{ background: '#1D3557' }}
                         >
-                            {processing ? 'Saving…' : 'Save Changes'}
+                            {processing
+                                ? 'Saving…'
+                                : hasExistingDetails
+                                  ? 'Save Changes'
+                                  : 'Add Details'}
                         </button>
                     </DialogFooter>
                 </form>
