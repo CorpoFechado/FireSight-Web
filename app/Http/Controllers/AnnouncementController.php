@@ -7,25 +7,16 @@ use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AnnouncementController extends Controller
 {
-    /** @var array<int, string> */
-    private const TYPES = ['general', 'advisory', 'emergency', 'fire_safety_tip'];
-
     public function index(Request $request): Response
     {
         $search = $request->string('search')->trim()->value();
-        $category = $request->string('category', $request->string('type')->value())->trim()->lower()->value();
-
         $announcements = Announcement::query()
             ->with('creator:id,first_name,last_name')
-            ->when($category !== '' && $category !== 'all' && in_array($category, self::TYPES, true), function ($q) use ($category) {
-                $q->where('announcement_type', $category);
-            })
             ->when($search !== '', function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -44,7 +35,6 @@ class AnnouncementController extends Controller
             'announcements' => $announcements,
             'filters' => [
                 'search' => $search,
-                'category' => $category ?: 'all',
             ],
             'totalCount' => Announcement::count(),
         ]);
@@ -117,7 +107,6 @@ class AnnouncementController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'announcement_type' => ['required', Rule::in(self::TYPES)],
             'title' => ['required', 'string', 'max:150'],
             'content' => ['required', 'string'],
         ]);
@@ -130,7 +119,6 @@ class AnnouncementController extends Controller
     {
         return [
             'id' => $announcement->announcement_id,
-            'type' => $announcement->announcement_type,
             'title' => $announcement->title,
             'content' => $announcement->content,
             'date' => $announcement->created_at->format('Y-m-d'),

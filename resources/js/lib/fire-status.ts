@@ -1,16 +1,10 @@
 /**
- * Shared color/label config for the enums used across community_report,
- * incident_record, risk_assessment, and announcement. Centralized here so
- * every page (Dashboard, Incidents, Map, Analytics, Announcements, …)
- * renders the same badge for the same value.
+ * Shared color/label config for the enums used across community reports,
+ * incident records, risk assessments, fire education, and personnel.
  */
 
 export type ReportStatus =
-    | 'pending'
-    | 'accepted'
-    | 'dispatched'
-    | 'resolved'
-    | 'invalid';
+    'pending' | 'accepted' | 'dispatched' | 'resolved' | 'invalid';
 export type AlarmLevel =
     | '1st_alarm'
     | '2nd_alarm'
@@ -26,15 +20,8 @@ export type AlarmLevel =
     | 'task_force_india'
     | 'general_alarm';
 export type RiskLevel = 'mild' | 'moderate' | 'high';
-export type AnnouncementType =
-    | 'general'
-    | 'advisory'
-    | 'emergency'
-    | 'fire_safety_tip';
 export type FireEducationCategory =
-    | 'prevention'
-    | 'emergency_response'
-    | 'awareness';
+    'prevention' | 'emergency_response' | 'awareness';
 export type PersonnelRole = 'bfp_admin' | 'bfp_personnel';
 export type PersonnelStatus = 'active' | 'inactive';
 
@@ -79,13 +66,41 @@ export const ALARM_LEVEL_CFG: Record<AlarmLevel, BadgeCfg> = {
     '3rd_alarm': { bg: '#FEF3C7', text: '#92400E', label: '3rd Alarm' },
     '4th_alarm': { bg: '#FEF3C7', text: '#B45309', label: '4th Alarm' },
     '5th_alarm': { bg: '#FFEDD5', text: '#C2410C', label: '5th Alarm' },
-    task_force_alpha: { bg: '#FFEDD5', text: '#9A3412', label: 'Task Force Alpha' },
-    task_force_bravo: { bg: '#FEE2E2', text: '#B91C1C', label: 'Task Force Bravo' },
-    task_force_charlie: { bg: '#FEE2E2', text: '#991B1B', label: 'Task Force Charlie' },
-    task_force_delta: { bg: '#FEE2E2', text: '#7F1D1D', label: 'Task Force Delta' },
-    task_force_echo: { bg: '#FFE4E6', text: '#881337', label: 'Task Force Echo' },
-    task_force_hotel: { bg: '#FFE4E6', text: '#881337', label: 'Task Force Hotel' },
-    task_force_india: { bg: '#FFE4E6', text: '#4C0519', label: 'Task Force India' },
+    task_force_alpha: {
+        bg: '#FFEDD5',
+        text: '#9A3412',
+        label: 'Task Force Alpha',
+    },
+    task_force_bravo: {
+        bg: '#FEE2E2',
+        text: '#B91C1C',
+        label: 'Task Force Bravo',
+    },
+    task_force_charlie: {
+        bg: '#FEE2E2',
+        text: '#991B1B',
+        label: 'Task Force Charlie',
+    },
+    task_force_delta: {
+        bg: '#FEE2E2',
+        text: '#7F1D1D',
+        label: 'Task Force Delta',
+    },
+    task_force_echo: {
+        bg: '#FFE4E6',
+        text: '#881337',
+        label: 'Task Force Echo',
+    },
+    task_force_hotel: {
+        bg: '#FFE4E6',
+        text: '#881337',
+        label: 'Task Force Hotel',
+    },
+    task_force_india: {
+        bg: '#FFE4E6',
+        text: '#4C0519',
+        label: 'Task Force India',
+    },
     general_alarm: { bg: '#FFE4E6', text: '#4C0519', label: 'General Alarm' },
 };
 
@@ -110,20 +125,13 @@ export const RISK_CFG: Record<RiskLevel, BadgeCfg & { color: string }> = {
     },
 };
 
-export const ANNOUNCEMENT_CFG: Record<AnnouncementType, BadgeCfg> = {
-    general: { bg: '#E3EFF7', text: '#2C5F82', label: 'General' },
-    advisory: { bg: '#FFFBEB', text: '#92400E', label: 'Advisory' },
-    emergency: { bg: '#FDE8EA', text: '#B91C2C', label: 'Emergency' },
-    fire_safety_tip: {
-        bg: '#E0F5F3',
-        text: '#1B7A72',
-        label: 'Fire Safety',
-    },
-};
-
 export const EDUCATION_CATEGORY_CFG: Record<FireEducationCategory, BadgeCfg> = {
     prevention: { bg: '#E0F5F3', text: '#1B7A72', label: 'Prevention' },
-    emergency_response: { bg: '#FDE8EA', text: '#B91C2C', label: 'Emergency Response' },
+    emergency_response: {
+        bg: '#FDE8EA',
+        text: '#B91C2C',
+        label: 'Emergency Response',
+    },
     awareness: { bg: '#E3EFF7', text: '#2C5F82', label: 'Awareness' },
 };
 
@@ -245,4 +253,3 @@ export const AI_FIRE_LABEL_CFG: Record<string, AiFireConfig> = {
         badgeText: '#15803D',
     },
 };
-

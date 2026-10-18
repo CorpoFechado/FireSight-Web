@@ -1,11 +1,11 @@
-import { Calendar, Clock, Edit3, Sparkles } from 'lucide-react';
+import { Calendar, Edit3, Sparkles } from 'lucide-react';
+import { EducationCategoryBadge } from '@/components/portal/status-badge';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { EducationCategoryBadge } from '@/components/portal/status-badge';
 import type { FireEducationRow } from './fire-education-form-modal';
 
 export function FireEducationViewModal({
@@ -46,19 +46,19 @@ export function FireEducationViewModal({
                 <div className="p-6">
                     <DialogHeader className="mb-4 text-left">
                         <div className="flex flex-wrap items-center gap-2">
-                            <EducationCategoryBadge category={content.category} />
+                            <EducationCategoryBadge
+                                category={content.category}
+                            />
 
                             {content.is_featured && (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-                                    <Sparkles size={12} className="text-amber-500" />
+                                    <Sparkles
+                                        size={12}
+                                        className="text-amber-500"
+                                    />
                                     Featured Article
                                 </span>
                             )}
-
-                            <span className="flex items-center gap-1 text-xs text-brand-muted">
-                                <Clock size={12} />
-                                {content.read_minutes} min read
-                            </span>
 
                             <span className="flex items-center gap-1 text-xs text-brand-muted">
                                 <Calendar size={12} />
@@ -66,13 +66,13 @@ export function FireEducationViewModal({
                             </span>
                         </div>
 
-                        <DialogTitle className="mt-2 text-2xl font-bold leading-tight text-brand-navy">
+                        <DialogTitle className="mt-2 text-2xl leading-tight font-bold text-brand-navy">
                             {content.title}
                         </DialogTitle>
                     </DialogHeader>
 
                     {/* Summary box */}
-                    <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-sm font-medium leading-relaxed text-brand-blue">
+                    <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-sm leading-relaxed font-medium text-brand-blue">
                         <p>{content.summary}</p>
                     </div>
 
@@ -87,7 +87,8 @@ export function FireEducationViewModal({
 
                     <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-4">
                         <span className="text-xs text-brand-muted">
-                            Article #{content.id} · Visible in Lian FireSight Mobile
+                            Article #{content.id} · Visible in Lian FireSight
+                            Mobile
                         </span>
                         <div className="flex gap-2">
                             {onEdit && (

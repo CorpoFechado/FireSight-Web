@@ -13,7 +13,7 @@ class Announcement extends Model
 
     public const UPDATED_AT = null;
 
-    protected $fillable = ['created_by', 'title', 'content', 'announcement_type'];
+    protected $fillable = ['created_by', 'title', 'content'];
 
     protected function casts(): array
     {

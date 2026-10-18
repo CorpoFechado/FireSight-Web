@@ -23,7 +23,6 @@ class FireEducationContentFactory extends Factory
             'summary' => fake()->sentence(10),
             'body' => fake()->paragraphs(3, true),
             'image_path' => null,
-            'read_minutes' => fake()->numberBetween(2, 15),
             'is_featured' => fake()->boolean(20),
             'created_at' => now(),
         ];

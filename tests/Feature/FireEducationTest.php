@@ -3,6 +3,11 @@
 use App\Models\FireEducationContent;
 use App\Models\User;
 use Database\Seeders\FireEducationContentSeeder;
+use Illuminate\Support\Facades\Schema;
+
+test('fire education content table does not have a read minutes column', function () {
+    expect(Schema::hasColumn('fire_education_content', 'read_minutes'))->toBeFalse();
+});
 
 test('bfp personnel cannot access the fire education page', function () {
     $user = User::factory()->bfpPersonnel()->create();
@@ -29,7 +34,6 @@ test('bfp admin can publish a new fire education article', function () {
         'category' => 'prevention',
         'summary' => 'Comprehensive electrical safety standards for residential areas.',
         'body' => 'Ensure all circuit breakers are inspected regularly and avoid daisy chaining extension leads.',
-        'read_minutes' => 6,
         'is_featured' => true,
     ]);
 
@@ -38,7 +42,6 @@ test('bfp admin can publish a new fire education article', function () {
     $this->assertDatabaseHas('fire_education_content', [
         'title' => 'Electrical Safety Protocol 2026',
         'category' => 'prevention',
-        'read_minutes' => 6,
         'is_featured' => 1,
     ]);
 });
@@ -49,7 +52,7 @@ test('fire education required fields are validated', function () {
 
     $response = $this->post(route('fireEducation.store'), []);
 
-    $response->assertSessionHasErrors(['title', 'category', 'summary', 'body', 'read_minutes']);
+    $response->assertSessionHasErrors(['title', 'category', 'summary', 'body']);
 });
 
 test('bfp admin can update a fire education article', function () {
@@ -61,7 +64,6 @@ test('bfp admin can update a fire education article', function () {
         'category' => 'awareness',
         'summary' => 'Draft summary',
         'body' => 'Draft body',
-        'read_minutes' => 3,
         'is_featured' => false,
     ]);
 
@@ -70,7 +72,6 @@ test('bfp admin can update a fire education article', function () {
         'category' => 'prevention',
         'summary' => 'Safe handling and inspection of LPG tanks at home.',
         'body' => 'Inspect regulator hoses every 6 months for cracks or brittle surfaces.',
-        'read_minutes' => 5,
         'is_featured' => true,
     ]);
 
@@ -80,7 +81,6 @@ test('bfp admin can update a fire education article', function () {
         'content_id' => $content->content_id,
         'title' => 'Final Guidelines for LPG Safety',
         'category' => 'prevention',
-        'read_minutes' => 5,
         'is_featured' => 1,
     ]);
 });
@@ -94,7 +94,6 @@ test('bfp admin can delete a fire education article', function () {
         'category' => 'prevention',
         'summary' => 'Summary to delete',
         'body' => 'Body to delete',
-        'read_minutes' => 2,
     ]);
 
     $response = $this->delete(route('fireEducation.destroy', $content));
@@ -112,7 +111,6 @@ test('fire education seeder populates mobile reference articles', function () {
     $this->assertDatabaseHas('fire_education_content', [
         'title' => 'Philippines Fire Season Safety Guide 2026',
         'category' => 'prevention',
-        'read_minutes' => 8,
         'is_featured' => 1,
     ]);
 

@@ -256,19 +256,19 @@ INSERT INTO `risk_assessment` (`risk_id`, `barangay_id`, `date`, `prediction_sco
 -- --------------------------------------------------------
 -- Announcements
 -- --------------------------------------------------------
-INSERT INTO `announcement` (`announcement_id`, `created_by`, `title`, `content`, `announcement_type`, `created_at`) VALUES
-(1, 3, 'Fire Prevention Month Kick-off', 'The Bureau of Fire Protection Lian reminds all residents to check electrical wiring and avoid overloading outlets this Fire Prevention Month.', 'fire_safety_tip', '2026-06-05 06:26:30'),
-(2, 8, 'Advisory: Dry Season Fire Risk', 'Due to the ongoing dry spell, residents are advised to exercise extra caution with open flames and unattended cooking.', 'advisory', '2026-05-29 10:04:40'),
-(3, 7, 'Community Fire Drill Schedule', 'A community-wide fire drill will be conducted in select barangays this month. Please coordinate with your barangay office.', 'general', '2026-03-06 08:15:28'),
-(4, 7, 'Emergency: Grass Fire Alert', 'A grass fire has been reported spreading near residential areas. Residents in the vicinity are advised to stay alert.', 'emergency', '2026-02-12 18:56:54'),
-(5, 8, 'Safety Tip: Kitchen Fire Prevention', 'Never leave cooking unattended and keep a fire extinguisher accessible in your kitchen at all times.', 'fire_safety_tip', '2026-06-12 19:54:56'),
-(6, 5, 'Barangay Fire Brigade Training', 'BFP Lian will conduct a basic fire brigade training for barangay volunteers next week.', 'general', '2026-01-18 00:56:16'),
-(7, 6, 'Advisory: Fireworks Safety', 'With the upcoming holidays, residents are reminded to purchase only legal fireworks and use them in open, supervised areas.', 'advisory', '2026-03-30 17:06:00'),
-(8, 8, 'Emergency: Structural Fire Response', 'BFP Lian responded to a structural fire incident. Residents nearby are advised to avoid the area until further notice.', 'emergency', '2026-06-27 00:51:56'),
-(9, 4, 'Safety Tip: Electrical Maintenance', 'Have a licensed electrician inspect old wiring in your home, especially in units more than 10 years old.', 'fire_safety_tip', '2026-05-26 04:28:44'),
-(10, 2, 'Community Report App Reminder', 'Residents are encouraged to use the FireSight app to report fire incidents and hazards in real time.', 'general', '2026-05-27 23:48:35'),
-(11, 6, 'Advisory: Summer Heat Precautions', 'High temperatures increase fire risk. Avoid burning dry leaves and grass during peak afternoon hours.', 'advisory', '2026-01-28 20:22:03'),
-(12, 7, 'Fire Safety Seminar for Barangay Officials', 'A fire safety seminar will be held for barangay officials to strengthen local disaster preparedness.', 'general', '2026-04-22 11:24:05');
+INSERT INTO `announcement` (`announcement_id`, `created_by`, `title`, `content`, `created_at`) VALUES
+(1, 3, 'Fire Prevention Month Kick-off', 'The Bureau of Fire Protection Lian reminds all residents to check electrical wiring and avoid overloading outlets this Fire Prevention Month.', '2026-06-05 06:26:30'),
+(2, 8, 'Advisory: Dry Season Fire Risk', 'Due to the ongoing dry spell, residents are advised to exercise extra caution with open flames and unattended cooking.', '2026-05-29 10:04:40'),
+(3, 7, 'Community Fire Drill Schedule', 'A community-wide fire drill will be conducted in select barangays this month. Please coordinate with your barangay office.', '2026-03-06 08:15:28'),
+(4, 7, 'Emergency: Grass Fire Alert', 'A grass fire has been reported spreading near residential areas. Residents in the vicinity are advised to stay alert.', '2026-02-12 18:56:54'),
+(5, 8, 'Safety Tip: Kitchen Fire Prevention', 'Never leave cooking unattended and keep a fire extinguisher accessible in your kitchen at all times.', '2026-06-12 19:54:56'),
+(6, 5, 'Barangay Fire Brigade Training', 'BFP Lian will conduct a basic fire brigade training for barangay volunteers next week.', '2026-01-18 00:56:16'),
+(7, 6, 'Advisory: Fireworks Safety', 'With the upcoming holidays, residents are reminded to purchase only legal fireworks and use them in open, supervised areas.', '2026-03-30 17:06:00'),
+(8, 8, 'Emergency: Structural Fire Response', 'BFP Lian responded to a structural fire incident. Residents nearby are advised to avoid the area until further notice.', '2026-06-27 00:51:56'),
+(9, 4, 'Safety Tip: Electrical Maintenance', 'Have a licensed electrician inspect old wiring in your home, especially in units more than 10 years old.', '2026-05-26 04:28:44'),
+(10, 2, 'Community Report App Reminder', 'Residents are encouraged to use the FireSight app to report fire incidents and hazards in real time.', '2026-05-27 23:48:35'),
+(11, 6, 'Advisory: Summer Heat Precautions', 'High temperatures increase fire risk. Avoid burning dry leaves and grass during peak afternoon hours.', '2026-01-28 20:22:03'),
+(12, 7, 'Fire Safety Seminar for Barangay Officials', 'A fire safety seminar will be held for barangay officials to strengthen local disaster preparedness.', '2026-04-22 11:24:05');
 
 -- --------------------------------------------------------
 -- Notifications

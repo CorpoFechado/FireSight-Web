@@ -1,38 +1,20 @@
 import { router } from '@inertiajs/react';
 import { Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { PortalCard } from '@/components/portal/portal-card';
-import { AnnouncementBadge } from '@/components/portal/status-badge';
-import {
-    AnnouncementFormModal,
-    type AnnouncementRow,
-} from '@/components/announcements/announcement-form-modal';
+import { AnnouncementFormModal } from '@/components/announcements/announcement-form-modal';
+import type { AnnouncementRow } from '@/components/announcements/announcement-form-modal';
 import { DeleteAnnouncementDialog } from '@/components/announcements/delete-announcement-dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { PortalCard } from '@/components/portal/portal-card';
 import PortalLayout from '@/layouts/portal-layout';
 import { announcements as announcementsRoute } from '@/routes';
 
-const CATEGORY_OPTIONS = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'general', label: 'General' },
-    { value: 'advisory', label: 'Advisory' },
-    { value: 'emergency', label: 'Emergency' },
-    { value: 'fire_safety_tip', label: 'Fire Safety Tip' },
-] as const;
-
 export default function AnnouncementsIndex({
     announcements,
-    filters = { search: '', category: 'all' },
+    filters = { search: '' },
     totalCount,
 }: {
     announcements: AnnouncementRow[];
-    filters?: { search: string; category: string };
+    filters?: { search: string };
     totalCount?: number;
 }) {
     const [search, setSearch] = useState(filters.search ?? '');
@@ -42,43 +24,32 @@ export default function AnnouncementsIndex({
     const [editing, setEditing] = useState<AnnouncementRow | null>(null);
     const [deleting, setDeleting] = useState<AnnouncementRow | null>(null);
 
-    const currentCategory = filters.category || 'all';
-    const hasActiveFilters =
-        (filters.search && filters.search.trim() !== '') ||
-        currentCategory !== 'all';
+    const hasActiveFilters = filters.search && filters.search.trim() !== '';
 
     // Debounce search query so we don't fire requests on every keystroke.
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
+
             return;
         }
 
         const timeout = setTimeout(() => {
             router.get(
                 announcementsRoute().url,
-                { category: currentCategory, search },
+                { search },
                 { preserveState: true, replace: true },
             );
         }, 400);
 
         return () => clearTimeout(timeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
-
-    const setCategory = (cat: string) => {
-        router.get(
-            announcementsRoute().url,
-            { category: cat, search },
-            { preserveState: true, replace: true },
-        );
-    };
 
     const clearFilters = () => {
         setSearch('');
         router.get(
             announcementsRoute().url,
-            { category: 'all', search: '' },
+            { search: '' },
             { preserveState: true, replace: true },
         );
     };
@@ -93,7 +64,8 @@ export default function AnnouncementsIndex({
                             Announcements
                         </h1>
                         <p className="mt-1 text-sm text-brand-muted">
-                            Publish and manage official communications through FireSight
+                            Publish and manage official communications through
+                            FireSight
                         </p>
                     </div>
                     <button
@@ -104,7 +76,7 @@ export default function AnnouncementsIndex({
                     </button>
                 </div>
 
-                {/* Search & Category filter bar */}
+                {/* Search filter bar */}
                 <PortalCard className="p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-3">
@@ -119,7 +91,9 @@ export default function AnnouncementsIndex({
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Search announcements…"
                                     className="w-64 rounded-lg border bg-brand-bg py-2 pr-8 pl-8 text-sm text-brand-navy outline-none placeholder:text-brand-muted focus:bg-white"
-                                    style={{ borderColor: 'rgba(43,45,66,0.13)' }}
+                                    style={{
+                                        borderColor: 'rgba(43,45,66,0.13)',
+                                    }}
                                 />
                                 {search && (
                                     <button
@@ -132,28 +106,6 @@ export default function AnnouncementsIndex({
                                     </button>
                                 )}
                             </div>
-
-                            <Select
-                                value={currentCategory}
-                                onValueChange={setCategory}
-                            >
-                                <SelectTrigger
-                                    className="h-[38px] w-48 rounded-lg border bg-brand-bg text-sm text-brand-navy"
-                                    style={{ borderColor: 'rgba(43,45,66,0.13)' }}
-                                >
-                                    <SelectValue placeholder="All Categories" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white text-brand-navy">
-                                    {CATEGORY_OPTIONS.map((cat) => (
-                                        <SelectItem
-                                            key={cat.value}
-                                            value={cat.value}
-                                        >
-                                            {cat.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
 
                             {hasActiveFilters && (
                                 <button
@@ -168,9 +120,11 @@ export default function AnnouncementsIndex({
                             )}
                         </div>
 
-                        {(totalCount !== undefined || announcements.length > 0) && (
+                        {(totalCount !== undefined ||
+                            announcements.length > 0) && (
                             <span className="text-xs text-brand-muted">
-                                Showing {announcements.length} announcement{announcements.length === 1 ? '' : 's'}
+                                Showing {announcements.length} announcement
+                                {announcements.length === 1 ? '' : 's'}
                             </span>
                         )}
                     </div>
@@ -185,7 +139,7 @@ export default function AnnouncementsIndex({
                         </p>
                         <p className="max-w-sm text-xs text-brand-muted">
                             {hasActiveFilters
-                                ? 'Try adjusting your search query or selecting a different category.'
+                                ? 'Try adjusting your search query.'
                                 : 'Published announcements will show up here for BFP Lian personnel to see.'}
                         </p>
                         {hasActiveFilters && (
@@ -207,12 +161,9 @@ export default function AnnouncementsIndex({
                                 key={a.id}
                                 className="flex flex-col p-5"
                             >
-                                <div className="flex items-center gap-2.5">
-                                    <AnnouncementBadge type={a.type} />
-                                    <span className="text-xs text-brand-muted">
-                                        {a.date}
-                                    </span>
-                                </div>
+                                <span className="text-xs text-brand-muted">
+                                    {a.date}
+                                </span>
 
                                 <h2 className="mt-3 text-base font-bold text-brand-navy">
                                     {a.title}

@@ -1,10 +1,7 @@
 import { router } from '@inertiajs/react';
 import {
-    AlertTriangle,
     BookOpen,
-    Clock,
     Eye,
-    Flame,
     LayoutGrid,
     LifeBuoy,
     Lightbulb,
@@ -18,14 +15,12 @@ import {
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { DeleteFireEducationDialog } from '@/components/fire-education/delete-fire-education-dialog';
+import { FireEducationFormModal } from '@/components/fire-education/fire-education-form-modal';
+import type { FireEducationRow } from '@/components/fire-education/fire-education-form-modal';
+import { FireEducationViewModal } from '@/components/fire-education/fire-education-view-modal';
 import { PortalCard } from '@/components/portal/portal-card';
 import { EducationCategoryBadge } from '@/components/portal/status-badge';
-import {
-    FireEducationFormModal,
-    type FireEducationRow,
-} from '@/components/fire-education/fire-education-form-modal';
-import { DeleteFireEducationDialog } from '@/components/fire-education/delete-fire-education-dialog';
-import { FireEducationViewModal } from '@/components/fire-education/fire-education-view-modal';
 import {
     Select,
     SelectContent,
@@ -35,7 +30,6 @@ import {
 } from '@/components/ui/select';
 import PortalLayout from '@/layouts/portal-layout';
 import { fireEducation as fireEducationRoute } from '@/routes';
-import type { FireEducationCategory } from '@/lib/fire-status';
 
 interface StatsProps {
     total: number;
@@ -81,13 +75,18 @@ export default function FireEducationIndex({
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
+
             return;
         }
 
         const timeout = setTimeout(() => {
             router.get(
                 fireEducationRoute().url,
-                { category: currentCategory, featured: currentFeatured, search },
+                {
+                    category: currentCategory,
+                    featured: currentFeatured,
+                    search,
+                },
                 { preserveState: true, replace: true },
             );
         }, 350);
@@ -107,7 +106,11 @@ export default function FireEducationIndex({
     const setFeaturedFilter = (feat: string) => {
         router.get(
             fireEducationRoute().url,
-            { category: currentCategory, featured: feat === 'all' ? undefined : feat, search },
+            {
+                category: currentCategory,
+                featured: feat === 'all' ? undefined : feat,
+                search,
+            },
             { preserveState: true, replace: true },
         );
     };
@@ -131,11 +134,12 @@ export default function FireEducationIndex({
                             <h1 className="text-2xl font-bold tracking-tight text-brand-navy">
                                 Fire Education Content
                             </h1>
-                            <span className="rounded-full bg-brand-bg px-2.5 py-0.5 text-xs font-semibold text-brand-muted">
-                            </span>
+                            <span className="rounded-full bg-brand-bg px-2.5 py-0.5 text-xs font-semibold text-brand-muted"></span>
                         </div>
                         <p className="mt-1 text-sm text-brand-muted">
-                            Manage educational articles, fire safety guidelines, and emergency tips visible to Lian residents on the mobile application.
+                            Manage educational articles, fire safety guidelines,
+                            and emergency tips visible to Lian residents on the
+                            mobile application.
                         </p>
                     </div>
 
@@ -152,42 +156,62 @@ export default function FireEducationIndex({
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                     <div className="surface-glass rounded-xl p-4 transition-all hover:shadow-sm">
                         <div className="flex items-center justify-between text-brand-muted">
-                            <span className="text-xs font-medium uppercase tracking-wider">Total Content</span>
+                            <span className="text-xs font-medium tracking-wider uppercase">
+                                Total Content
+                            </span>
                             <BookOpen size={16} className="text-brand-blue" />
                         </div>
-                        <p className="mt-2 text-2xl font-bold text-brand-navy">{stats.total}</p>
+                        <p className="mt-2 text-2xl font-bold text-brand-navy">
+                            {stats.total}
+                        </p>
                     </div>
 
                     <div className="surface-glass rounded-xl p-4 transition-all hover:shadow-sm">
                         <div className="flex items-center justify-between text-brand-muted">
-                            <span className="text-xs font-medium uppercase tracking-wider">Prevention</span>
+                            <span className="text-xs font-medium tracking-wider uppercase">
+                                Prevention
+                            </span>
                             <Shield size={16} className="text-teal-600" />
                         </div>
-                        <p className="mt-2 text-2xl font-bold text-brand-navy">{stats.prevention}</p>
+                        <p className="mt-2 text-2xl font-bold text-brand-navy">
+                            {stats.prevention}
+                        </p>
                     </div>
 
                     <div className="surface-glass rounded-xl p-4 transition-all hover:shadow-sm">
                         <div className="flex items-center justify-between text-brand-muted">
-                            <span className="text-xs font-medium uppercase tracking-wider">Emergency</span>
+                            <span className="text-xs font-medium tracking-wider uppercase">
+                                Emergency
+                            </span>
                             <LifeBuoy size={16} className="text-rose-600" />
                         </div>
-                        <p className="mt-2 text-2xl font-bold text-brand-navy">{stats.emergency_response}</p>
+                        <p className="mt-2 text-2xl font-bold text-brand-navy">
+                            {stats.emergency_response}
+                        </p>
                     </div>
 
                     <div className="surface-glass rounded-xl p-4 transition-all hover:shadow-sm">
                         <div className="flex items-center justify-between text-brand-muted">
-                            <span className="text-xs font-medium uppercase tracking-wider">Awareness</span>
+                            <span className="text-xs font-medium tracking-wider uppercase">
+                                Awareness
+                            </span>
                             <Lightbulb size={16} className="text-sky-600" />
                         </div>
-                        <p className="mt-2 text-2xl font-bold text-brand-navy">{stats.awareness}</p>
+                        <p className="mt-2 text-2xl font-bold text-brand-navy">
+                            {stats.awareness}
+                        </p>
                     </div>
 
-                    <div className="surface-glass rounded-xl p-4 transition-all hover:shadow-sm col-span-2 sm:col-span-1">
+                    <div className="surface-glass col-span-2 rounded-xl p-4 transition-all hover:shadow-sm sm:col-span-1">
                         <div className="flex items-center justify-between text-brand-muted">
-                            <span className="text-xs font-medium uppercase tracking-wider">Featured</span>
+                            <span className="text-xs font-medium tracking-wider uppercase">
+                                Featured
+                            </span>
                             <Sparkles size={16} className="text-amber-500" />
                         </div>
-                        <p className="mt-2 text-2xl font-bold text-brand-navy">{stats.featured}</p>
+                        <p className="mt-2 text-2xl font-bold text-brand-navy">
+                            {stats.featured}
+                        </p>
                     </div>
                 </div>
 
@@ -204,7 +228,7 @@ export default function FireEducationIndex({
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search articles or guidelines…"
-                                className="h-9 w-full rounded-lg border bg-brand-bg/50 pr-8 pl-9 text-xs font-medium text-brand-navy outline-none transition-colors focus:border-brand-blue focus:bg-white"
+                                className="h-9 w-full rounded-lg border bg-brand-bg/50 pr-8 pl-9 text-xs font-medium text-brand-navy transition-colors outline-none focus:border-brand-blue focus:bg-white"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {search && (
@@ -221,14 +245,16 @@ export default function FireEducationIndex({
                         <div className="flex flex-wrap items-center gap-1.5">
                             {CATEGORY_TABS.map((tab) => {
                                 const active = currentCategory === tab.value;
+
                                 return (
                                     <button
                                         key={tab.value}
                                         onClick={() => setCategory(tab.value)}
-                                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${active
+                                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                                            active
                                                 ? 'bg-brand-navy text-white shadow-xs'
                                                 : 'bg-brand-bg text-brand-muted hover:text-brand-navy'
-                                            }`}
+                                        }`}
                                     >
                                         {tab.label}
                                     </button>
@@ -247,9 +273,15 @@ export default function FireEducationIndex({
                                 <SelectValue placeholder="All Status" />
                             </SelectTrigger>
                             <SelectContent className="bg-white text-brand-navy">
-                                <SelectItem value="all">All Articles</SelectItem>
-                                <SelectItem value="yes">Featured Only</SelectItem>
-                                <SelectItem value="no">Standard Only</SelectItem>
+                                <SelectItem value="all">
+                                    All Articles
+                                </SelectItem>
+                                <SelectItem value="yes">
+                                    Featured Only
+                                </SelectItem>
+                                <SelectItem value="no">
+                                    Standard Only
+                                </SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -257,20 +289,22 @@ export default function FireEducationIndex({
                         <div className="flex items-center rounded-lg border border-gray-200 bg-brand-bg/60 p-0.5">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid'
+                                className={`rounded-md p-1.5 transition-colors ${
+                                    viewMode === 'grid'
                                         ? 'bg-white text-brand-navy shadow-xs'
                                         : 'text-brand-muted hover:text-brand-navy'
-                                    }`}
+                                }`}
                                 title="Grid View"
                             >
                                 <LayoutGrid size={15} />
                             </button>
                             <button
                                 onClick={() => setViewMode('table')}
-                                className={`rounded-md p-1.5 transition-colors ${viewMode === 'table'
+                                className={`rounded-md p-1.5 transition-colors ${
+                                    viewMode === 'table'
                                         ? 'bg-white text-brand-navy shadow-xs'
                                         : 'text-brand-muted hover:text-brand-navy'
-                                    }`}
+                                }`}
                                 title="Table View"
                             >
                                 <TableIcon size={15} />
@@ -335,7 +369,9 @@ export default function FireEducationIndex({
                                         <div className="relative h-40 w-full overflow-hidden bg-gray-100">
                                             <img
                                                 src={
-                                                    item.image_path.startsWith('http')
+                                                    item.image_path.startsWith(
+                                                        'http',
+                                                    )
                                                         ? item.image_path
                                                         : `/storage/${item.image_path}`
                                                 }
@@ -353,7 +389,10 @@ export default function FireEducationIndex({
                                         <div className="flex h-3 items-center justify-end px-3 pt-2">
                                             {item.is_featured && (
                                                 <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
-                                                    <Sparkles size={11} className="text-amber-500" />
+                                                    <Sparkles
+                                                        size={11}
+                                                        className="text-amber-500"
+                                                    />
                                                     Featured
                                                 </span>
                                             )}
@@ -362,11 +401,9 @@ export default function FireEducationIndex({
 
                                     <div className="p-4">
                                         <div className="flex items-center justify-between gap-2">
-                                            <EducationCategoryBadge category={item.category} />
-                                            <span className="flex items-center gap-1 text-[11px] text-brand-muted font-medium">
-                                                <Clock size={11} />
-                                                {item.read_minutes} min read
-                                            </span>
+                                            <EducationCategoryBadge
+                                                category={item.category}
+                                            />
                                         </div>
 
                                         <h3
@@ -418,14 +455,15 @@ export default function FireEducationIndex({
                     /* Table View */
                     <PortalCard className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
-                            <thead className="border-b border-gray-100 bg-gray-50/60 font-semibold text-brand-muted uppercase tracking-wider">
+                            <thead className="border-b border-gray-100 bg-gray-50/60 font-semibold tracking-wider text-brand-muted uppercase">
                                 <tr>
                                     <th className="py-3 pr-4 pl-6">Article</th>
-                                    <th className="py-3 px-4">Category</th>
-                                    <th className="py-3 px-4">Read Time</th>
-                                    <th className="py-3 px-4">Status</th>
-                                    <th className="py-3 px-4">Published</th>
-                                    <th className="py-3 pr-6 pl-4 text-right">Actions</th>
+                                    <th className="px-4 py-3">Category</th>
+                                    <th className="px-4 py-3">Status</th>
+                                    <th className="px-4 py-3">Published</th>
+                                    <th className="py-3 pr-6 pl-4 text-right">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 text-brand-navy">
@@ -442,16 +480,18 @@ export default function FireEducationIndex({
                                                 {item.summary}
                                             </div>
                                         </td>
-                                        <td className="py-3.5 px-4">
-                                            <EducationCategoryBadge category={item.category} />
+                                        <td className="px-4 py-3.5">
+                                            <EducationCategoryBadge
+                                                category={item.category}
+                                            />
                                         </td>
-                                        <td className="py-3.5 px-4 font-medium text-brand-muted">
-                                            {item.read_minutes} mins
-                                        </td>
-                                        <td className="py-3.5 px-4">
+                                        <td className="px-4 py-3.5">
                                             {item.is_featured ? (
                                                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
-                                                    <Sparkles size={11} className="text-amber-500" />
+                                                    <Sparkles
+                                                        size={11}
+                                                        className="text-amber-500"
+                                                    />
                                                     Featured
                                                 </span>
                                             ) : (
@@ -460,27 +500,33 @@ export default function FireEducationIndex({
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="py-3.5 px-4 text-brand-muted">
+                                        <td className="px-4 py-3.5 text-brand-muted">
                                             {item.created_date}
                                         </td>
                                         <td className="py-3.5 pr-6 pl-4 text-right">
                                             <div className="flex items-center justify-end gap-1">
                                                 <button
-                                                    onClick={() => setViewing(item)}
+                                                    onClick={() =>
+                                                        setViewing(item)
+                                                    }
                                                     className="flex size-7 items-center justify-center rounded-lg text-brand-muted hover:bg-brand-bg hover:text-brand-navy"
                                                     title="View Article"
                                                 >
                                                     <Eye size={14} />
                                                 </button>
                                                 <button
-                                                    onClick={() => setEditing(item)}
+                                                    onClick={() =>
+                                                        setEditing(item)
+                                                    }
                                                     className="flex size-7 items-center justify-center rounded-lg text-brand-muted hover:bg-brand-bg hover:text-brand-blue"
                                                     title="Edit Article"
                                                 >
                                                     <Pencil size={14} />
                                                 </button>
                                                 <button
-                                                    onClick={() => setDeleting(item)}
+                                                    onClick={() =>
+                                                        setDeleting(item)
+                                                    }
                                                     className="flex size-7 items-center justify-center rounded-lg text-brand-muted hover:bg-brand-bg hover:text-brand-red"
                                                     title="Delete Article"
                                                 >

@@ -2,7 +2,6 @@ import {
     STATUS_CFG,
     ALARM_LEVEL_CFG,
     RISK_CFG,
-    ANNOUNCEMENT_CFG,
     ROLE_CFG,
     PERSONNEL_STATUS_CFG,
     EDUCATION_CATEGORY_CFG,
@@ -12,7 +11,6 @@ import type {
     ReportStatus,
     AlarmLevel,
     RiskLevel,
-    AnnouncementType,
     PersonnelRole,
     PersonnelStatus,
     FireEducationCategory,
@@ -40,7 +38,7 @@ export function AlarmLevelBadge({ alarmLevel }: { alarmLevel: AlarmLevel }) {
 
     if (!cfg) {
         return (
-            <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700">
+            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
                 {alarmLevel}
             </span>
         );
@@ -61,24 +59,11 @@ export function RiskBadge({ level }: { level: RiskLevel }) {
 
     if (!cfg) {
         return (
-            <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700">
+            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
                 {level}
             </span>
         );
     }
-
-    return (
-        <span
-            className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
-            style={{ background: cfg.bg, color: cfg.text }}
-        >
-            {cfg.label}
-        </span>
-    );
-}
-
-export function AnnouncementBadge({ type }: { type: AnnouncementType }) {
-    const cfg = ANNOUNCEMENT_CFG[type];
 
     return (
         <span
@@ -188,4 +173,3 @@ export function AiFireBadge({
         </span>
     );
 }
-

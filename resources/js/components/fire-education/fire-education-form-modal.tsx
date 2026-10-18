@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
-import { ImagePlus, Sparkles, Trash2, X } from 'lucide-react';
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { ImagePlus, Sparkles, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -16,8 +17,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { store, update } from '@/routes/fireEducation';
 import type { FireEducationCategory } from '@/lib/fire-status';
+import { store, update } from '@/routes/fireEducation';
 
 export type FireEducationRow = {
     id: number;
@@ -26,7 +27,6 @@ export type FireEducationRow = {
     summary: string;
     body: string;
     image_path: string | null;
-    read_minutes: number;
     is_featured: boolean;
     created_at: string;
     created_date: string;
@@ -52,26 +52,21 @@ export function FireEducationFormModal({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    const {
-        data,
-        setData,
-        post,
-        processing,
-        errors,
-        reset,
-        clearErrors,
-    } = useForm({
-        _method: mode === 'edit' ? 'PATCH' : 'POST',
-        title: content?.title ?? '',
-        category: content?.category ?? ('prevention' as FireEducationCategory),
-        read_minutes: content?.read_minutes ?? 3,
-        is_featured: content?.is_featured ?? false,
-        summary: content?.summary ?? '',
-        body: content?.body ?? '',
-        image: null as File | null,
-        image_url: content?.image_path?.startsWith('http') ? content.image_path : '',
-        remove_image: false,
-    });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        useForm({
+            _method: mode === 'edit' ? 'PATCH' : 'POST',
+            title: content?.title ?? '',
+            category:
+                content?.category ?? ('prevention' as FireEducationCategory),
+            is_featured: content?.is_featured ?? false,
+            summary: content?.summary ?? '',
+            body: content?.body ?? '',
+            image: null as File | null,
+            image_url: content?.image_path?.startsWith('http')
+                ? content.image_path
+                : '',
+            remove_image: false,
+        });
 
     useEffect(() => {
         if (open) {
@@ -79,16 +74,18 @@ export function FireEducationFormModal({
                 _method: mode === 'edit' ? 'PATCH' : 'POST',
                 title: content?.title ?? '',
                 category: content?.category ?? 'prevention',
-                read_minutes: content?.read_minutes ?? 3,
                 is_featured: content?.is_featured ?? false,
                 summary: content?.summary ?? '',
                 body: content?.body ?? '',
                 image: null,
-                image_url: content?.image_path?.startsWith('http') ? content.image_path : '',
+                image_url: content?.image_path?.startsWith('http')
+                    ? content.image_path
+                    : '',
                 remove_image: false,
             });
 
             if (content?.image_path) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setImagePreview(
                     content.image_path.startsWith('http')
                         ? content.image_path
@@ -105,6 +102,7 @@ export function FireEducationFormModal({
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+
         if (file) {
             setData((prev) => ({
                 ...prev,
@@ -124,6 +122,7 @@ export function FireEducationFormModal({
             remove_image: true,
         }));
         setImagePreview(null);
+
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -157,8 +156,7 @@ export function FireEducationFormModal({
     const isValid =
         data.title.trim() !== '' &&
         data.summary.trim() !== '' &&
-        data.body.trim() !== '' &&
-        data.read_minutes > 0;
+        data.body.trim() !== '';
 
     return (
         <Dialog open={open} onOpenChange={close}>
@@ -182,24 +180,30 @@ export function FireEducationFormModal({
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
                             placeholder="e.g. Philippines Fire Season Safety Guide 2026"
-                            className="h-10 w-full rounded-lg border px-3 text-sm font-medium outline-none transition-colors focus:border-brand-blue"
+                            className="h-10 w-full rounded-lg border px-3 text-sm font-medium transition-colors outline-none focus:border-brand-blue"
                             style={{ borderColor: 'rgba(43,45,66,0.18)' }}
                         />
                         {errors.title && (
-                            <p className="text-xs text-brand-red">{errors.title}</p>
+                            <p className="text-xs text-brand-red">
+                                {errors.title}
+                            </p>
                         )}
                     </div>
 
-                    {/* Category, Read Minutes, Featured */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    {/* Category and Featured */}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-1.5">
                             <Label>
-                                Category <span className="text-brand-red">*</span>
+                                Category{' '}
+                                <span className="text-brand-red">*</span>
                             </Label>
                             <Select
                                 value={data.category}
                                 onValueChange={(v) =>
-                                    setData('category', v as FireEducationCategory)
+                                    setData(
+                                        'category',
+                                        v as FireEducationCategory,
+                                    )
                                 }
                             >
                                 <SelectTrigger className="h-10 w-full">
@@ -207,7 +211,10 @@ export function FireEducationFormModal({
                                 </SelectTrigger>
                                 <SelectContent className="bg-white text-brand-navy">
                                     {CATEGORY_OPTIONS.map((c) => (
-                                        <SelectItem key={c.value} value={c.value}>
+                                        <SelectItem
+                                            key={c.value}
+                                            value={c.value}
+                                        >
                                             {c.label}
                                         </SelectItem>
                                     ))}
@@ -220,34 +227,9 @@ export function FireEducationFormModal({
                             )}
                         </div>
 
-                        <div className="space-y-1.5">
-                            <Label htmlFor="content-read-time">
-                                Read Time (Minutes) <span className="text-brand-red">*</span>
-                            </Label>
-                            <input
-                                id="content-read-time"
-                                type="number"
-                                min={1}
-                                max={120}
-                                value={data.read_minutes}
-                                onChange={(e) =>
-                                    setData(
-                                        'read_minutes',
-                                        Math.max(1, parseInt(e.target.value) || 1),
-                                    )
-                                }
-                                className="h-10 w-full rounded-lg border px-3 text-sm font-medium outline-none transition-colors focus:border-brand-blue"
-                                style={{ borderColor: 'rgba(43,45,66,0.18)' }}
-                            />
-                            {errors.read_minutes && (
-                                <p className="text-xs text-brand-red">
-                                    {errors.read_minutes}
-                                </p>
-                            )}
-                        </div>
-
                         <div className="flex flex-col justify-end">
-                            <label className="flex h-10 cursor-pointer items-center gap-2.5 rounded-lg border px-3.5 text-sm font-semibold transition-colors hover:bg-brand-bg select-none"
+                            <label
+                                className="flex h-10 cursor-pointer items-center gap-2.5 rounded-lg border px-3.5 text-sm font-semibold transition-colors select-none hover:bg-brand-bg"
                                 style={{
                                     borderColor: data.is_featured
                                         ? 'rgba(244,162,97,0.8)'
@@ -266,7 +248,10 @@ export function FireEducationFormModal({
                                     className="size-4 accent-amber-500"
                                 />
                                 <span className="flex items-center gap-1.5 text-brand-navy">
-                                    <Sparkles size={14} className="text-amber-500" />
+                                    <Sparkles
+                                        size={14}
+                                        className="text-amber-500"
+                                    />
                                     Featured Article
                                 </span>
                             </label>
@@ -276,7 +261,8 @@ export function FireEducationFormModal({
                     {/* Summary */}
                     <div className="space-y-1.5">
                         <Label htmlFor="content-summary">
-                            Summary / Teaser <span className="text-brand-red">*</span>
+                            Summary / Teaser{' '}
+                            <span className="text-brand-red">*</span>
                         </Label>
                         <input
                             id="content-summary"
@@ -284,11 +270,17 @@ export function FireEducationFormModal({
                             onChange={(e) => setData('summary', e.target.value)}
                             placeholder="Brief 1-2 sentence overview shown in app list preview cards"
                             maxLength={255}
-                            className="h-10 w-full rounded-lg border px-3 text-sm outline-none transition-colors focus:border-brand-blue"
+                            className="h-10 w-full rounded-lg border px-3 text-sm transition-colors outline-none focus:border-brand-blue"
                             style={{ borderColor: 'rgba(43,45,66,0.18)' }}
                         />
                         <div className="flex justify-between text-[11px] text-brand-muted">
-                            <span>{errors.summary && <span className="text-brand-red">{errors.summary}</span>}</span>
+                            <span>
+                                {errors.summary && (
+                                    <span className="text-brand-red">
+                                        {errors.summary}
+                                    </span>
+                                )}
+                            </span>
                             <span>{data.summary.length}/255</span>
                         </div>
                     </div>
@@ -296,7 +288,8 @@ export function FireEducationFormModal({
                     {/* Body */}
                     <div className="space-y-1.5">
                         <Label htmlFor="content-body">
-                            Full Article Content <span className="text-brand-red">*</span>
+                            Full Article Content{' '}
+                            <span className="text-brand-red">*</span>
                         </Label>
                         <textarea
                             id="content-body"
@@ -304,11 +297,13 @@ export function FireEducationFormModal({
                             onChange={(e) => setData('body', e.target.value)}
                             placeholder="Write comprehensive safety instructions, steps, or procedures for residents…"
                             rows={8}
-                            className="w-full resize-y rounded-lg border p-3 text-sm leading-relaxed outline-none transition-colors focus:border-brand-blue"
+                            className="w-full resize-y rounded-lg border p-3 text-sm leading-relaxed transition-colors outline-none focus:border-brand-blue"
                             style={{ borderColor: 'rgba(43,45,66,0.18)' }}
                         />
                         {errors.body && (
-                            <p className="text-xs text-brand-red">{errors.body}</p>
+                            <p className="text-xs text-brand-red">
+                                {errors.body}
+                            </p>
                         )}
                     </div>
 
@@ -335,11 +330,15 @@ export function FireEducationFormModal({
                             <div className="flex flex-col gap-2 sm:flex-row">
                                 <button
                                     type="button"
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={() =>
+                                        fileInputRef.current?.click()
+                                    }
                                     className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50/60 p-4 text-sm font-medium text-brand-muted transition-colors hover:border-brand-blue hover:text-brand-blue"
                                 >
                                     <ImagePlus size={18} />
-                                    <span>Upload Image File (PNG, JPG, WebP)</span>
+                                    <span>
+                                        Upload Image File (PNG, JPG, WebP)
+                                    </span>
                                 </button>
                                 <input
                                     ref={fileInputRef}
@@ -351,7 +350,9 @@ export function FireEducationFormModal({
                             </div>
                         )}
                         {errors.image && (
-                            <p className="text-xs text-brand-red">{errors.image}</p>
+                            <p className="text-xs text-brand-red">
+                                {errors.image}
+                            </p>
                         )}
                     </div>
 

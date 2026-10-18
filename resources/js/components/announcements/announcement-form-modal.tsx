@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -8,31 +9,15 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { store, update } from '@/routes/announcements';
-import type { AnnouncementType } from '@/lib/fire-status';
 
 export type AnnouncementRow = {
     id: number;
-    type: AnnouncementType;
     title: string;
     content: string;
     date: string;
     publishedBy: string;
 };
-
-const TYPE_OPTIONS: { value: AnnouncementType; label: string }[] = [
-    { value: 'general', label: 'General' },
-    { value: 'advisory', label: 'Advisory' },
-    { value: 'emergency', label: 'Emergency' },
-    { value: 'fire_safety_tip', label: 'Fire Safety Tip' },
-];
 
 export function AnnouncementFormModal({
     mode,
@@ -57,8 +42,6 @@ export function AnnouncementFormModal({
         reset,
         clearErrors,
     } = useForm({
-        announcement_type:
-            announcement?.type ?? ('general' as AnnouncementType),
         title: announcement?.title ?? '',
         content: announcement?.content ?? '',
     });
@@ -68,10 +51,10 @@ export function AnnouncementFormModal({
     useEffect(() => {
         if (open) {
             setData({
-                announcement_type: announcement?.type ?? 'general',
                 title: announcement?.title ?? '',
                 content: announcement?.content ?? '',
             });
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setConfirming(false);
             clearErrors();
         }
@@ -111,6 +94,7 @@ export function AnnouncementFormModal({
 
         if (mode === 'edit') {
             submitUpdate(e);
+
             return;
         }
 
@@ -129,35 +113,6 @@ export function AnnouncementFormModal({
                 </DialogHeader>
 
                 <form onSubmit={handlePrimarySubmit} className="space-y-4">
-                    <div className="space-y-1.5">
-                        <Label>Type</Label>
-                        <Select
-                            value={data.announcement_type}
-                            onValueChange={(v) =>
-                                setData(
-                                    'announcement_type',
-                                    v as AnnouncementType,
-                                )
-                            }
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white text-brand-navy">
-                                {TYPE_OPTIONS.map((t) => (
-                                    <SelectItem key={t.value} value={t.value}>
-                                        {t.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.announcement_type && (
-                            <p className="text-xs text-brand-red">
-                                {errors.announcement_type}
-                            </p>
-                        )}
-                    </div>
-
                     <div className="space-y-1.5">
                         <Label>Title</Label>
                         <input

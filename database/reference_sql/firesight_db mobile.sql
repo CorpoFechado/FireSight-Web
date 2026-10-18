@@ -32,7 +32,6 @@ CREATE TABLE `announcement` (
   `created_by` int(11) DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
   `content` text DEFAULT NULL,
-  `announcement_type` enum('emergency','general') DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -40,10 +39,10 @@ CREATE TABLE `announcement` (
 -- Dumping data for table `announcement`
 --
 
-INSERT INTO `announcement` (`announcement_id`, `created_by`, `title`, `content`, `announcement_type`, `created_at`) VALUES
-(1, 1, 'Dry Season Fire Safety Advisory', 'The Bureau of Fire Protection - Lian reminds all residents and barangay officials to strictly observe fire prevention measures during the dry season (March-May). Open burning of trash, dried leaves, and agricultural waste is strictly prohibited.', 'general', '2026-07-15 08:00:00'),
-(2, 1, 'Mandatory Fire Safety Inspection - All Establishments', 'All commercial establishments in Lian are required to undergo annual fire safety inspection. Schedule your inspection with the BFP Lian station. Operating without a valid Fire Safety Inspection Certificate (FSIC) is penalized under RA 9514.', 'general', '2026-07-11 10:00:00'),
-(3, 1, 'Fire Drill Scheduled - Barangay Poblacion', 'A mandatory fire drill will be conducted at Barangay Poblacion covered courts on July 20, 2026 at 9:00 AM. All households are encouraged to participate. Facilitated by BFP Lian in coordination with the MDRRMO.', 'general', '2026-07-08 09:00:00');
+INSERT INTO `announcement` (`announcement_id`, `created_by`, `title`, `content`, `created_at`) VALUES
+(1, 1, 'Dry Season Fire Safety Advisory', 'The Bureau of Fire Protection - Lian reminds all residents and barangay officials to strictly observe fire prevention measures during the dry season (March-May). Open burning of trash, dried leaves, and agricultural waste is strictly prohibited.', '2026-07-15 08:00:00'),
+(2, 1, 'Mandatory Fire Safety Inspection - All Establishments', 'All commercial establishments in Lian are required to undergo annual fire safety inspection. Schedule your inspection with the BFP Lian station. Operating without a valid Fire Safety Inspection Certificate (FSIC) is penalized under RA 9514.', '2026-07-11 10:00:00'),
+(3, 1, 'Fire Drill Scheduled - Barangay Poblacion', 'A mandatory fire drill will be conducted at Barangay Poblacion covered courts on July 20, 2026 at 9:00 AM. All households are encouraged to participate. Facilitated by BFP Lian in coordination with the MDRRMO.', '2026-07-08 09:00:00');
 
 -- --------------------------------------------------------
 
@@ -300,7 +299,6 @@ CREATE TABLE `fire_education_content` (
   `summary` varchar(255) DEFAULT NULL,
   `body` text DEFAULT NULL,
   `image_path` varchar(255) DEFAULT NULL,
-  `read_minutes` int(11) DEFAULT 3,
   `is_featured` tinyint(1) DEFAULT 0,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -309,12 +307,12 @@ CREATE TABLE `fire_education_content` (
 -- Dumping data for table `fire_education_content`
 --
 
-INSERT INTO `fire_education_content` (`content_id`, `title`, `category`, `summary`, `body`, `image_path`, `read_minutes`, `is_featured`, `created_at`) VALUES
-(1, 'Philippines Fire Season Safety Guide 2026', 'prevention', 'Essential fire prevention practices for Filipino households during the dry season.', 'Detailed guidance on preparing homes and communities for the dry season, covering electrical safety, cooking safety, and community-level prevention measures relevant to Lian, Batangas households.', NULL, 8, 1, '2026-07-18 02:38:41'),
-(2, 'Kitchen Fire Safety', 'prevention', 'Most house fires start in the kitchen. Learn how to prevent cooking fires.', 'Never leave cooking unattended, keep flammable materials away from the stove, and know how to respond if a small grease fire starts (do not use water).', NULL, 4, 0, '2026-07-18 02:38:41'),
-(3, 'Electrical Safety at Home', 'prevention', 'Overloaded circuits and faulty wiring are leading causes of residential fires.', 'Avoid overloading outlets, replace frayed cords, and have an electrician inspect wiring in older homes.', NULL, 5, 0, '2026-07-18 02:38:41'),
-(4, 'What To Do During a Fire', 'emergency_response', 'Know the R.A.C.E. and P.A.S.S. procedures for fire emergencies.', 'R.A.C.E. (Rescue, Alarm, Contain, Extinguish/Evacuate) and P.A.S.S. (Pull, Aim, Squeeze, Sweep) are core procedures every household should memorize.', NULL, 5, 0, '2026-07-18 02:38:41'),
-(5, 'Understanding Barangay Fire Risk Levels', 'awareness', 'How FireSight calculates Low, Moderate, and High risk levels for your barangay.', 'Risk levels are generated from historical incident data and demographic density, helping residents understand why their barangay is flagged at a particular risk level.', NULL, 4, 0, '2026-07-18 02:38:41');
+INSERT INTO `fire_education_content` (`content_id`, `title`, `category`, `summary`, `body`, `image_path`, `is_featured`, `created_at`) VALUES
+(1, 'Philippines Fire Season Safety Guide 2026', 'prevention', 'Essential fire prevention practices for Filipino households during the dry season.', 'Detailed guidance on preparing homes and communities for the dry season, covering electrical safety, cooking safety, and community-level prevention measures relevant to Lian, Batangas households.', NULL, 1, '2026-07-18 02:38:41'),
+(2, 'Kitchen Fire Safety', 'prevention', 'Most house fires start in the kitchen. Learn how to prevent cooking fires.', 'Never leave cooking unattended, keep flammable materials away from the stove, and know how to respond if a small grease fire starts (do not use water).', NULL, 0, '2026-07-18 02:38:41'),
+(3, 'Electrical Safety at Home', 'prevention', 'Overloaded circuits and faulty wiring are leading causes of residential fires.', 'Avoid overloading outlets, replace frayed cords, and have an electrician inspect wiring in older homes.', NULL, 0, '2026-07-18 02:38:41'),
+(4, 'What To Do During a Fire', 'emergency_response', 'Know the R.A.C.E. and P.A.S.S. procedures for fire emergencies.', 'R.A.C.E. (Rescue, Alarm, Contain, Extinguish/Evacuate) and P.A.S.S. (Pull, Aim, Squeeze, Sweep) are core procedures every household should memorize.', NULL, 0, '2026-07-18 02:38:41'),
+(5, 'Understanding Barangay Fire Risk Levels', 'awareness', 'How FireSight calculates Low, Moderate, and High risk levels for your barangay.', 'Risk levels are generated from historical incident data and demographic density, helping residents understand why their barangay is flagged at a particular risk level.', NULL, 0, '2026-07-18 02:38:41');
 
 -- --------------------------------------------------------
 

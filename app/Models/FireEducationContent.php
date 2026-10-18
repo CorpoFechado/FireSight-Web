@@ -19,14 +19,13 @@ class FireEducationContent extends Model
 
     protected $fillable = [
         'title', 'category', 'summary', 'body', 'image_path',
-        'read_minutes', 'is_featured', 'created_at',
+        'is_featured', 'created_at',
     ];
 
     protected function casts(): array
     {
         return [
             'is_featured' => 'boolean',
-            'read_minutes' => 'integer',
             'created_at' => 'datetime',
         ];
     }

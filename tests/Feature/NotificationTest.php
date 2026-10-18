@@ -137,7 +137,6 @@ test('publishing an announcement notifies other active staff but not the publish
     $this->actingAs($publisher);
 
     $this->post(route('announcements.store'), [
-        'announcement_type' => 'general',
         'title' => 'Test Announcement',
         'content' => 'Test content.',
     ]);

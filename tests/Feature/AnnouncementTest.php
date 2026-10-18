@@ -2,6 +2,11 @@
 
 use App\Models\Announcement;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
+
+test('announcements table does not have an announcement type column', function () {
+    expect(Schema::hasColumn('announcement', 'announcement_type'))->toBeFalse();
+});
 
 test('bfp personnel cannot access the announcements page', function () {
     $user = User::factory()->bfpPersonnel()->create();
@@ -24,7 +29,6 @@ test('bfp admin can publish a new announcement', function () {
     $this->actingAs($admin);
 
     $response = $this->post(route('announcements.store'), [
-        'announcement_type' => 'advisory',
         'title' => 'Red Alert: Dry Season Fire Risk Advisory',
         'content' => 'Due to the ongoing dry spell, all personnel are advised to be on heightened alert.',
     ]);
@@ -33,7 +37,6 @@ test('bfp admin can publish a new announcement', function () {
 
     $this->assertDatabaseHas('announcement', [
         'created_by' => $admin->id,
-        'announcement_type' => 'advisory',
         'title' => 'Red Alert: Dry Season Fire Risk Advisory',
     ]);
 });
@@ -44,7 +47,7 @@ test('announcement fields are required', function () {
 
     $response = $this->post(route('announcements.store'), []);
 
-    $response->assertSessionHasErrors(['announcement_type', 'title', 'content']);
+    $response->assertSessionHasErrors(['title', 'content']);
 });
 
 test('bfp admin can update an announcement', function () {
@@ -53,13 +56,11 @@ test('bfp admin can update an announcement', function () {
 
     $announcement = Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'general',
         'title' => 'Original Title',
         'content' => 'Original content.',
     ]);
 
     $response = $this->patch(route('announcements.update', $announcement), [
-        'announcement_type' => 'emergency',
         'title' => 'Updated Title',
         'content' => 'Updated content.',
     ]);
@@ -68,7 +69,6 @@ test('bfp admin can update an announcement', function () {
 
     $this->assertDatabaseHas('announcement', [
         'announcement_id' => $announcement->announcement_id,
-        'announcement_type' => 'emergency',
         'title' => 'Updated Title',
     ]);
 });
@@ -79,7 +79,6 @@ test('bfp admin can delete an announcement', function () {
 
     $announcement = Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'general',
         'title' => 'To Be Deleted',
         'content' => 'Content.',
     ]);
@@ -90,31 +89,28 @@ test('bfp admin can delete an announcement', function () {
     $this->assertDatabaseMissing('announcement', ['announcement_id' => $announcement->announcement_id]);
 });
 
-test('announcements can be filtered by category', function () {
+test('announcement rows do not expose the removed type field', function () {
     $admin = User::factory()->bfpAdmin()->create();
     $this->actingAs($admin);
 
     Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'advisory',
         'title' => 'Advisory Alert',
         'content' => 'First content',
     ]);
     Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'emergency',
         'title' => 'Emergency Alert',
         'content' => 'Second content',
     ]);
 
-    $response = $this->get(route('announcements', ['category' => 'emergency']));
+    $response = $this->get(route('announcements'));
     $response->assertOk();
     $response->assertInertia(
         fn ($page) => $page
             ->component('announcements/index')
-            ->where('filters.category', 'emergency')
-            ->has('announcements', 1)
-            ->where('announcements.0.title', 'Emergency Alert')
+            ->has('announcements', 2)
+            ->missing('announcements.0.type')
     );
 });
 
@@ -124,13 +120,11 @@ test('announcements can be searched by title or content', function () {
 
     Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'general',
         'title' => 'Water Interruption Schedule',
         'content' => 'Water service temporarily interrupted.',
     ]);
     Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'fire_safety_tip',
         'title' => 'Electrical Safety',
         'content' => 'Inspect frayed cables carefully.',
     ]);
@@ -153,19 +147,17 @@ test('announcements can be searched by title or content', function () {
     );
 });
 
-test('announcements can be filtered by both category and search', function () {
+test('legacy category query does not affect announcement search', function () {
     $admin = User::factory()->bfpAdmin()->create();
     $this->actingAs($admin);
 
     Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'advisory',
         'title' => 'Typhoon Signal Warning',
         'content' => 'Advisory about storm.',
     ]);
     Announcement::create([
         'created_by' => $admin->id,
-        'announcement_type' => 'emergency',
         'title' => 'Typhoon Evacuation Notice',
         'content' => 'Immediate evacuation.',
     ]);
@@ -178,9 +170,8 @@ test('announcements can be filtered by both category and search', function () {
     $response->assertOk();
     $response->assertInertia(
         fn ($page) => $page
-            ->where('filters.category', 'emergency')
             ->where('filters.search', 'Typhoon')
-            ->has('announcements', 1)
-            ->where('announcements.0.title', 'Typhoon Evacuation Notice')
+            ->has('announcements', 2)
+            ->missing('filters.category')
     );
 });
