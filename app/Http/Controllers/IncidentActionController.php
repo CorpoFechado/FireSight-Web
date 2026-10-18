@@ -11,7 +11,6 @@ use App\Models\ReportStatusHistory;
 use App\Support\AdminNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -215,7 +214,7 @@ class IncidentActionController extends Controller
             'report_id' => $report->report_id,
             'status' => $status,
             'notes' => $notes,
-            'changed_by' => Auth::id(),
+            'changed_by' => auth()->user()?->getKey(),
             'created_at' => now(),
         ]);
     }

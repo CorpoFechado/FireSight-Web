@@ -1,7 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { LogOut } from 'lucide-react';
-import { dashboard, logout } from '@/routes';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { dashboard, logout } from '@/routes';
 import type { BfpRole } from '@/types/auth';
 import { navItemsForRole } from './nav-config';
 

@@ -15,7 +15,7 @@ function makeCommunityReport(array $overrides = []): CommunityReport
     $reporter = User::factory()->create();
 
     return CommunityReport::create([
-        'user_id' => $reporter->id,
+        'user_id' => $reporter->getKey(),
         'reporter_name' => 'Juan Dela Cruz',
         'contact_number' => '09171234567',
         'description' => 'Smoke near the market.',
@@ -35,13 +35,13 @@ test('a new report notifies active admins only', function () {
     $report = makeCommunityReport(['barangay_id' => $barangay->barangay_id]);
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $admin->id,
+        'user_id' => $admin->getKey(),
         'title' => 'New Community Report',
         'message' => "Report #{$report->report_id} from Juan Dela Cruz in Poblacion 1 is awaiting verification.",
         'notification_type' => 'incident_alert',
     ]);
-    $this->assertDatabaseMissing('notification', ['user_id' => $inactiveAdmin->id]);
-    $this->assertDatabaseMissing('notification', ['user_id' => $personnel->id]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $inactiveAdmin->getKey()]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $personnel->getKey()]);
 });
 
 test('a high-confidence AI fire detection is sent as a single critical alert', function () {
@@ -52,7 +52,7 @@ test('a high-confidence AI fire detection is sent as a single critical alert', f
         'ai_fire_confidence' => 0.94,
     ]);
 
-    $notifications = Notification::where('user_id', $admin->id)->get();
+    $notifications = Notification::where('user_id', $admin->getKey())->get();
 
     expect($notifications)->toHaveCount(1)
         ->and($notifications->first()->title)->toBe('Critical: AI-Detected Fire')
@@ -67,7 +67,7 @@ test('a low-confidence AI detection sends a regular new report notification', fu
         'ai_fire_confidence' => 0.6,
     ]);
 
-    expect(Notification::where('user_id', $admin->id)->pluck('title')->all())
+    expect(Notification::where('user_id', $admin->getKey())->pluck('title')->all())
         ->toBe(['New Community Report']);
 });
 
@@ -82,7 +82,7 @@ test('AI verification completing after submission triggers a critical alert', fu
     ]);
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $admin->id,
+        'user_id' => $admin->getKey(),
         'title' => 'Critical: AI-Detected Fire',
     ]);
 });
@@ -94,7 +94,7 @@ test('a report submitted near an active report is flagged as a possible duplicat
     $nearby = makeCommunityReport(['latitude' => 14.0363, 'longitude' => 120.6511]);
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $admin->id,
+        'user_id' => $admin->getKey(),
         'title' => 'Possible Duplicate Report',
         'message' => "Report #{$nearby->report_id} was submitted near active Report #{$original->report_id}. Review and link them if they describe the same incident.",
     ]);
@@ -108,7 +108,7 @@ test('far away or closed reports are not flagged as duplicates', function () {
     makeCommunityReport();
 
     $this->assertDatabaseMissing('notification', [
-        'user_id' => $admin->id,
+        'user_id' => $admin->getKey(),
         'title' => 'Possible Duplicate Report',
     ]);
 });
@@ -116,7 +116,11 @@ test('far away or closed reports are not flagged as duplicates', function () {
 test('a status change by personnel notifies admins with the personnel name', function () {
     $admin = User::factory()->bfpAdmin()->create();
     $personnel = User::factory()->bfpPersonnel()->create(['first_name' => 'Alejandro', 'last_name' => 'Vergara']);
-    BfpPersonnelDetails::create(['user_id' => $personnel->id, 'rank' => 'SFO1', 'employee_number' => 'EMP-0001']);
+    BfpPersonnelDetails::create([
+        'user_id' => $personnel->getKey(),
+        'rank' => 'SFO1',
+        'employee_number' => 'EMP-TEST-001',
+    ]);
     $report = makeCommunityReport(['status' => CommunityReport::STATUS_ACCEPTED]);
 
     $this->actingAs($personnel)
@@ -124,12 +128,12 @@ test('a status change by personnel notifies admins with the personnel name', fun
         ->assertRedirect();
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $admin->id,
+        'user_id' => $admin->getKey(),
         'title' => 'Report Dispatched',
         'message' => "SFO1 Alejandro Vergara marked Report #{$report->report_id} as Dispatched.",
         'notification_type' => 'status_update',
     ]);
-    $this->assertDatabaseMissing('notification', ['user_id' => $personnel->id]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $personnel->getKey()]);
 });
 
 test('the admin who changed a status is not notified about their own action', function () {
@@ -143,12 +147,12 @@ test('the admin who changed a status is not notified about their own action', fu
         ->assertRedirect();
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $otherAdmin->id,
+        'user_id' => $otherAdmin->getKey(),
         'title' => 'Report Accepted',
         'message' => "{$actingAdmin->name} marked Report #{$report->report_id} in Bungahan as Accepted.",
     ]);
     $this->assertDatabaseMissing('notification', [
-        'user_id' => $actingAdmin->id,
+        'user_id' => $actingAdmin->getKey(),
         'title' => 'Report Accepted',
     ]);
 });
@@ -172,7 +176,7 @@ test('editing incident details notifies admins with who edited them', function (
         ->assertRedirect();
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $admin->id,
+        'user_id' => $admin->getKey(),
         'title' => 'Incident Details Updated',
         'message' => "{$personnel->name} updated the incident assessment for Report #{$report->report_id}.",
         'notification_type' => 'system',

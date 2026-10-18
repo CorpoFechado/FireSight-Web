@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, type FormEvent } from 'react';
+import { useEffect  } from 'react';
+import type {FormEvent} from 'react';
 import {
     Dialog,
     DialogContent,
@@ -98,6 +99,7 @@ export function ContactFormModal({
             if (!contact) {
                 return;
             }
+
             patch(update(contact.id).url, {
                 preserveScroll: true,
                 onSuccess: close,

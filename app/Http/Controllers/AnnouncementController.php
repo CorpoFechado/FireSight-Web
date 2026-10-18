@@ -46,7 +46,7 @@ class AnnouncementController extends Controller
 
         $announcement = $request->user()->announcements()->create($data);
 
-        $this->notifyStaff($announcement, $request->user()->id);
+        $this->notifyStaff($announcement, $request->user()->getKey());
 
         return back()->with('toast', [
             'type' => 'success',
@@ -82,8 +82,8 @@ class AnnouncementController extends Controller
         $recipientIds = User::query()
             ->whereIn('role', [User::ROLE_BFP_ADMIN, User::ROLE_BFP_PERSONNEL])
             ->where('status', User::STATUS_ACTIVE)
-            ->where('id', '!=', $publisherId)
-            ->pluck('id');
+            ->whereKeyNot($publisherId)
+            ->pluck('user_id');
 
         if ($recipientIds->isEmpty()) {
             return;

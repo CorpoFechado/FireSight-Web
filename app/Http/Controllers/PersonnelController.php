@@ -86,7 +86,7 @@ class PersonnelController extends Controller
             ]);
 
             BfpPersonnelDetails::create([
-                'user_id' => $user->id,
+                'user_id' => $user->getKey(),
                 'rank' => $data['rank'],
                 'duty_group' => $data['duty_group'] ?? null,
                 'station_assigned' => 'BFP Lian Fire Station',
@@ -111,13 +111,13 @@ class PersonnelController extends Controller
             'full_name' => ['required', 'string', 'max:150'],
             'rank' => ['required', 'string', 'max:100'],
             'contact_number' => ['required', 'string', 'max:20'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'role' => ['required', Rule::in(self::ROLES)],
             'status' => ['required', Rule::in(self::STATUSES)],
             'duty_group' => ['nullable', Rule::enum(DutyGroup::class)],
         ]);
 
-        if ($user->id === $request->user()->id && $data['status'] === User::STATUS_INACTIVE) {
+        if ($user->getKey() === $request->user()->getKey() && $data['status'] === User::STATUS_INACTIVE) {
             throw ValidationException::withMessages([
                 'status' => "You can't deactivate your own account.",
             ]);
@@ -151,7 +151,7 @@ class PersonnelController extends Controller
     {
         $this->assertPersonnel($user);
 
-        if ($user->id === $request->user()->id) {
+        if ($user->getKey() === $request->user()->getKey()) {
             throw ValidationException::withMessages([
                 'id' => "You can't delete your own account.",
             ]);
@@ -200,7 +200,7 @@ class PersonnelController extends Controller
     private function toRow(User $user): array
     {
         return [
-            'id' => $user->id,
+            'user_id' => $user->getKey(),
             'employee_number' => $user->personnelDetails?->employee_number,
             'name' => $user->name,
             'rank' => $user->personnelDetails?->rank,

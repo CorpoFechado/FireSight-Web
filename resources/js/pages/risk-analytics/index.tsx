@@ -2,8 +2,8 @@ import 'leaflet/dist/leaflet.css';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import L from 'leaflet';
 import { useEffect, useMemo, useState } from 'react';
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { GeoJSON, MapContainer, Marker, ScaleControl, TileLayer } from 'react-leaflet';
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { PortalCard } from '@/components/portal/portal-card';
 import PortalLayout from '@/layouts/portal-layout';
 import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
@@ -17,8 +17,8 @@ type BarangayFeature = Feature<Geometry, BarangayGeoProperties>;
 type BarangayRiskPoint = {
     barangay_id: number;
     barangay_name: string;
-    latitude: number;
-    longitude: number;
+    centroid_lat: number;
+    centroid_lng: number;
     risk_level: RiskLevel | null;
     prediction_score: number | null;
 };
@@ -82,15 +82,18 @@ export default function RiskAnalytics({
 
     const riskByBarangayName = useMemo(() => {
         const map = new Map<string, BarangayRiskPoint>();
+
         for (const b of barangayRisk) {
             map.set(b.barangay_name, b);
         }
+
         return map;
     }, [barangayRisk]);
 
     const sortedRanking = useMemo(() => {
         const rows = [...ranking];
         rows.sort((a, b) => (sortBy === 'risk' ? (b.score ?? -1) - (a.score ?? -1) : b.incidentCount - a.incidentCount));
+
         return rows;
     }, [ranking, sortBy]);
 

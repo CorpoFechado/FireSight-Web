@@ -61,7 +61,7 @@ class DutyRotation
         if ($overrides !== null) {
             /** @var DutyOverride|null $override */
             $override = $overrides
-                ->where('user_id', $user->id)
+                ->where('user_id', $user->getKey())
                 ->first(function (DutyOverride $item) use ($weekDate) {
                     $startsOn = $item->starts_on instanceof CarbonInterface
                         ? $item->starts_on->toDateString()
@@ -74,7 +74,7 @@ class DutyRotation
                 });
         } else {
             $override = DutyOverride::query()
-                ->where('user_id', $user->id)
+                ->where('user_id', $user->getKey())
                 ->coveringWeek($weekStart)
                 ->first();
         }

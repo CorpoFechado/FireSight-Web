@@ -22,7 +22,7 @@ class BfpPersonnelSeeder extends Seeder
      * Single source of truth for the 17 real BFP Lian personnel.
      *
      * @var list<array{
-     *     id: int,
+     *     user_id: int,
      *     rank: string,
      *     first_name: string,
      *     middle_name: string|null,
@@ -37,7 +37,7 @@ class BfpPersonnelSeeder extends Seeder
      */
     public const ROSTER = [
         [
-            'id' => 2,
+            'user_id' => 2,
             'rank' => 'Senior Fire Officer 4',
             'first_name' => 'Felonia Amor',
             'middle_name' => 'D',
@@ -50,7 +50,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'barcelon',
         ],
         [
-            'id' => 3,
+            'user_id' => 3,
             'rank' => 'Senior Fire Officer 3',
             'first_name' => 'Enrico',
             'middle_name' => 'R',
@@ -63,7 +63,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'lapitan',
         ],
         [
-            'id' => 4,
+            'user_id' => 4,
             'rank' => 'Senior Fire Officer 2',
             'first_name' => 'Ma. Carmela',
             'middle_name' => 'J',
@@ -76,7 +76,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'tenorio',
         ],
         [
-            'id' => 5,
+            'user_id' => 5,
             'rank' => 'Fire Officer 3',
             'first_name' => 'Michael Angelo',
             'middle_name' => 'T',
@@ -89,7 +89,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'lagrisola',
         ],
         [
-            'id' => 6,
+            'user_id' => 6,
             'rank' => 'Senior Fire Officer 2',
             'first_name' => 'Ana Maria',
             'middle_name' => 'A',
@@ -102,7 +102,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'lainez',
         ],
         [
-            'id' => 7,
+            'user_id' => 7,
             'rank' => 'Senior Fire Officer 1',
             'first_name' => 'Alejandro',
             'middle_name' => 'A',
@@ -115,7 +115,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'vergara',
         ],
         [
-            'id' => 8,
+            'user_id' => 8,
             'rank' => 'Fire Officer 1',
             'first_name' => 'Dexter',
             'middle_name' => 'M',
@@ -128,7 +128,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'pantas',
         ],
         [
-            'id' => 34,
+            'user_id' => 34,
             'rank' => 'Fire Officer 2',
             'first_name' => 'Reylan',
             'middle_name' => 'L',
@@ -141,7 +141,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'asaytuno',
         ],
         [
-            'id' => 35,
+            'user_id' => 35,
             'rank' => 'Fire Officer 2',
             'first_name' => 'Jerome',
             'middle_name' => 'B',
@@ -154,7 +154,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'pagsaligan',
         ],
         [
-            'id' => 36,
+            'user_id' => 36,
             'rank' => 'Fire Officer 2',
             'first_name' => 'Antonio',
             'middle_name' => 'P',
@@ -167,7 +167,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'nepomuceno',
         ],
         [
-            'id' => 37,
+            'user_id' => 37,
             'rank' => 'Fire Officer 1',
             'first_name' => 'Vergel',
             'middle_name' => 'A',
@@ -180,7 +180,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'lozada',
         ],
         [
-            'id' => 38,
+            'user_id' => 38,
             'rank' => 'Fire Officer 1',
             'first_name' => 'John Denver',
             'middle_name' => 'A',
@@ -193,7 +193,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'deleon',
         ],
         [
-            'id' => 39,
+            'user_id' => 39,
             'rank' => 'Fire Officer 1',
             'first_name' => 'Jessa Pola',
             'middle_name' => 'B',
@@ -206,7 +206,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'villaveza',
         ],
         [
-            'id' => 40,
+            'user_id' => 40,
             'rank' => 'Fire Officer 2',
             'first_name' => 'Patricio',
             'middle_name' => 'R',
@@ -219,7 +219,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'lopez',
         ],
         [
-            'id' => 41,
+            'user_id' => 41,
             'rank' => 'Fire Officer 1',
             'first_name' => 'Elpidio',
             'middle_name' => 'M',
@@ -232,7 +232,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'gutierrez',
         ],
         [
-            'id' => 42,
+            'user_id' => 42,
             'rank' => 'Fire Officer 1',
             'first_name' => 'Leo Angelo',
             'middle_name' => 'V',
@@ -245,7 +245,7 @@ class BfpPersonnelSeeder extends Seeder
             'key' => 'villadelrey',
         ],
         [
-            'id' => 43,
+            'user_id' => 43,
             'rank' => 'Fire Officer 1',
             'first_name' => 'Erwin',
             'middle_name' => 'A',
@@ -265,12 +265,12 @@ class BfpPersonnelSeeder extends Seeder
         BfpPersonnelDetails::unguard();
 
         foreach (self::ROSTER as $item) {
-            $contactNumber = sprintf('0917%07d', 1000000 + $item['id']);
+            $contactNumber = sprintf('0917%07d', 1000000 + $item['user_id']);
 
             $user = User::updateOrCreate(
                 ['email' => $item['email']],
                 [
-                    'id' => $item['id'],
+                    'user_id' => $item['user_id'],
                     'role' => User::ROLE_BFP_PERSONNEL,
                     'status' => User::STATUS_ACTIVE,
                     'first_name' => $item['first_name'],
@@ -285,7 +285,7 @@ class BfpPersonnelSeeder extends Seeder
             );
 
             BfpPersonnelDetails::updateOrCreate(
-                ['user_id' => $user->id],
+                ['user_id' => $user->getKey()],
                 [
                     'rank' => $item['rank'],
                     'station_assigned' => 'BFP Lian Fire Station',

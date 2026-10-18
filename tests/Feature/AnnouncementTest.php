@@ -36,7 +36,7 @@ test('bfp admin can publish a new announcement', function () {
     $response->assertRedirect();
 
     $this->assertDatabaseHas('announcement', [
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Red Alert: Dry Season Fire Risk Advisory',
     ]);
 });
@@ -55,7 +55,7 @@ test('bfp admin can update an announcement', function () {
     $this->actingAs($admin);
 
     $announcement = Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Original Title',
         'content' => 'Original content.',
     ]);
@@ -78,7 +78,7 @@ test('bfp admin can delete an announcement', function () {
     $this->actingAs($admin);
 
     $announcement = Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'To Be Deleted',
         'content' => 'Content.',
     ]);
@@ -94,12 +94,12 @@ test('announcement rows do not expose the removed type field', function () {
     $this->actingAs($admin);
 
     Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Advisory Alert',
         'content' => 'First content',
     ]);
     Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Emergency Alert',
         'content' => 'Second content',
     ]);
@@ -119,12 +119,12 @@ test('announcements can be searched by title or content', function () {
     $this->actingAs($admin);
 
     Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Water Interruption Schedule',
         'content' => 'Water service temporarily interrupted.',
     ]);
     Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Electrical Safety',
         'content' => 'Inspect frayed cables carefully.',
     ]);
@@ -152,12 +152,12 @@ test('legacy category query does not affect announcement search', function () {
     $this->actingAs($admin);
 
     Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Typhoon Signal Warning',
         'content' => 'Advisory about storm.',
     ]);
     Announcement::create([
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
         'title' => 'Typhoon Evacuation Notice',
         'content' => 'Immediate evacuation.',
     ]);

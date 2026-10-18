@@ -71,7 +71,7 @@ export function DutyOverrideModal({
         const map = new Map<number, Member>();
 
         for (const m of allMembers) {
-            map.set(m.id, m);
+            map.set(m.user_id, m);
         }
 
         return map;
@@ -303,7 +303,7 @@ toast.error(firstErr);
                                     Select personnel…
                                 </option>
                                 {allMembers.map((m) => (
-                                    <option key={m.id} value={m.id}>
+                                    <option key={m.user_id} value={m.user_id}>
                                         {m.name} {m.rank ? `— ${m.rank}` : ''} ({groupLabel(m.base_group)})
                                     </option>
                                 ))}
@@ -472,7 +472,7 @@ toast.error(firstErr);
                                 {allMembers
                                     .filter((m) => m.base_group === 'A' || m.base_group === 'B')
                                     .map((m) => (
-                                        <option key={m.id} value={m.id}>
+                                        <option key={m.user_id} value={m.user_id}>
                                             {m.name} {m.rank ? `— ${m.rank}` : ''} ({groupLabel(m.base_group)})
                                         </option>
                                     ))}
@@ -505,7 +505,7 @@ toast.error(firstErr);
                                         : 'Select Person 1 first…'}
                                 </option>
                                 {availableSwapMembersB.map((m) => (
-                                    <option key={m.id} value={m.id}>
+                                    <option key={m.user_id} value={m.user_id}>
                                         {m.name} {m.rank ? `— ${m.rank}` : ''} ({groupLabel(m.base_group)})
                                     </option>
                                 ))}

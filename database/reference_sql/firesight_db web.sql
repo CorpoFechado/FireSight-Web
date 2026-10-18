@@ -61,16 +61,16 @@ INSERT INTO `announcement` (`announcement_id`, `created_by`, `title`, `content`,
 CREATE TABLE `barangay` (
   `barangay_id` bigint(20) UNSIGNED NOT NULL,
   `barangay_name` varchar(100) NOT NULL,
-  `latitude` decimal(10,7) DEFAULT NULL,
-  `longitude` decimal(10,7) DEFAULT NULL,
-  `boundary` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`boundary`))
+  `centroid_lat` decimal(10,8) DEFAULT NULL,
+  `centroid_lng` decimal(11,8) DEFAULT NULL,
+  `boundary_geojson` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`boundary_geojson`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `barangay`
 --
 
-INSERT INTO `barangay` (`barangay_id`, `barangay_name`, `latitude`, `longitude`, `boundary`) VALUES
+INSERT INTO `barangay` (`barangay_id`, `barangay_name`, `centroid_lat`, `centroid_lng`, `boundary_geojson`) VALUES
 (1, 'Poblacion 1', 14.0353356, 120.6511238, '[[120.64813,14.035274],[120.648017,14.034723],[120.649251,14.034173],[120.652548,14.033505],[120.653729,14.033628],[120.653577,14.035824],[120.653461,14.035905],[120.653152,14.035885],[120.652981,14.035948],[120.652646,14.037031],[120.650168,14.037276],[120.650209,14.036858],[120.648727,14.036851],[120.648839,14.03537],[120.64813,14.035274]]'),
 (2, 'Poblacion 2', 14.0381440, 120.6512847, '[[120.649938,14.038911],[120.650174,14.037311],[120.652658,14.037054],[120.652081,14.039344],[120.649938,14.038911]]'),
 (3, 'Poblacion 3', 14.0404400, 120.6506992, '[[120.649196,14.041778],[120.649479,14.041219],[120.649721,14.0407],[120.649924,14.038941],[120.650992,14.039147],[120.65207,14.039372],[120.651439,14.041789],[120.650625,14.0417],[120.649196,14.041778]]'),
@@ -788,7 +788,7 @@ INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, 
 --
 
 CREATE TABLE `users` (
-  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
   `role` enum('resident','bfp_personnel','bfp_admin') NOT NULL DEFAULT 'resident',
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `first_name` varchar(100) NOT NULL,
@@ -810,7 +810,7 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `role`, `status`, `first_name`, `last_name`, `email`, `contact_number`, `username`, `email_verified_at`, `password`, `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at`, `remember_token`, `created_at`, `updated_at`) VALUES
+INSERT INTO `users` (`user_id`, `role`, `status`, `first_name`, `last_name`, `email`, `contact_number`, `username`, `email_verified_at`, `password`, `two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at`, `remember_token`, `created_at`, `updated_at`) VALUES
 (1, 'bfp_admin', 'active', 'Ricardo', 'Dela Cruz', 'admin@firesight.bfp.lian', '09171234567', 'rdelacruz', '2026-07-26 03:37:46', 'password', NULL, NULL, NULL, NULL, '2026-07-26 03:37:46', '2026-07-28 21:28:28'),
 (2, 'bfp_personnel', 'active', 'Maria', 'Santos', 'personnel@firesight.bfp.lian', '09181234568', 'msantos', '2026-07-26 03:37:46', '$2y$12$nU5s8sXeLsR1SQr1qk35nOF1n7gwpHqp9Nm/RZj431C7N8YPRwISC', NULL, NULL, NULL, NULL, '2026-07-26 03:37:46', '2026-07-26 03:37:46'),
 (3, 'bfp_personnel', 'active', 'Maria', 'Corpuz', 'mcorpuz@firesight.bfp.lian', '09445310485', 'mcorpuz', '2026-01-24 10:38:21', '$2y$12$ECAcrg7IKPib5ADz.umdYeugxkDurf9uEIkhpSkTukZBPRG/RlJ9a', NULL, NULL, NULL, NULL, '2026-01-24 10:38:21', '2026-01-24 10:38:21'),
@@ -994,7 +994,7 @@ ALTER TABLE `sessions`
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
+  ADD PRIMARY KEY (`user_id`),
   ADD UNIQUE KEY `users_email_unique` (`email`),
   ADD UNIQUE KEY `users_username_unique` (`username`);
 
@@ -1090,7 +1090,7 @@ ALTER TABLE `risk_assessment`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `user_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- Constraints for dumped tables
@@ -1100,7 +1100,7 @@ ALTER TABLE `users`
 -- Constraints for table `announcement`
 --
 ALTER TABLE `announcement`
-  ADD CONSTRAINT `announcement_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `announcement_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `barangay_contact`
@@ -1112,20 +1112,20 @@ ALTER TABLE `barangay_contact`
 -- Constraints for table `bfp_personnel_details`
 --
 ALTER TABLE `bfp_personnel_details`
-  ADD CONSTRAINT `bfp_personnel_details_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `bfp_personnel_details_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `community_report`
 --
 ALTER TABLE `community_report`
-  ADD CONSTRAINT `community_report_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `community_report_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `duty_schedule`
 --
 ALTER TABLE `duty_schedule`
-  ADD CONSTRAINT `duty_schedule_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `duty_schedule_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `duty_schedule_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `duty_schedule_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `incident_record`
@@ -1138,13 +1138,13 @@ ALTER TABLE `incident_record`
 -- Constraints for table `notification`
 --
 ALTER TABLE `notification`
-  ADD CONSTRAINT `notification_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `notification_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `passkeys`
 --
 ALTER TABLE `passkeys`
-  ADD CONSTRAINT `passkeys_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `passkeys_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `report_link`

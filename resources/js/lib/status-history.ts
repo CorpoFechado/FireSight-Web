@@ -7,7 +7,7 @@ export type StatusHistoryEntry = {
     changed_at: string;
     notes?: string | null;
     personnel?: {
-        id: number;
+        user_id: number;
         name: string;
         role: string;
         rank: string | null;
@@ -47,10 +47,12 @@ function parseDate(dateStr: string): Date {
     if (!dateStr) {
         return new Date();
     }
+
     const normalized = dateStr.includes(' ') && !dateStr.includes('T')
         ? dateStr.replace(' ', 'T')
         : dateStr;
     const parsed = new Date(normalized);
+
     return isNaN(parsed.getTime()) ? new Date() : parsed;
 }
 
@@ -61,6 +63,7 @@ function formatDateTime(d: Date): string {
     const day = pad(d.getDate());
     const hours = pad(d.getHours());
     const mins = pad(d.getMinutes());
+
     return `${year}-${month}-${day} ${hours}:${mins}`;
 }
 
@@ -76,6 +79,7 @@ export function generateStatusHistory(
         ? INVALID_SEQUENCE
         : (() => {
             const idx = STANDARD_SEQUENCE.indexOf(currentStatus);
+
             return idx >= 0 ? STANDARD_SEQUENCE.slice(0, idx + 1) : ['pending' as ReportStatus];
         })();
 

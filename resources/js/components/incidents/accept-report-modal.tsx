@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, type FormEvent } from 'react';
+import { useEffect  } from 'react';
+import type {FormEvent} from 'react';
 import {
     Dialog,
     DialogContent,

@@ -6,8 +6,8 @@ import {
     Flame,
     Megaphone,
     Send,
-    type LucideIcon,
 } from 'lucide-react';
+import type {LucideIcon} from 'lucide-react';
 
 export type NotificationType =
     'incident_alert' | 'status_update' | 'system' | 'reminder';
@@ -23,6 +23,7 @@ export function getNotificationVisual(
         if (text.includes('critical')) {
             return { Icon: Flame, bg: '#FDE8EA', color: '#E63946' };
         }
+
         return { Icon: AlertTriangle, bg: '#FFF4E6', color: '#F77F00' };
     }
 
@@ -30,9 +31,11 @@ export function getNotificationVisual(
         if (text.includes('resolved') || text.includes('complete')) {
             return { Icon: CheckCircle2, bg: '#E0F5F3', color: '#1B7A72' };
         }
+
         if (text.includes('dispatch')) {
             return { Icon: Send, bg: '#E3EFF7', color: '#2C5F82' };
         }
+
         return { Icon: FileText, bg: '#E3EFF7', color: '#2C5F82' };
     }
 

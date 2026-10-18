@@ -10,7 +10,7 @@ use RuntimeException;
 class BarangayBoundarySeeder extends Seeder
 {
     /**
-     * Populates `barangay.boundary` from the exterior ring of each polygon
+     * Populates `barangay.boundary_geojson` from the exterior ring of each polygon
      * in database/seeders/data/barangay-boundaries.geojson. Matches purely
      * by `barangay_name`, so run BarangaySeeder first.
      */
@@ -41,7 +41,7 @@ class BarangayBoundarySeeder extends Seeder
                 continue;
             }
 
-            $barangay->update(['boundary' => $ring]);
+            $barangay->update(['boundary_geojson' => $ring]);
         }
     }
 }

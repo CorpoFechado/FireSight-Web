@@ -18,14 +18,14 @@ test('notifications are grouped into today, recent, and earlier', function () {
     $this->actingAs($user);
 
     $today = Notification::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'title' => 'Today item',
         'message' => 'This happened today.',
         'notification_type' => 'system',
     ]);
 
     $recent = Notification::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'title' => 'Recent item',
         'message' => 'This happened a few days ago.',
         'notification_type' => 'system',
@@ -33,7 +33,7 @@ test('notifications are grouped into today, recent, and earlier', function () {
     $recent->forceFill(['created_at' => now()->subDays(3)])->saveQuietly();
 
     $earlier = Notification::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'title' => 'Earlier item',
         'message' => 'This happened a while ago.',
         'notification_type' => 'system',
@@ -55,7 +55,7 @@ test('a user can mark a single notification as read', function () {
     $this->actingAs($user);
 
     $notification = Notification::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'title' => 'Test',
         'message' => 'Test message.',
         'notification_type' => 'system',
@@ -76,7 +76,7 @@ test('a user cannot mark another user\'s notification as read', function () {
     $this->actingAs($intruder);
 
     $notification = Notification::create([
-        'user_id' => $owner->id,
+        'user_id' => $owner->getKey(),
         'title' => 'Not yours',
         'message' => 'Test message.',
         'notification_type' => 'system',
@@ -95,8 +95,8 @@ test('a user can mark all their notifications as read', function () {
     $user = User::factory()->bfpAdmin()->create();
     $this->actingAs($user);
 
-    Notification::create(['user_id' => $user->id, 'title' => 'A', 'message' => 'A', 'notification_type' => 'system']);
-    Notification::create(['user_id' => $user->id, 'title' => 'B', 'message' => 'B', 'notification_type' => 'system']);
+    Notification::create(['user_id' => $user->getKey(), 'title' => 'A', 'message' => 'A', 'notification_type' => 'system']);
+    Notification::create(['user_id' => $user->getKey(), 'title' => 'B', 'message' => 'B', 'notification_type' => 'system']);
 
     $response = $this->post(route('notifications.readAll'));
 
@@ -111,7 +111,7 @@ test('accepting a report notifies the reporter', function () {
     $this->actingAs($admin);
 
     $report = CommunityReport::create([
-        'user_id' => $reporter->id,
+        'user_id' => $reporter->getKey(),
         'reporter_name' => $reporter->name,
         'contact_number' => '09171234567',
         'description' => 'Test report',
@@ -125,7 +125,7 @@ test('accepting a report notifies the reporter', function () {
     ]);
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $reporter->id,
+        'user_id' => $reporter->getKey(),
         'notification_type' => 'status_update',
     ]);
 });
@@ -142,9 +142,9 @@ test('publishing an announcement notifies other active staff but not the publish
     ]);
 
     $this->assertDatabaseHas('notification', [
-        'user_id' => $otherActive->id,
+        'user_id' => $otherActive->getKey(),
         'notification_type' => 'reminder',
     ]);
-    $this->assertDatabaseMissing('notification', ['user_id' => $publisher->id]);
-    $this->assertDatabaseMissing('notification', ['user_id' => $inactive->id]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $publisher->getKey()]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $inactive->getKey()]);
 });

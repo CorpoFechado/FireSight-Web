@@ -15,13 +15,13 @@ beforeEach(function () {
 
     $this->barangay = Barangay::firstOrCreate(
         ['barangay_id' => 101],
-        ['barangay_name' => 'Barangay Test', 'latitude' => 13.9, 'longitude' => 120.6]
+        ['barangay_name' => 'Barangay Test', 'centroid_lat' => 13.9, 'centroid_lng' => 120.6]
     );
 });
 
 test('admin can accept a pending report and assign barangay without creating incident_record', function () {
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Juan Dela Cruz',
         'contact_number' => '09123456789',
         'description' => 'Smoke sighting',
@@ -52,7 +52,7 @@ test('admin can accept a pending report and assign barangay without creating inc
 
 test('admin can invalidate a pending report without creating incident_record', function () {
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Pedro Penduko',
         'contact_number' => '09123456789',
         'description' => 'False alarm report',
@@ -76,7 +76,7 @@ test('admin can invalidate a pending report without creating incident_record', f
 
 test('staff can advance accepted report to dispatched without creating incident_record', function () {
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Maria Clara',
         'contact_number' => '09123456789',
         'description' => 'Jeep fire',
@@ -103,7 +103,7 @@ test('staff can advance accepted report to dispatched without creating incident_
 
 test('staff can resolve a dispatched report without assessment details', function () {
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Crisostomo Ibarra',
         'contact_number' => '09123456789',
         'description' => 'Kitchen fire',
@@ -136,7 +136,7 @@ test('staff can resolve a dispatched report without assessment details', functio
 
 test('adding incident details validates incident_type to canonical mobile fire types', function () {
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Test',
         'contact_number' => '09123456789',
         'description' => 'Test fire',
@@ -158,7 +158,7 @@ test('adding incident details validates incident_type to canonical mobile fire t
 
 test('adding incident details accepts valid alarm levels and rejects invalid or legacy values', function () {
     $report1 = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Test 1',
         'contact_number' => '09123456789',
         'description' => 'Test fire 1',
@@ -179,7 +179,7 @@ test('adding incident details accepts valid alarm levels and rejects invalid or 
     expect($record1->alarm_level->value)->toBe('5th_alarm');
 
     $report2 = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Test 2',
         'contact_number' => '09123456789',
         'description' => 'Test fire 2',
@@ -213,14 +213,14 @@ test('incidents show renders with actual statusHistory from database including p
         'last_name' => 'Santos',
     ]);
     BfpPersonnelDetails::create([
-        'user_id' => $officer->id,
+        'user_id' => $officer->getKey(),
         'rank' => 'Fire Officer 2',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-002',
     ]);
 
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Jennifer Rivera',
         'contact_number' => '09123456789',
         'description' => 'Smoke sighting',
@@ -234,7 +234,7 @@ test('incidents show renders with actual statusHistory from database including p
         'report_id' => $report->report_id,
         'status' => CommunityReport::STATUS_PENDING,
         'notes' => 'Submitted via mobile app.',
-        'changed_by' => $this->resident->id,
+        'changed_by' => $this->resident->getKey(),
         'created_at' => now()->subMinutes(10),
     ]);
 
@@ -242,7 +242,7 @@ test('incidents show renders with actual statusHistory from database including p
         'report_id' => $report->report_id,
         'status' => CommunityReport::STATUS_ACCEPTED,
         'notes' => 'Report verified by duty verifier.',
-        'changed_by' => $officer->id,
+        'changed_by' => $officer->getKey(),
         'created_at' => now()->subMinutes(5),
     ]);
 
@@ -266,7 +266,7 @@ test('incidents index and show serialize mobile app ai verification results', fu
     $verifiedAt = now()->subMinutes(15)->format('Y-m-d H:i');
 
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Mobile User',
         'contact_number' => '09123456789',
         'description' => 'AI detected fire in mobile upload',
@@ -314,7 +314,7 @@ test('incidents show includes barangay contact person and number', function () {
     ]);
 
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Test Resident',
         'contact_number' => '09123456789',
         'description' => 'Fire report in test barangay',
@@ -338,7 +338,7 @@ test('incidents show includes barangay contact person and number', function () {
 
 test('staff and admin can update incident assessment details after resolution', function () {
     $report = CommunityReport::create([
-        'user_id' => $this->resident->id,
+        'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Resolved Test',
         'contact_number' => '09123456789',
         'description' => 'Already resolved incident',

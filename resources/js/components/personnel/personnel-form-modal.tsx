@@ -20,7 +20,7 @@ import type { PersonnelRole, PersonnelStatus } from '@/lib/fire-status';
 import { store, update } from '@/routes/personnel';
 
 export type PersonnelRow = {
-    id: number;
+    user_id: number;
     employee_number: string | null;
     name: string;
     rank: string | null;
@@ -107,7 +107,7 @@ export function PersonnelFormModal({
             clearErrors();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, personnel?.id]);
+    }, [open, personnel?.user_id]);
 
     const isValid =
         data.full_name.trim() !== '' &&
@@ -137,7 +137,7 @@ export function PersonnelFormModal({
             return;
         }
 
-        patch(update(personnel.id).url, {
+        patch(update(personnel.user_id).url, {
             preserveScroll: true,
             onSuccess: close,
         });

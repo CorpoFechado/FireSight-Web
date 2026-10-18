@@ -15,7 +15,7 @@ it('admin only sees their own notifications, not residents\'', function () {
     ]);
 
     Notification::create([
-        'user_id' => $resident->id,
+        'user_id' => $resident->getKey(),
         'title' => 'Resident Alert',
         'message' => 'Something happened',
         'notification_type' => 'status_update',
@@ -23,7 +23,7 @@ it('admin only sees their own notifications, not residents\'', function () {
     ]);
 
     Notification::create([
-        'user_id' => $admin->id,
+        'user_id' => $admin->getKey(),
         'title' => 'New Community Report',
         'message' => 'Report #1 is awaiting verification.',
         'notification_type' => 'incident_alert',
@@ -51,7 +51,7 @@ it('bfp personnel only sees their own notifications', function () {
     $other = User::factory()->create(['email_verified_at' => now()]);
 
     Notification::create([
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'title' => 'My Notif',
         'message' => 'For me',
         'notification_type' => 'system',
@@ -59,7 +59,7 @@ it('bfp personnel only sees their own notifications', function () {
     ]);
 
     Notification::create([
-        'user_id' => $other->id,
+        'user_id' => $other->getKey(),
         'title' => 'Other Notif',
         'message' => 'Not mine',
         'notification_type' => 'system',

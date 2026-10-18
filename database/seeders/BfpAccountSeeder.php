@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 class BfpAccountSeeder extends Seeder
 {
     /**
-     * Seeds the primary bfp_admin account (id 1) used for local administration.
+     * Seeds the primary bfp_admin account (user_id 1) used for local administration.
      * Admin has no duty_group assigned.
      */
     public function run(): void
@@ -21,7 +21,7 @@ class BfpAccountSeeder extends Seeder
         $admin = User::updateOrCreate(
             ['email' => 'admin2@firesight.bfp.lian'],
             [
-                'id' => 1,
+                'user_id' => 1,
                 'role' => User::ROLE_BFP_ADMIN,
                 'first_name' => 'FireSight',
                 'last_name' => 'Admin',
@@ -33,7 +33,7 @@ class BfpAccountSeeder extends Seeder
         );
 
         BfpPersonnelDetails::updateOrCreate(
-            ['user_id' => $admin->id],
+            ['user_id' => $admin->getKey()],
             [
                 'rank' => 'Senior Fire Officer 3',
                 'station_assigned' => 'BFP Lian Fire Station',

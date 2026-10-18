@@ -151,7 +151,7 @@ class IncidentController extends Controller
     /**
      * Pre-fill guess for the accept form — not authoritative, the admin can
      * always pick a different barangay. Tries an exact polygon match first
-     * (point-in-polygon against `barangay.boundary`), and only falls back
+     * (point-in-polygon against `barangay.boundary_geojson`), and only falls back
      * to nearest-centroid distance if the report's coordinates don't land
      * inside any known boundary.
      */
@@ -167,17 +167,18 @@ class IncidentController extends Controller
         $lng = (float) $report->longitude;
 
         return Barangay::query()
-            ->whereNotNull('boundary')
+            ->whereNotNull('boundary_geojson')
             ->get()
-            ->first(fn (Barangay $b) => Geo::pointInPolygon($lat, $lng, $b->boundary));
+            ->first(fn (Barangay $barangay) => Geo::pointInPolygon($lat, $lng, $barangay->boundary_geojson));
     }
 
     private function nearestBarangayId(CommunityReport $report): ?int
     {
         return Barangay::query()
-            ->whereNotNull('latitude')
+            ->whereNotNull('centroid_lat')
+            ->whereNotNull('centroid_lng')
             ->get()
-            ->sortBy(fn (Barangay $b) => (($b->latitude - $report->latitude) ** 2) + (($b->longitude - $report->longitude) ** 2))
+            ->sortBy(fn (Barangay $barangay) => (($barangay->centroid_lat - $report->latitude) ** 2) + (($barangay->centroid_lng - $report->longitude) ** 2))
             ->first()
             ?->barangay_id;
     }
@@ -232,7 +233,7 @@ class IncidentController extends Controller
             'changed_at' => $history->created_at ? $history->created_at->format('Y-m-d H:i') : '',
             'changed_by' => $changedByName,
             'personnel' => $user ? [
-                'id' => $user->id,
+                'user_id' => $user->getKey(),
                 'name' => $user->name,
                 'role' => $user->role,
                 'rank' => $rank,

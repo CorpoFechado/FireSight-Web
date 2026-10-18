@@ -77,38 +77,37 @@ INSERT INTO `auth_token` (`token_id`, `user_id`, `token`, `device_info`, `expire
 --
 
 CREATE TABLE `barangay` (
-  `barangay_id` int(11) NOT NULL,
-  `barangay_name` varchar(100) DEFAULT NULL,
+  `barangay_id` bigint(20) UNSIGNED NOT NULL,
+  `barangay_name` varchar(100) NOT NULL,
   `centroid_lat` decimal(10,8) DEFAULT NULL,
   `centroid_lng` decimal(11,8) DEFAULT NULL,
-  `boundary_geojson` longtext DEFAULT NULL COMMENT 'GeoJSON polygon for risk map overlay',
-  `created_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `boundary_geojson` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`boundary_geojson`))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `barangay`
 --
 
-INSERT INTO `barangay` (`barangay_id`, `barangay_name`, `centroid_lat`, `centroid_lng`, `boundary_geojson`, `created_at`) VALUES
-(1, 'Barangay 1 (Poblacion)', 14.03920000, 120.63890000, NULL, '2026-07-18 02:38:41'),
-(2, 'Barangay 2 (Poblacion)', 14.04050000, 120.64010000, NULL, '2026-07-18 02:38:41'),
-(3, 'Barangay 3 (Poblacion)', 14.03780000, 120.64100000, NULL, '2026-07-18 02:38:41'),
-(4, 'Barangay 4 (Poblacion)', 14.03650000, 120.63950000, NULL, '2026-07-18 02:38:41'),
-(5, 'Barangay 5 (Poblacion)', 14.04100000, 120.63750000, NULL, '2026-07-18 02:38:41'),
-(6, 'Bagong Pook', 14.04520000, 120.63200000, NULL, '2026-07-18 02:38:41'),
-(7, 'Balibago', 14.03000000, 120.64500000, NULL, '2026-07-18 02:38:41'),
-(8, 'Binubusan', 14.05100000, 120.62800000, NULL, '2026-07-18 02:38:41'),
-(9, 'Bungahan', 14.02500000, 120.65000000, NULL, '2026-07-18 02:38:41'),
-(10, 'Cumba', 14.04800000, 120.64400000, NULL, '2026-07-18 02:38:41'),
-(11, 'Humayingan', 14.02100000, 120.63600000, NULL, '2026-07-18 02:38:41'),
-(12, 'Kapito', 14.05600000, 120.63500000, NULL, '2026-07-18 02:38:41'),
-(13, 'Lumaniag', 14.03300000, 120.62800000, NULL, '2026-07-18 02:38:41'),
-(14, 'Luyahan', 14.01800000, 120.64200000, NULL, '2026-07-18 02:38:41'),
-(15, 'Malaruhatan', 14.04300000, 120.64700000, NULL, '2026-07-18 02:38:41'),
-(16, 'Matabungkay', 14.01600000, 120.61800000, NULL, '2026-07-18 02:38:41'),
-(17, 'Prenza', 14.03500000, 120.65200000, NULL, '2026-07-18 02:38:41'),
-(18, 'Puting Kahoy', 14.02900000, 120.62100000, NULL, '2026-07-18 02:38:41'),
-(19, 'San Diego', 14.02300000, 120.62500000, NULL, '2026-07-18 02:38:41');
+INSERT INTO `barangay` (`barangay_id`, `barangay_name`, `centroid_lat`, `centroid_lng`, `boundary_geojson`) VALUES
+(1, 'Barangay 1 (Poblacion)', 14.03920000, 120.63890000, NULL),
+(2, 'Barangay 2 (Poblacion)', 14.04050000, 120.64010000, NULL),
+(3, 'Barangay 3 (Poblacion)', 14.03780000, 120.64100000, NULL),
+(4, 'Barangay 4 (Poblacion)', 14.03650000, 120.63950000, NULL),
+(5, 'Barangay 5 (Poblacion)', 14.04100000, 120.63750000, NULL),
+(6, 'Bagong Pook', 14.04520000, 120.63200000, NULL),
+(7, 'Balibago', 14.03000000, 120.64500000, NULL),
+(8, 'Binubusan', 14.05100000, 120.62800000, NULL),
+(9, 'Bungahan', 14.02500000, 120.65000000, NULL),
+(10, 'Cumba', 14.04800000, 120.64400000, NULL),
+(11, 'Humayingan', 14.02100000, 120.63600000, NULL),
+(12, 'Kapito', 14.05600000, 120.63500000, NULL),
+(13, 'Lumaniag', 14.03300000, 120.62800000, NULL),
+(14, 'Luyahan', 14.01800000, 120.64200000, NULL),
+(15, 'Malaruhatan', 14.04300000, 120.64700000, NULL),
+(16, 'Matabungkay', 14.01600000, 120.61800000, NULL),
+(17, 'Prenza', 14.03500000, 120.65200000, NULL),
+(18, 'Puting Kahoy', 14.02900000, 120.62100000, NULL),
+(19, 'San Diego', 14.02300000, 120.62500000, NULL);
 
 -- --------------------------------------------------------
 
@@ -716,7 +715,8 @@ ALTER TABLE `auth_token`
 -- Indexes for table `barangay`
 --
 ALTER TABLE `barangay`
-  ADD PRIMARY KEY (`barangay_id`);
+  ADD PRIMARY KEY (`barangay_id`),
+  ADD UNIQUE KEY `barangay_barangay_name_unique` (`barangay_name`);
 
 --
 -- Indexes for table `barangay_contact`
@@ -841,7 +841,7 @@ ALTER TABLE `auth_token`
 -- AUTO_INCREMENT for table `barangay`
 --
 ALTER TABLE `barangay`
-  MODIFY `barangay_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `barangay_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `barangay_contact`

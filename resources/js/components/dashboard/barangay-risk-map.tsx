@@ -2,9 +2,9 @@ import 'leaflet/dist/leaflet.css';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import { useEffect, useMemo, useState } from 'react';
 import { GeoJSON, MapContainer, TileLayer } from 'react-leaflet';
-import { RISK_CFG, riskLevelColor, riskMapPolygonStyle } from '@/lib/fire-status';
-import type { RiskLevel } from '@/lib/fire-status';
 import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
+import { RISK_CFG, riskMapPolygonStyle } from '@/lib/fire-status';
+import type { RiskLevel } from '@/lib/fire-status';
 import { LIAN_CENTER, LIAN_DEFAULT_ZOOM, OSM_ATTRIBUTION, OSM_TILE_URL } from '@/lib/map-constants';
 
 type BarangayGeoProperties = { barangay: string };
@@ -13,8 +13,8 @@ type BarangayFeature = Feature<Geometry, BarangayGeoProperties>;
 export type BarangayRiskPoint = {
     barangay_id: number;
     barangay_name: string;
-    latitude: number;
-    longitude: number;
+    centroid_lat: number;
+    centroid_lng: number;
     risk_level: RiskLevel | null;
     prediction_score: number | null;
 };
@@ -49,9 +49,11 @@ export function BarangayRiskMap({
 
     const riskByBarangayName = useMemo(() => {
         const map = new Map<string, BarangayRiskPoint>();
+
         for (const b of barangays) {
             map.set(b.barangay_name, b);
         }
+
         return map;
     }, [barangays]);
 

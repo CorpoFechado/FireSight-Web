@@ -141,7 +141,7 @@ class IncidentReportSeeder extends Seeder
         $p1User = $residents[0];
         $p1 = CommunityReport::create([
             'report_id' => 1,
-            'user_id' => $p1User->id,
+            'user_id' => $p1User->getKey(),
             'reporter_name' => $p1User->name,
             'contact_number' => $p1User->contact_number,
             'description' => 'Thick black smoke and visible flames billowing from a residential kitchen roof near the elementary school.',
@@ -160,7 +160,7 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $p1->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Community report submitted via FireSight mobile app with verified GPS coordinates.',
-            'changed_by' => $p1User->id,
+            'changed_by' => $p1User->getKey(),
             'created_at' => $p1->created_at,
         ]);
 
@@ -168,7 +168,7 @@ class IncidentReportSeeder extends Seeder
         $p2User = $residents[1];
         $p2 = CommunityReport::create([
             'report_id' => 2,
-            'user_id' => $p2User->id,
+            'user_id' => $p2User->getKey(),
             'reporter_name' => $p2User->name,
             'contact_number' => $p2User->contact_number,
             'description' => 'Unattended bonfire spreading close to dry bamboo grove and beach cottage structures.',
@@ -187,7 +187,7 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $p2->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Citizen reported threat of spreading flames towards resort fences.',
-            'changed_by' => $p2User->id,
+            'changed_by' => $p2User->getKey(),
             'created_at' => $p2->created_at,
         ]);
 
@@ -195,7 +195,7 @@ class IncidentReportSeeder extends Seeder
         $a1User = $residents[3];
         $a1 = CommunityReport::create([
             'report_id' => 3,
-            'user_id' => $a1User->id,
+            'user_id' => $a1User->getKey(),
             'reporter_name' => $a1User->name,
             'contact_number' => $a1User->contact_number,
             'description' => 'Sparking overhead distribution transformer with burning dry leaves directly underneath.',
@@ -214,14 +214,14 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $a1->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Incident reported by citizen via mobile app.',
-            'changed_by' => $a1User->id,
+            'changed_by' => $a1User->getKey(),
             'created_at' => $a1->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $a1->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'Verified by duty verifier SFO3 Enrico Lapitan. Assigned to Bungahan. BATELEC power company alerted.',
-            'changed_by' => $sfo3Lapitan->id,
+            'changed_by' => $sfo3Lapitan->getKey(),
             'created_at' => $a1->updated_at,
         ]);
 
@@ -229,7 +229,7 @@ class IncidentReportSeeder extends Seeder
         $d1User = $residents[5];
         $d1 = CommunityReport::create([
             'report_id' => 4,
-            'user_id' => $d1User->id,
+            'user_id' => $d1User->getKey(),
             'reporter_name' => $d1User->name,
             'contact_number' => $d1User->contact_number,
             'description' => 'Heavy black smoke and exploding storage drums in commercial storage depot.',
@@ -248,21 +248,21 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $d1->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Emergency report received regarding chemical warehouse fire.',
-            'changed_by' => $d1User->id,
+            'changed_by' => $d1User->getKey(),
             'created_at' => $d1->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $d1->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'Verified high-hazard industrial warehouse fire. Priority alarm raised by SFO2 Ma. Carmela Tenorio.',
-            'changed_by' => $sfo2Tenorio->id,
+            'changed_by' => $sfo2Tenorio->getKey(),
             'created_at' => $d1->created_at->copy()->addMinutes(5),
         ]);
         ReportStatusHistory::create([
             'report_id' => $d1->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
             'notes' => 'Engine 1 and Tanker 1 dispatched from Lian Station under SFO1 Alejandro Vergara. Responders on scene actively containing boundary.',
-            'changed_by' => $sfo1Vergara->id,
+            'changed_by' => $sfo1Vergara->getKey(),
             'created_at' => $d1->updated_at,
         ]);
         IncidentRecord::create([
@@ -280,7 +280,7 @@ class IncidentReportSeeder extends Seeder
         $d2User = $residents[6];
         $d2 = CommunityReport::create([
             'report_id' => 5,
-            'user_id' => $d2User->id,
+            'user_id' => $d2User->getKey(),
             'reporter_name' => $d2User->name,
             'contact_number' => $d2User->contact_number,
             'description' => 'Strong chemical odor and dense smoke seen across the provincial road from depot.',
@@ -299,21 +299,21 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $d2->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Secondary citizen report for commercial area fire.',
-            'changed_by' => $d2User->id,
+            'changed_by' => $d2User->getKey(),
             'created_at' => $d2->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $d2->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'Merged with main incident record for San Diego commercial depot.',
-            'changed_by' => $sfo3Lapitan->id,
+            'changed_by' => $sfo3Lapitan->getKey(),
             'created_at' => $d2->created_at->copy()->addMinutes(4),
         ]);
         ReportStatusHistory::create([
             'report_id' => $d2->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
             'notes' => 'Linked to Incident #4.',
-            'changed_by' => $sfo1Vergara->id,
+            'changed_by' => $sfo1Vergara->getKey(),
             'created_at' => $d2->updated_at,
         ]);
         DB::table('report_link')->insert([
@@ -325,7 +325,7 @@ class IncidentReportSeeder extends Seeder
         $rTodayUser = $residents[7];
         $rToday = CommunityReport::create([
             'report_id' => 6,
-            'user_id' => $rTodayUser->id,
+            'user_id' => $rTodayUser->getKey(),
             'reporter_name' => $rTodayUser->name,
             'contact_number' => $rTodayUser->contact_number,
             'description' => 'Kitchen fire caused by liquefied petroleum gas (LPG) stove hose leak in two-storey residential house.',
@@ -344,28 +344,28 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $rToday->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Emergency report submitted via mobile app.',
-            'changed_by' => $rTodayUser->id,
+            'changed_by' => $rTodayUser->getKey(),
             'created_at' => $rToday->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $rToday->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'High-priority residential structure fire verified by SFO4 Felonia Amor Barcelon.',
-            'changed_by' => $sfo4Barcelon->id,
+            'changed_by' => $sfo4Barcelon->getKey(),
             'created_at' => $rToday->created_at->copy()->addMinutes(4),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rToday->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
             'notes' => 'Engine 1 dispatched with 5 firefighters under SFO2 Ana Maria Lainez.',
-            'changed_by' => $sfo2Lainez->id,
+            'changed_by' => $sfo2Lainez->getKey(),
             'created_at' => $rToday->created_at->copy()->addMinutes(8),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rToday->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
             'notes' => 'Fire extinguished and declared fire out by ground commander FO2 Patricio Lopez. Tank removed safely.',
-            'changed_by' => $fo2Lopez->id,
+            'changed_by' => $fo2Lopez->getKey(),
             'created_at' => $rToday->updated_at,
         ]);
         IncidentRecord::create([
@@ -383,7 +383,7 @@ class IncidentReportSeeder extends Seeder
         $rYestUser = $residents[8];
         $rYest = CommunityReport::create([
             'report_id' => 7,
-            'user_id' => $rYestUser->id,
+            'user_id' => $rYestUser->getKey(),
             'reporter_name' => $rYestUser->name,
             'contact_number' => $rYestUser->contact_number,
             'description' => 'Commercial grocery store storage freezer caught fire along national road.',
@@ -402,28 +402,28 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $rYest->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Commercial fire incident reported.',
-            'changed_by' => $rYestUser->id,
+            'changed_by' => $rYestUser->getKey(),
             'created_at' => $rYest->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $rYest->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'Verified and accepted by SFO2 Ma. Carmela Tenorio; assigned to Balibago.',
-            'changed_by' => $sfo2Tenorio->id,
+            'changed_by' => $sfo2Tenorio->getKey(),
             'created_at' => $rYest->created_at->copy()->addMinutes(5),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rYest->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
             'notes' => 'Engine 1 and Tanker 1 dispatched from Lian Station under FO2 Reylan Asaytuno.',
-            'changed_by' => $fo2Asaytuno->id,
+            'changed_by' => $fo2Asaytuno->getKey(),
             'created_at' => $rYest->created_at->copy()->addMinutes(9),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rYest->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
             'notes' => 'Fire extinguished and power isolated by FO2 Jerome Pagsaligan.',
-            'changed_by' => $fo2Pagsaligan->id,
+            'changed_by' => $fo2Pagsaligan->getKey(),
             'created_at' => $rYest->updated_at,
         ]);
         IncidentRecord::create([
@@ -441,7 +441,7 @@ class IncidentReportSeeder extends Seeder
         $invUser = $residents[9];
         $inv = CommunityReport::create([
             'report_id' => 8,
-            'user_id' => $invUser->id,
+            'user_id' => $invUser->getKey(),
             'reporter_name' => $invUser->name,
             'contact_number' => $invUser->contact_number,
             'description' => 'Loud explosion sound and smoke seen behind gas station along provincial road.',
@@ -460,14 +460,14 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $inv->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Citizen suspected gas station fire explosion.',
-            'changed_by' => $invUser->id,
+            'changed_by' => $invUser->getKey(),
             'created_at' => $inv->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $inv->report_id,
             'status' => CommunityReport::STATUS_INVALID,
             'notes' => 'Barangay tanod and BFP investigator verified heavy truck blown tire, no fire or hazard found. Cleared by FO3 Michael Angelo Lagrisola.',
-            'changed_by' => $fo3Lagrisola->id,
+            'changed_by' => $fo3Lagrisola->getKey(),
             'created_at' => $inv->updated_at,
         ]);
 
@@ -475,7 +475,7 @@ class IncidentReportSeeder extends Seeder
         $rW1User = $residents[10];
         $rW1 = CommunityReport::create([
             'report_id' => 9,
-            'user_id' => $rW1User->id,
+            'user_id' => $rW1User->getKey(),
             'reporter_name' => $rW1User->name,
             'contact_number' => $rW1User->contact_number,
             'description' => 'Engine fire on passenger jeepney along Matabungkay resort access road.',
@@ -494,28 +494,28 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $rW1->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Motorist report received.',
-            'changed_by' => $rW1User->id,
+            'changed_by' => $rW1User->getKey(),
             'created_at' => $rW1->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW1->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'Accepted by SFO3 Enrico Lapitan.',
-            'changed_by' => $sfo3Lapitan->id,
+            'changed_by' => $sfo3Lapitan->getKey(),
             'created_at' => $rW1->created_at->copy()->addMinutes(4),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW1->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
             'notes' => 'Engine 1 dispatched under FO1 Dexter Pantas.',
-            'changed_by' => $fo1Pantas->id,
+            'changed_by' => $fo1Pantas->getKey(),
             'created_at' => $rW1->created_at->copy()->addMinutes(8),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW1->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
             'notes' => 'Engine fire extinguished with dry chemical powder. Vehicle towed safely.',
-            'changed_by' => $fo1Gutierrez->id,
+            'changed_by' => $fo1Gutierrez->getKey(),
             'created_at' => $rW1->updated_at,
         ]);
         IncidentRecord::create([
@@ -533,7 +533,7 @@ class IncidentReportSeeder extends Seeder
         $rW2User = $residents[11];
         $rW2 = CommunityReport::create([
             'report_id' => 10,
-            'user_id' => $rW2User->id,
+            'user_id' => $rW2User->getKey(),
             'reporter_name' => $rW2User->name,
             'contact_number' => $rW2User->contact_number,
             'description' => 'Uncontrolled dry brush and cogon grass fire spreading near agricultural perimeter fencing.',
@@ -552,28 +552,28 @@ class IncidentReportSeeder extends Seeder
             'report_id' => $rW2->report_id,
             'status' => CommunityReport::STATUS_PENDING,
             'notes' => 'Grass fire report submitted.',
-            'changed_by' => $rW2User->id,
+            'changed_by' => $rW2User->getKey(),
             'created_at' => $rW2->created_at,
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW2->report_id,
             'status' => CommunityReport::STATUS_ACCEPTED,
             'notes' => 'Accepted by SFO2 Ma. Carmela Tenorio.',
-            'changed_by' => $sfo2Tenorio->id,
+            'changed_by' => $sfo2Tenorio->getKey(),
             'created_at' => $rW2->created_at->copy()->addMinutes(5),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW2->report_id,
             'status' => CommunityReport::STATUS_DISPATCHED,
             'notes' => 'Dispatched under SFO2 Ana Maria Lainez.',
-            'changed_by' => $sfo2Lainez->id,
+            'changed_by' => $sfo2Lainez->getKey(),
             'created_at' => $rW2->created_at->copy()->addMinutes(9),
         ]);
         ReportStatusHistory::create([
             'report_id' => $rW2->report_id,
             'status' => CommunityReport::STATUS_RESOLVED,
             'notes' => 'Flames extinguished using fire beaters and booster hose lines.',
-            'changed_by' => $fo2Lopez->id,
+            'changed_by' => $fo2Lopez->getKey(),
             'created_at' => $rW2->updated_at,
         ]);
         IncidentRecord::create([
@@ -723,7 +723,7 @@ class IncidentReportSeeder extends Seeder
                 // Create resolved CommunityReport
                 $report = CommunityReport::create([
                     'report_id' => $reportIdCounter,
-                    'user_id' => $reporter->id,
+                    'user_id' => $reporter->getKey(),
                     'reporter_name' => $reporter->name,
                     'contact_number' => $reporter->contact_number,
                     'description' => $scenario['desc'],
@@ -744,7 +744,7 @@ class IncidentReportSeeder extends Seeder
                     'report_id' => $report->report_id,
                     'status' => CommunityReport::STATUS_PENDING,
                     'notes' => 'Incident reported via FireSight citizen application with GPS location.',
-                    'changed_by' => $reporter->id,
+                    'changed_by' => $reporter->getKey(),
                     'created_at' => $report->created_at,
                 ]);
 
@@ -752,7 +752,7 @@ class IncidentReportSeeder extends Seeder
                     'report_id' => $report->report_id,
                     'status' => CommunityReport::STATUS_ACCEPTED,
                     'notes' => "Verified by duty verifier {$verifier->name} ({$verifier->personnelDetails?->rank}). Priority response dispatched.",
-                    'changed_by' => $verifier->id,
+                    'changed_by' => $verifier->getKey(),
                     'created_at' => $report->created_at->copy()->addMinutes(4),
                 ]);
 
@@ -760,7 +760,7 @@ class IncidentReportSeeder extends Seeder
                     'report_id' => $report->report_id,
                     'status' => CommunityReport::STATUS_DISPATCHED,
                     'notes' => "Engine unit deployed from Lian Station under ground commander {$commander->name}.",
-                    'changed_by' => $commander->id,
+                    'changed_by' => $commander->getKey(),
                     'created_at' => $report->created_at->copy()->addMinutes(9),
                 ]);
 
@@ -768,7 +768,7 @@ class IncidentReportSeeder extends Seeder
                     'report_id' => $report->report_id,
                     'status' => CommunityReport::STATUS_RESOLVED,
                     'notes' => "Fire controlled and declared out. Post-incident assessment completed by {$investigator->name}.",
-                    'changed_by' => $investigator->id,
+                    'changed_by' => $investigator->getKey(),
                     'created_at' => $report->updated_at,
                 ]);
 

@@ -30,7 +30,7 @@ class AdminNotificationSeeder extends Seeder
         }
 
         Notification::query()
-            ->whereIn('user_id', User::query()->where('role', User::ROLE_BFP_ADMIN)->select('id'))
+            ->whereIn('user_id', User::query()->where('role', User::ROLE_BFP_ADMIN)->select('user_id'))
             ->delete();
 
         $since = $latestReport->created_at->copy()->subDays(self::BACKFILL_DAYS);

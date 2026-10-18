@@ -47,7 +47,7 @@ test('bfp admin can create a new personnel account', function () {
 
     $created = User::where('email', 'juan.delacruz@example.com')->first();
     $this->assertDatabaseHas('bfp_personnel_details', [
-        'user_id' => $created->id,
+        'user_id' => $created->getKey(),
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'duty_group' => 'A',
@@ -60,7 +60,7 @@ test('bfp admin can update a personnel account, including status', function () {
 
     $personnel = User::factory()->bfpPersonnel()->create();
     BfpPersonnelDetails::create([
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-100',
@@ -80,14 +80,14 @@ test('bfp admin can update a personnel account, including status', function () {
     $response->assertRedirect();
 
     $this->assertDatabaseHas('users', [
-        'id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'first_name' => 'Updated',
         'last_name' => 'Name',
         'status' => 'inactive',
     ]);
 
     $this->assertDatabaseHas('bfp_personnel_details', [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'rank' => 'Fire Officer 2',
         'duty_group' => 'B',
     ]);
@@ -107,7 +107,7 @@ test('an admin cannot deactivate their own account', function () {
     ]);
 
     $response->assertSessionHasErrors('status');
-    $this->assertDatabaseHas('users', ['id' => $admin->id, 'status' => 'active']);
+    $this->assertDatabaseHas('users', ['user_id' => $admin->getKey(), 'status' => 'active']);
 });
 
 test('bfp admin can delete a personnel account', function () {
@@ -119,7 +119,7 @@ test('bfp admin can delete a personnel account', function () {
     $response = $this->delete(route('personnel.destroy', $personnel));
 
     $response->assertRedirect();
-    $this->assertDatabaseMissing('users', ['id' => $personnel->id]);
+    $this->assertDatabaseMissing('users', ['user_id' => $personnel->getKey()]);
 });
 
 test('an admin cannot delete their own account', function () {
@@ -129,5 +129,5 @@ test('an admin cannot delete their own account', function () {
     $response = $this->delete(route('personnel.destroy', $admin));
 
     $response->assertSessionHasErrors('id');
-    $this->assertDatabaseHas('users', ['id' => $admin->id]);
+    $this->assertDatabaseHas('users', ['user_id' => $admin->getKey()]);
 });

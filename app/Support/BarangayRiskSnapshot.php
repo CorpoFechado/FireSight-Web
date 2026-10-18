@@ -30,8 +30,8 @@ class BarangayRiskSnapshot
                 return [
                     'barangay_id' => $barangay->barangay_id,
                     'barangay_name' => $barangay->barangay_name,
-                    'latitude' => (float) $barangay->latitude,
-                    'longitude' => (float) $barangay->longitude,
+                    'centroid_lat' => (float) $barangay->centroid_lat,
+                    'centroid_lng' => (float) $barangay->centroid_lng,
                     'risk_level' => $riskLevel,
                     'prediction_score' => $latest ? (float) $latest->prediction_score : null,
                 ];

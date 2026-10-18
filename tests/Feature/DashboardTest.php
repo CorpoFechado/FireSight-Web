@@ -36,7 +36,7 @@ test('dashboard kpis accurately count active, pending, resolved today, and resol
     $this->actingAs($user);
 
     $base = [
-        'user_id' => $resident->id,
+        'user_id' => $resident->getKey(),
         'reporter_name' => 'Juan Dela Cruz',
         'contact_number' => '09123456789',
         'description' => 'Fire sighting',
@@ -91,7 +91,7 @@ test('dashboard kpis calculate comparisons for active, pending, resolved today, 
     $this->actingAs($user);
 
     $base = [
-        'user_id' => $resident->id,
+        'user_id' => $resident->getKey(),
         'reporter_name' => 'Juan Dela Cruz',
         'contact_number' => '09123456789',
         'description' => 'Fire sighting',
@@ -191,7 +191,7 @@ test('dashboard kpis handle edge cases when pending is empty or less than 1 hour
 
     // Pending report submitted 20 minutes ago (<1h)
     $report = CommunityReport::create([
-        'user_id' => $resident->id,
+        'user_id' => $resident->getKey(),
         'reporter_name' => 'Test User',
         'contact_number' => '09123456789',
         'description' => 'Test smoke',
@@ -216,7 +216,7 @@ test('dashboard accurately counts critical active incidents for 5th alarm, task 
     $this->actingAs($user);
 
     $base = [
-        'user_id' => $resident->id,
+        'user_id' => $resident->getKey(),
         'reporter_name' => 'Citizen Reporter',
         'contact_number' => '09123456789',
         'description' => 'Fire test',
@@ -291,7 +291,7 @@ test('dashboard provides incidents by type breakdown with the correct shape', fu
     $this->actingAs($user);
 
     $report = CommunityReport::create([
-        'user_id' => $resident->id,
+        'user_id' => $resident->getKey(),
         'reporter_name' => 'Citizen Reporter',
         'contact_number' => '09123456789',
         'description' => 'Fire test',

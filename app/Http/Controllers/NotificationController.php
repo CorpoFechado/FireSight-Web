@@ -36,7 +36,7 @@ class NotificationController extends Controller
 
     public function markRead(Notification $notification): RedirectResponse
     {
-        abort_unless($notification->user_id === request()->user()->id, 404);
+        abort_unless($notification->user_id === request()->user()->getKey(), 404);
 
         $notification->update(['is_read' => true]);
 

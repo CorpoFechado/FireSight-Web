@@ -228,7 +228,7 @@ export default function PersonnelIndex({
                                 )}
                                 {personnel.map((p) => (
                                     <tr
-                                        key={p.id}
+                                        key={p.user_id}
                                         className="border-t"
                                         style={{
                                             borderColor: 'rgba(43,45,66,0.06)',

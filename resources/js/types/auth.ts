@@ -3,7 +3,7 @@ export type BfpRole = 'resident' | 'bfp_personnel' | 'bfp_admin';
 export type PersonnelStatus = 'active' | 'inactive';
 
 export type User = {
-    id: number;
+    user_id: number;
     role: BfpRole;
     status: PersonnelStatus;
     first_name: string;

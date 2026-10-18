@@ -1,27 +1,26 @@
 import 'leaflet/dist/leaflet.css';
 import { router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
-import L from 'leaflet';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
+import L from 'leaflet';
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CircleMarker, GeoJSON, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import { PortalCard } from '@/components/portal/portal-card';
 import { AlarmLevelBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
+import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
 import {
     ALARM_LEVEL_CFG,
     ALARM_LEVEL_MARKER_COLORS,
     RISK_CFG,
     TYPE_CFG,
-    riskLevelColor,
     riskMapPolygonStyle,
 } from '@/lib/fire-status';
 import type { AlarmLevel, IncidentType, RiskLevel } from '@/lib/fire-status';
-import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
 import { LIAN_CENTER, LIAN_DEFAULT_ZOOM, OSM_ATTRIBUTION, OSM_TILE_URL } from '@/lib/map-constants';
-import { map as mapRoute } from '@/routes/index';
 import { show as showIncident } from '@/routes/incidents';
+import { map as mapRoute } from '@/routes/index';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,8 +42,8 @@ type MapIncident = {
 type BarangayRiskPoint = {
     barangay_id: number;
     barangay_name: string;
-    latitude: number;
-    longitude: number;
+    centroid_lat: number;
+    centroid_lng: number;
     risk_level: RiskLevel | null;
     prediction_score: number | null;
 };
@@ -109,6 +108,7 @@ function markerColor(inc: MapIncident, colorBy: ColorBy): string {
     if (colorBy === 'alarm_level') {
         return inc.alarm_level ? (ALARM_LEVEL_MARKER_COLORS[inc.alarm_level] ?? FALLBACK_COLOR) : FALLBACK_COLOR;
     }
+
     return inc.type ? (TYPE_CFG[inc.type]?.color ?? FALLBACK_COLOR) : FALLBACK_COLOR;
 }
 
@@ -154,12 +154,7 @@ export default function FireIncidentsMap({
     const mapRef = useRef<L.Map | null>(null);
     const incidentMarkerRefs = useRef(new Map<number, L.CircleMarker>());
 
-    // Clear selection when it's no longer in the filtered list
-    useEffect(() => {
-        if (selectedId !== null && !incidents.find((i) => i.report_id === selectedId)) {
-            setSelectedId(null);
-        }
-    }, [incidents, selectedId]);
+    const activeSelectedId = incidents.some((incident) => incident.report_id === selectedId) ? selectedId : null;
 
     // Load barangay GeoJSON
     useEffect(() => {
@@ -174,6 +169,7 @@ export default function FireIncidentsMap({
             .catch(() => {
                 // Boundary layer is decorative — silently fall back to no overlay.
             });
+
         return () => {
             cancelled = true;
         };
@@ -181,19 +177,23 @@ export default function FireIncidentsMap({
 
     const riskByBarangayName = useMemo(() => {
         const m = new Map<string, BarangayRiskPoint>();
+
         for (const b of barangayRisk) {
             m.set(b.barangay_name, b);
         }
+
         return m;
     }, [barangayRisk]);
 
     // Sidebar grouped counts
     const groupedCounts = useMemo(() => {
         const counts: Record<string, number> = {};
+
         for (const inc of incidents) {
             const key = colorBy === 'alarm_level' ? (inc.alarm_level ?? 'unknown') : (inc.type ?? 'unknown');
             counts[key] = (counts[key] ?? 0) + 1;
         }
+
         return counts;
     }, [incidents, colorBy]);
 
@@ -204,6 +204,7 @@ export default function FireIncidentsMap({
                 .filter((s) => groupedCounts[s] !== undefined)
                 .map((s) => ({ key: s, label: ALARM_LEVEL_CFG[s].label, color: ALARM_LEVEL_MARKER_COLORS[s] }));
         }
+
         return (Object.keys(TYPE_CFG) as IncidentType[])
             .filter((t) => groupedCounts[t] !== undefined)
             .map((t) => ({ key: t, label: TYPE_CFG[t].label, color: TYPE_CFG[t].color }));
@@ -213,21 +214,27 @@ export default function FireIncidentsMap({
         const raw = { ...filters, ...overrides };
         // Omit 'all' / empty params from the URL
         const params: Record<string, string> = {};
+
         if (raw.period !== 'this_year') {
             params.period = raw.period;
         }
+
         if (raw.date_from) {
             params.date_from = raw.date_from;
         }
+
         if (raw.date_to) {
             params.date_to = raw.date_to;
         }
+
         if (raw.incident_type && raw.incident_type !== 'all') {
             params.incident_type = raw.incident_type;
         }
+
         if (raw.alarm_level && raw.alarm_level !== 'all') {
             params.alarm_level = raw.alarm_level;
         }
+
         router.get(mapRoute().url, params, { preserveState: true, replace: true });
     };
 
@@ -401,6 +408,7 @@ export default function FireIncidentsMap({
                                         colorBy === 'alarm_level'
                                             ? (ALARM_LEVEL_CFG[key as AlarmLevel]?.label ?? key)
                                             : (TYPE_CFG[key as IncidentType]?.label ?? key);
+
                                     return (
                                         <div key={key} className="flex items-center gap-1">
                                             <span className="size-1.5 rounded-full" style={{ background: color }} />
@@ -429,7 +437,7 @@ export default function FireIncidentsMap({
                                         className="cursor-pointer border-b px-4 py-3 transition-colors hover:bg-blue-50"
                                         style={{
                                             borderColor: 'rgba(43,45,66,0.06)',
-                                            background: selectedId === inc.report_id ? '#EBF3FB' : undefined,
+                                            background: activeSelectedId === inc.report_id ? '#EBF3FB' : undefined,
                                         }}
                                     >
                                         <div className="flex items-start gap-2">
@@ -556,10 +564,10 @@ export default function FireIncidentsMap({
                                                 }
                                             }}
                                             center={[inc.latitude, inc.longitude]}
-                                            radius={selectedId === inc.report_id ? 11 : 8}
+                                            radius={activeSelectedId === inc.report_id ? 11 : 8}
                                             pathOptions={{
                                                 color: '#fff',
-                                                weight: selectedId === inc.report_id ? 3 : 1.5,
+                                                weight: activeSelectedId === inc.report_id ? 3 : 1.5,
                                                 fillColor: markerColor(inc, colorBy),
                                                 fillOpacity: 0.9,
                                             }}

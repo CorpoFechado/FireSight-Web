@@ -29,7 +29,7 @@ export function DeletePersonnelDialog({
     const confirmDelete = () => {
         setProcessing(true);
 
-        router.delete(destroy(personnel.id).url, {
+        router.delete(destroy(personnel.user_id).url, {
             preserveScroll: true,
             onError: (errors) =>
                 toast.error(

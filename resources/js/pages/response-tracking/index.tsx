@@ -85,6 +85,7 @@ export default function ResponseTracking({
             .then((data: { code: string; routes?: { geometry: { coordinates: [number, number][] }; distance: number; duration: number }[] }) => {
                 if (cancelled || data.code !== 'Ok' || !data.routes?.length) {
                     setRouteFailed(true);
+
                     return;
                 }
 
@@ -181,6 +182,7 @@ export default function ResponseTracking({
                             {directions.map((step, i) => {
                                 const isFirst = i === 0;
                                 const isLast = i === directions.length - 1;
+
                                 return (
                                     <li key={step} className="flex items-start gap-3">
                                         <span

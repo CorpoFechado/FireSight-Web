@@ -22,7 +22,7 @@ function makeResolved(array $reportAttrs = [], array $recordAttrs = []): Communi
     unset($reportAttrs['created_at']);
 
     $report = CommunityReport::create(array_merge([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'reporter_name' => 'Test Reporter',
         'contact_number' => '09001234567',
         'description' => 'Test fire report',
@@ -82,7 +82,7 @@ test('only resolved reports appear on the map', function () {
     ] as $status) {
         $otherUser = User::factory()->create(['role' => 'resident']);
         CommunityReport::create([
-            'user_id' => $otherUser->id,
+            'user_id' => $otherUser->getKey(),
             'reporter_name' => 'Other',
             'contact_number' => '09001234567',
             'description' => 'Other report',

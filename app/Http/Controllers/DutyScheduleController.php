@@ -85,14 +85,14 @@ class DutyScheduleController extends Controller
         ];
 
         foreach ($users as $user) {
-            $override = $overridesByUser->get($user->id);
+            $override = $overridesByUser->get($user->getKey());
             $baseGroup = $user->personnelDetails?->duty_group;
             $effectiveGroup = $override?->duty_group ?? $baseGroup;
             $isOnDuty = ($effectiveGroup === DutyGroup::Regular)
                 || ($effectiveGroup !== null && $effectiveGroup !== DutyGroup::Detached && $effectiveGroup === $activeGroup);
 
             $member = [
-                'id' => $user->id,
+                'user_id' => $user->getKey(),
                 'name' => $user->name,
                 'rank' => $user->personnelDetails?->rank,
                 'base_group' => $baseGroup?->value,
@@ -142,7 +142,7 @@ class DutyScheduleController extends Controller
         ];
 
         $personnel = $users->sortBy(fn (User $u) => $u->first_name)->map(fn (User $user) => [
-            'id' => $user->id,
+            'user_id' => $user->getKey(),
             'name' => $user->name,
             'rank' => $user->personnelDetails?->rank,
         ])->values()->all();
@@ -174,7 +174,7 @@ class DutyScheduleController extends Controller
         ]);
 
         $user->personnelDetails()->updateOrCreate(
-            ['user_id' => $user->id],
+            ['user_id' => $user->getKey()],
             ['duty_group' => $data['duty_group']],
         );
 
@@ -193,7 +193,7 @@ class DutyScheduleController extends Controller
             'user_id' => [
                 'required',
                 'integer',
-                Rule::exists('users', 'id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
+                Rule::exists('users', 'user_id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
             ],
             'duty_group' => ['required', Rule::enum(DutyGroup::class)],
             'starts_on' => [
@@ -228,7 +228,7 @@ class DutyScheduleController extends Controller
         }
 
         $hasOverlap = DutyOverride::query()
-            ->where('user_id', $user->id)
+            ->where('user_id', $user->getKey())
             ->where(function ($q) use ($data) {
                 $q->where('starts_on', '<=', $data['ends_on'])
                     ->where('ends_on', '>=', $data['starts_on']);
@@ -248,7 +248,7 @@ class DutyScheduleController extends Controller
                 'starts_on' => $data['starts_on'],
                 'ends_on' => $data['ends_on'],
                 'reason' => $data['reason'] ?? null,
-                'created_by' => $request->user()->id,
+                'created_by' => $request->user()->getKey(),
             ]);
         });
 
@@ -265,13 +265,13 @@ class DutyScheduleController extends Controller
                 'required',
                 'integer',
                 'different:swap_with_id',
-                Rule::exists('users', 'id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
+                Rule::exists('users', 'user_id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
             ],
             'swap_with_id' => [
                 'required',
                 'integer',
                 'different:user_id',
-                Rule::exists('users', 'id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
+                Rule::exists('users', 'user_id')->where(fn ($q) => $q->whereIn('role', self::ASSIGNABLE_ROLES)),
             ],
             'starts_on' => [
                 'required',
@@ -316,7 +316,7 @@ class DutyScheduleController extends Controller
         }
 
         $hasOverlapA = DutyOverride::query()
-            ->where('user_id', $userA->id)
+            ->where('user_id', $userA->getKey())
             ->where(function ($q) use ($data) {
                 $q->where('starts_on', '<=', $data['ends_on'])
                     ->where('ends_on', '>=', $data['starts_on']);
@@ -330,7 +330,7 @@ class DutyScheduleController extends Controller
         }
 
         $hasOverlapB = DutyOverride::query()
-            ->where('user_id', $userB->id)
+            ->where('user_id', $userB->getKey())
             ->where(function ($q) use ($data) {
                 $q->where('starts_on', '<=', $data['ends_on'])
                     ->where('ends_on', '>=', $data['starts_on']);
@@ -345,21 +345,21 @@ class DutyScheduleController extends Controller
 
         DB::transaction(function () use ($userA, $userB, $groupA, $groupB, $data, $request) {
             DutyOverride::create([
-                'user_id' => $userA->id,
+                'user_id' => $userA->getKey(),
                 'duty_group' => $groupB->value,
                 'starts_on' => $data['starts_on'],
                 'ends_on' => $data['ends_on'],
                 'reason' => $data['reason'] ?? null,
-                'created_by' => $request->user()->id,
+                'created_by' => $request->user()->getKey(),
             ]);
 
             DutyOverride::create([
-                'user_id' => $userB->id,
+                'user_id' => $userB->getKey(),
                 'duty_group' => $groupA->value,
                 'starts_on' => $data['starts_on'],
                 'ends_on' => $data['ends_on'],
                 'reason' => $data['reason'] ?? null,
-                'created_by' => $request->user()->id,
+                'created_by' => $request->user()->getKey(),
             ]);
         });
 

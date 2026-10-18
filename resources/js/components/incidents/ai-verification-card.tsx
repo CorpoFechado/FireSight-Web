@@ -1,5 +1,5 @@
 import { Bot, CheckCircle2, Clock, Flame, Info, ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
-import { AI_FIRE_LABEL_CFG, type AiFireLabel } from '@/lib/fire-status';
+import { AI_FIRE_LABEL_CFG } from '@/lib/fire-status';
 
 interface AiVerificationCardProps {
     label: string | null;
@@ -42,8 +42,6 @@ export function AiVerificationCard({
     const key = label.toLowerCase();
     const isFire = key === 'fire';
     const isSmoke = key === 'smoke';
-    const isNoFire = key === 'no_fire';
-
     const cfg = AI_FIRE_LABEL_CFG[key] ?? {
         label: label.replace(/_/g, ' '),
         bg: 'rgba(43, 45, 66, 0.05)',

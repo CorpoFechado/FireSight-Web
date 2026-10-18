@@ -15,12 +15,12 @@ test('guests are redirected to login from risk analytics', function () {
 test('authenticated bfp user can access risk analytics page with ranking data', function () {
     $user = User::factory()->create(['role' => 'bfp_personnel']);
     $barangay = Barangay::firstOrCreate(
-        ['barangay_name' => 'Barangay Test', 'latitude' => 13.9, 'longitude' => 120.6]
+        ['barangay_name' => 'Barangay Test', 'centroid_lat' => 13.9, 'centroid_lng' => 120.6]
     );
 
     $reporter = User::factory()->create(['role' => 'resident']);
     $report = CommunityReport::create([
-        'user_id' => $reporter->id,
+        'user_id' => $reporter->getKey(),
         'reporter_name' => 'Test Reporter',
         'contact_number' => '09001234567',
         'description' => 'Test fire report',
@@ -51,13 +51,13 @@ test('authenticated bfp user can access risk analytics page with ranking data', 
 test('risk analytics provides mild, moderate, and high risk_level correctly', function () {
     $user = User::factory()->create(['role' => 'bfp_personnel']);
     $b1 = Barangay::firstOrCreate(
-        ['barangay_name' => 'Barangay Mild', 'latitude' => 13.91, 'longitude' => 120.61]
+        ['barangay_name' => 'Barangay Mild', 'centroid_lat' => 13.91, 'centroid_lng' => 120.61]
     );
     $b2 = Barangay::firstOrCreate(
-        ['barangay_name' => 'Barangay Moderate', 'latitude' => 13.92, 'longitude' => 120.62]
+        ['barangay_name' => 'Barangay Moderate', 'centroid_lat' => 13.92, 'centroid_lng' => 120.62]
     );
     $b3 = Barangay::firstOrCreate(
-        ['barangay_name' => 'Barangay High', 'latitude' => 13.93, 'longitude' => 120.63]
+        ['barangay_name' => 'Barangay High', 'centroid_lat' => 13.93, 'centroid_lng' => 120.63]
     );
 
     RiskAssessment::create([
@@ -92,7 +92,10 @@ test('risk analytics provides mild, moderate, and high risk_level correctly', fu
             $modItem = $barangayRisk->firstWhere('barangay_id', $b2->barangay_id);
             $highItem = $barangayRisk->firstWhere('barangay_id', $b3->barangay_id);
 
-            expect($mildItem['risk_level'])->toBe('mild')
+            expect($mildItem['centroid_lat'])->toBe(13.91)
+                ->and($mildItem['centroid_lng'])->toBe(120.61)
+                ->and($mildItem)->not->toHaveKeys(['latitude', 'longitude'])
+                ->and($mildItem['risk_level'])->toBe('mild')
                 ->and($modItem['risk_level'])->toBe('moderate')
                 ->and($highItem['risk_level'])->toBe('high');
         });
@@ -144,7 +147,7 @@ test('migration simplifies risk_level to BFP scale and maps data correctly', fun
     $migration->down();
 
     $b = Barangay::firstOrCreate(
-        ['barangay_name' => 'Migration Map Test', 'latitude' => 13.94, 'longitude' => 120.64]
+        ['barangay_name' => 'Migration Map Test', 'centroid_lat' => 13.94, 'centroid_lng' => 120.64]
     );
 
     // Insert records with old values

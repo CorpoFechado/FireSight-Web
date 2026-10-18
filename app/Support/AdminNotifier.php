@@ -104,7 +104,7 @@ class AdminNotifier
             $title,
             "{$this->actorName($actor)} marked Report #{$report->report_id}{$this->locationSuffix($report)} as {$label}.",
             'status_update',
-            $actor?->id,
+            $actor?->getKey(),
             $at,
         );
     }
@@ -115,7 +115,7 @@ class AdminNotifier
             'Incident Details Updated',
             "{$this->actorName($actor)} updated the incident assessment for Report #{$report->report_id}{$this->locationSuffix($report)}.",
             'system',
-            $actor?->id,
+            $actor?->getKey(),
             $at,
         );
     }
@@ -173,7 +173,7 @@ class AdminNotifier
             ->where('role', User::ROLE_BFP_ADMIN)
             ->where('status', User::STATUS_ACTIVE)
             ->when($exceptUserId !== null, fn ($query) => $query->whereKeyNot($exceptUserId))
-            ->pluck('id');
+            ->pluck('user_id');
 
         if ($recipientIds->isEmpty()) {
             return;

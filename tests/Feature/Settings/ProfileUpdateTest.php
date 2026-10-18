@@ -101,7 +101,7 @@ test('bfp staff must supply rank and contact number', function () {
 test('bfp staff can update their rank and contact number', function () {
     $user = User::factory()->bfpPersonnel()->create();
     BfpPersonnelDetails::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-900',

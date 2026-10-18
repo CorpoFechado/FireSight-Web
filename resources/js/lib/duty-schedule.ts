@@ -9,7 +9,7 @@
 export type DutyGroup = 'A' | 'B' | 'regular' | 'detached';
 
 export type Member = {
-    id: number;
+    user_id: number;
     name: string;
     rank: string | null;
     base_group: string | null;
@@ -50,7 +50,7 @@ export type GroupOption = {
 };
 
 export type PersonnelOption = {
-    id: number;
+    user_id: number;
     name: string;
     rank: string | null;
 };

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, ChevronDown, Search } from 'lucide-react';
+import { Bell, ChevronDown } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,

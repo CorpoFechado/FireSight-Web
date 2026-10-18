@@ -5,7 +5,8 @@ import { PaginationBar } from '@/components/portal/pagination-bar';
 import { PortalCard } from '@/components/portal/portal-card';
 import { AiFireBadge, AlarmLevelBadge, StatusBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
-import { ALARM_LEVEL_CFG, type AlarmLevel, type ReportStatus } from '@/lib/fire-status';
+import { ALARM_LEVEL_CFG   } from '@/lib/fire-status';
+import type {AlarmLevel, ReportStatus} from '@/lib/fire-status';
 import { index as incidentsIndex, show as showIncident } from '@/routes/incidents';
 import type { Paginated } from '@/types/pagination';
 
@@ -98,6 +99,7 @@ export default function IncidentsIndex({
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
+
             return;
         }
 

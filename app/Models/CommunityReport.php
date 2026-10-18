@@ -54,7 +54,7 @@ class CommunityReport extends Model
 
     public function reporter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
     public function barangay(): BelongsTo

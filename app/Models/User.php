@@ -16,9 +16,10 @@ use Illuminate\Support\Carbon;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Passkeys\Passkeys;
 
 /**
- * @property int $id
+ * @property int $user_id
  * @property string $role
  * @property string $status
  * @property string $first_name
@@ -41,7 +42,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['role', 'status', 'first_name', 'middle_name', 'last_name', 'suffix', 'email', 'contact_number', 'username', 'password', 'google_id', 'profile_image', 'is_verified'])]
+#[Fillable(['role', 'status', 'first_name', 'middle_name', 'last_name', 'suffix', 'name', 'email', 'contact_number', 'username', 'password', 'google_id', 'profile_image', 'is_verified'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -57,6 +58,8 @@ class User extends Authenticatable implements PasskeyUser
     public const STATUS_ACTIVE = 'active';
 
     public const STATUS_INACTIVE = 'inactive';
+
+    protected $primaryKey = 'user_id';
 
     /**
      * Include the virtual `name` accessor when the model is serialized
@@ -129,17 +132,22 @@ class User extends Authenticatable implements PasskeyUser
 
     public function personnelDetails(): HasOne
     {
-        return $this->hasOne(BfpPersonnelDetails::class, 'user_id');
+        return $this->hasOne(BfpPersonnelDetails::class, 'user_id', 'user_id');
+    }
+
+    public function passkeys(): HasMany
+    {
+        return $this->hasMany(Passkeys::passkeyModel(), 'user_id', 'user_id');
     }
 
     public function communityReports(): HasMany
     {
-        return $this->hasMany(CommunityReport::class, 'user_id');
+        return $this->hasMany(CommunityReport::class, 'user_id', 'user_id');
     }
 
     public function announcements(): HasMany
     {
-        return $this->hasMany(Announcement::class, 'created_by');
+        return $this->hasMany(Announcement::class, 'created_by', 'user_id');
     }
 
     /**
@@ -149,7 +157,7 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function appNotifications(): HasMany
     {
-        return $this->hasMany(Notification::class, 'user_id');
+        return $this->hasMany(Notification::class, 'user_id', 'user_id');
     }
 
     /**
@@ -157,11 +165,11 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function dutyOverrides(): HasMany
     {
-        return $this->hasMany(DutyOverride::class, 'user_id');
+        return $this->hasMany(DutyOverride::class, 'user_id', 'user_id');
     }
 
     public function residentAddress(): HasMany
     {
-        return $this->hasMany(ResidentAddress::class, 'user_id');
+        return $this->hasMany(ResidentAddress::class, 'user_id', 'user_id');
     }
 }

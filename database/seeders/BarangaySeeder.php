@@ -11,7 +11,7 @@ class BarangaySeeder extends Seeder
      * The 19 barangays of Lian, Batangas — same IDs as firesight_db2.sql
      * so any data that references barangay_id lines up.
      *
-     * IMPORTANT: lat/lng here are NOT surveyed centroids. They're generated
+     * IMPORTANT: The coordinates here are NOT surveyed centroids. They're generated
      * points spread in a ring around the municipal center (13.9457, 120.6412)
      * purely so each barangay has a distinct, plausible-looking spot on the
      * Leaflet map. If precise placement ever matters (e.g. real dispatch
@@ -45,7 +45,7 @@ class BarangaySeeder extends Seeder
         foreach ($barangays as $id => [$name, $lat, $lng]) {
             Barangay::updateOrCreate(
                 ['barangay_id' => $id],
-                ['barangay_name' => $name, 'latitude' => $lat, 'longitude' => $lng],
+                ['barangay_name' => $name, 'centroid_lat' => $lat, 'centroid_lng' => $lng],
             );
         }
     }

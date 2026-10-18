@@ -1,5 +1,10 @@
 import { router } from '@inertiajs/react';
 import { Filter, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ContactFormModal } from '@/components/barangay-contacts/contact-form-modal';
+import type {BarangayOption, ContactRow} from '@/components/barangay-contacts/contact-form-modal';
+import { DeleteContactDialog } from '@/components/barangay-contacts/delete-contact-dialog';
+import { PortalCard } from '@/components/portal/portal-card';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,14 +13,6 @@ import {
     DropdownMenuRadioItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useRef, useState } from 'react';
-import { PortalCard } from '@/components/portal/portal-card';
-import { DeleteContactDialog } from '@/components/barangay-contacts/delete-contact-dialog';
-import {
-    ContactFormModal,
-    type BarangayOption,
-    type ContactRow,
-} from '@/components/barangay-contacts/contact-form-modal';
 import PortalLayout from '@/layouts/portal-layout';
 import { barangayContacts as barangayContactsIndex } from '@/routes';
 
@@ -52,6 +49,7 @@ export default function BarangayContactsIndex({
     useEffect(() => {
         if (isFirstRender.current) {
             isFirstRender.current = false;
+
             return;
         }
 

@@ -131,7 +131,7 @@ export default function DutySchedulePage({
     // Permanent move handler
     const handleMoveGroup = (member: Member, nextGroup: string | null) => {
         router.patch(
-            updateGroup(member.id).url,
+            updateGroup(member.user_id).url,
             { duty_group: nextGroup },
             {
                 preserveScroll: true,
@@ -165,7 +165,7 @@ return;
             overridesMap.get(member.override_id) ??
             ({
                 override_id: member.override_id,
-                user_id: member.id,
+                user_id: member.user_id,
                 name: member.name,
                 duty_group: member.effective_group ?? '',
                 from_group: member.base_group,
@@ -185,7 +185,7 @@ return;
 
         return (
             <div
-                key={member.id}
+                key={member.user_id}
                 className={`group relative flex items-center justify-between rounded-xl border border-neutral-200/80 bg-white p-3 shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md ${
                     isDimmed ? 'opacity-65 hover:opacity-95' : ''
                 }`}
@@ -247,7 +247,7 @@ return;
                     <DropdownMenuTrigger asChild>
                         <button
                             type="button"
-                            id={`member-actions-btn-${member.id}`}
+                            id={`member-actions-btn-${member.user_id}`}
                             className="shrink-0 rounded-lg p-1.5 text-brand-muted hover:bg-neutral-100 hover:text-brand-navy transition-colors focus:outline-none"
                             aria-label={`Actions for ${member.name}`}
                         >
@@ -299,7 +299,7 @@ return;
                         {/* Reassign For a Period */}
                         <DropdownMenuItem
                             className="cursor-pointer gap-2 text-xs"
-                            onClick={() => openOverrideModal('reassign', member.id)}
+                            onClick={() => openOverrideModal('reassign', member.user_id)}
                         >
                             <Calendar size={14} /> Reassign for a period…
                         </DropdownMenuItem>
@@ -308,7 +308,7 @@ return;
                         {(member.base_group === 'A' || member.base_group === 'B') && (
                             <DropdownMenuItem
                                 className="cursor-pointer gap-2 text-xs"
-                                onClick={() => openOverrideModal('swap', member.id)}
+                                onClick={() => openOverrideModal('swap', member.user_id)}
                             >
                                 <ArrowLeftRight size={14} /> Swap with…
                             </DropdownMenuItem>

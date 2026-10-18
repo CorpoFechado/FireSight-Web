@@ -71,7 +71,7 @@ test('effective group and isOnDuty: override wins over base group, Regular alway
     // Regular personnel
     $regularUser = User::factory()->bfpPersonnel()->create();
     BfpPersonnelDetails::create([
-        'user_id' => $regularUser->id,
+        'user_id' => $regularUser->getKey(),
         'rank' => 'Senior Fire Officer 3',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-001',
@@ -81,7 +81,7 @@ test('effective group and isOnDuty: override wins over base group, Regular alway
     // Group B personnel (normally off-duty during Group A week)
     $bUser = User::factory()->bfpPersonnel()->create();
     BfpPersonnelDetails::create([
-        'user_id' => $bUser->id,
+        'user_id' => $bUser->getKey(),
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-002',
@@ -91,7 +91,7 @@ test('effective group and isOnDuty: override wins over base group, Regular alway
     // Detached personnel
     $detachedUser = User::factory()->bfpPersonnel()->create();
     BfpPersonnelDetails::create([
-        'user_id' => $detachedUser->id,
+        'user_id' => $detachedUser->getKey(),
         'rank' => 'Fire Officer 2',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-003',
@@ -112,7 +112,7 @@ test('effective group and isOnDuty: override wins over base group, Regular alway
 
     // Add override for Group B user moving them to Group A for the anchor week
     DutyOverride::factory()->create([
-        'user_id' => $bUser->id,
+        'user_id' => $bUser->getKey(),
         'duty_group' => DutyGroup::A,
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',

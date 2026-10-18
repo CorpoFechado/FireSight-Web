@@ -14,18 +14,15 @@ class Barangay extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'barangay_name', 'latitude', 'longitude', 'boundary',
-        'centroid_lat', 'centroid_lng',
+        'barangay_name', 'centroid_lat', 'centroid_lng', 'boundary_geojson',
     ];
 
     protected function casts(): array
     {
         return [
-            'latitude' => 'decimal:7',
-            'longitude' => 'decimal:7',
             'centroid_lat' => 'decimal:8',
             'centroid_lng' => 'decimal:8',
-            'boundary' => 'array',
+            'boundary_geojson' => 'array',
         ];
     }
 

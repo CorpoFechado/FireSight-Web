@@ -17,7 +17,7 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = $this->profileRules($this->user()->id);
+        $rules = $this->profileRules($this->user()->getKey());
 
         // BFP staff also manage their rank/contact number from this same
         // form; residents (registered via the shared trait/CreateNewUser)

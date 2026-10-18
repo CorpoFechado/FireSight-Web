@@ -55,7 +55,7 @@ test('alarm level critical values helper includes 5th alarm, all task force stag
 test('incident record and afor report cast alarm_level to AlarmLevel enum', function () {
     $user = User::factory()->create();
     $report = CommunityReport::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'reporter_name' => 'Test Reporter',
         'contact_number' => '09123456789',
         'description' => 'Test fire',
@@ -84,7 +84,7 @@ test('migration data mapping up and down logic preserves expected category mappi
     // Verify column exists and insert old severity values
     $user = User::factory()->create();
     $report = CommunityReport::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'reporter_name' => 'Migration Test',
         'contact_number' => '09123456789',
         'description' => 'Test',
@@ -98,7 +98,7 @@ test('migration data mapping up and down logic preserves expected category mappi
     ]);
 
     $rep2 = CommunityReport::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'reporter_name' => 'Migration Test 2',
         'contact_number' => '09123456789',
         'description' => 'Test',
@@ -111,7 +111,7 @@ test('migration data mapping up and down logic preserves expected category mappi
     ]);
 
     $rep3 = CommunityReport::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'reporter_name' => 'Migration Test 3',
         'contact_number' => '09123456789',
         'description' => 'Test',
@@ -124,7 +124,7 @@ test('migration data mapping up and down logic preserves expected category mappi
     ]);
 
     $rep4 = CommunityReport::create([
-        'user_id' => $user->id,
+        'user_id' => $user->getKey(),
         'reporter_name' => 'Migration Test 4',
         'contact_number' => '09123456789',
         'description' => 'Test',

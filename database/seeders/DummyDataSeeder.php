@@ -25,6 +25,21 @@ class DummyDataSeeder extends Seeder
             return;
         }
 
-        DB::unprepared(file_get_contents($path));
+        $sql = file_get_contents($path);
+        $sql = str_replace(
+            ["'structural'", "'grass'", "'electrical'", "'vehicular'", "'other'"],
+            ["'residential_fire'", "'rubbish_fire'", "'rubbish_fire'", "'vehicular_fire'", "'others'"],
+            $sql,
+        );
+
+        if (DB::getDriverName() === 'sqlite') {
+            $sql = preg_replace([
+                '/^SET .+;\R?/m',
+                '/^ALTER TABLE `[^`]+` AUTO_INCREMENT = \d+;\R?/m',
+            ], '', $sql) ?? $sql;
+            $sql = str_replace("\\'", "''", $sql);
+        }
+
+        DB::unprepared($sql);
     }
 }

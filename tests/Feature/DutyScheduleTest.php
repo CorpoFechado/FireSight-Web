@@ -23,7 +23,7 @@ test('bfp admin sees roster buckets by effective group and activeGroup', functio
 
     $personnelA = User::factory()->bfpPersonnel()->create(['last_name' => 'Alvarez']);
     BfpPersonnelDetails::create([
-        'user_id' => $personnelA->id,
+        'user_id' => $personnelA->getKey(),
         'rank' => 'Senior Fire Officer 4',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-010',
@@ -32,7 +32,7 @@ test('bfp admin sees roster buckets by effective group and activeGroup', functio
 
     $personnelB = User::factory()->bfpPersonnel()->create(['last_name' => 'Bernardo']);
     BfpPersonnelDetails::create([
-        'user_id' => $personnelB->id,
+        'user_id' => $personnelB->getKey(),
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-011',
@@ -55,9 +55,9 @@ test('bfp admin sees roster buckets by effective group and activeGroup', functio
         ->has('roster.regular', 0)
         ->has('roster.detached', 0)
         ->has('roster.unassigned', 0)
-        ->where('roster.A.0.id', $personnelA->id)
+        ->where('roster.A.0.user_id', $personnelA->getKey())
         ->where('roster.A.0.is_on_duty', true)
-        ->where('roster.B.0.id', $personnelB->id)
+        ->where('roster.B.0.user_id', $personnelB->getKey())
         ->where('roster.B.0.is_on_duty', false)
     );
 });
@@ -67,19 +67,19 @@ test('non-admin gets 403 on every duty route', function () {
     $this->actingAs($personnel);
 
     $target = User::factory()->bfpPersonnel()->create();
-    $override = DutyOverride::factory()->create(['user_id' => $target->id]);
+    $override = DutyOverride::factory()->create(['user_id' => $target->getKey()]);
 
     $this->get(route('dutySchedule'))->assertForbidden();
     $this->patch(route('dutySchedule.updateGroup', $target), ['duty_group' => 'A'])->assertForbidden();
     $this->post(route('dutySchedule.overrides.store'), [
-        'user_id' => $target->id,
+        'user_id' => $target->getKey(),
         'duty_group' => 'A',
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
     ])->assertForbidden();
     $this->post(route('dutySchedule.swap'), [
-        'user_id' => $target->id,
-        'swap_with_id' => $personnel->id,
+        'user_id' => $target->getKey(),
+        'swap_with_id' => $personnel->getKey(),
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
     ])->assertForbidden();
@@ -92,7 +92,7 @@ test('updateGroup saves base duty_group; rejects admin users and invalid groups'
 
     $personnel = User::factory()->bfpPersonnel()->create();
     BfpPersonnelDetails::create([
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-020',
@@ -107,7 +107,7 @@ test('updateGroup saves base duty_group; rejects admin users and invalid groups'
     $response->assertSessionHas('toast.message', "{$personnel->name} moved to Duty A.");
 
     $this->assertDatabaseHas('bfp_personnel_details', [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'duty_group' => 'A',
     ]);
 
@@ -129,7 +129,7 @@ test('storeOverride: rejects non-Monday start / non-Sunday end / overlap / same-
 
     $personnel = User::factory()->bfpPersonnel()->create();
     BfpPersonnelDetails::create([
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'rank' => 'Fire Officer 2',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-030',
@@ -138,7 +138,7 @@ test('storeOverride: rejects non-Monday start / non-Sunday end / overlap / same-
 
     // Non-Monday start (Tuesday)
     $this->post(route('dutySchedule.overrides.store'), [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'duty_group' => DutyGroup::B->value,
         'starts_on' => '2026-10-13',
         'ends_on' => '2026-10-18',
@@ -146,7 +146,7 @@ test('storeOverride: rejects non-Monday start / non-Sunday end / overlap / same-
 
     // Non-Sunday end (Saturday)
     $this->post(route('dutySchedule.overrides.store'), [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'duty_group' => DutyGroup::B->value,
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-17',
@@ -154,7 +154,7 @@ test('storeOverride: rejects non-Monday start / non-Sunday end / overlap / same-
 
     // Same-as-base group (DutyGroup A)
     $this->post(route('dutySchedule.overrides.store'), [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'duty_group' => DutyGroup::A->value,
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
@@ -162,7 +162,7 @@ test('storeOverride: rejects non-Monday start / non-Sunday end / overlap / same-
 
     // Valid create
     $response = $this->post(route('dutySchedule.overrides.store'), [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'duty_group' => DutyGroup::B->value,
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
@@ -172,16 +172,16 @@ test('storeOverride: rejects non-Monday start / non-Sunday end / overlap / same-
     $response->assertSessionHas('toast.message', "Override for {$personnel->name} was added.");
 
     $this->assertDatabaseHas('duty_overrides', [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'duty_group' => 'B',
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
-        'created_by' => $admin->id,
+        'created_by' => $admin->getKey(),
     ]);
 
     // Overlapping override rejected
     $this->post(route('dutySchedule.overrides.store'), [
-        'user_id' => $personnel->id,
+        'user_id' => $personnel->getKey(),
         'duty_group' => DutyGroup::Regular->value,
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
@@ -194,7 +194,7 @@ test('swap creates two overrides and moves both people in the roster; rejects sa
 
     $userA = User::factory()->bfpPersonnel()->create(['first_name' => 'Alice', 'last_name' => 'Alpha']);
     BfpPersonnelDetails::create([
-        'user_id' => $userA->id,
+        'user_id' => $userA->getKey(),
         'rank' => 'Fire Officer 1',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-041',
@@ -203,7 +203,7 @@ test('swap creates two overrides and moves both people in the roster; rejects sa
 
     $userB = User::factory()->bfpPersonnel()->create(['first_name' => 'Bob', 'last_name' => 'Bravo']);
     BfpPersonnelDetails::create([
-        'user_id' => $userB->id,
+        'user_id' => $userB->getKey(),
         'rank' => 'Fire Officer 2',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-042',
@@ -212,7 +212,7 @@ test('swap creates two overrides and moves both people in the roster; rejects sa
 
     $userA2 = User::factory()->bfpPersonnel()->create(['first_name' => 'Alex', 'last_name' => 'Alpha2']);
     BfpPersonnelDetails::create([
-        'user_id' => $userA2->id,
+        'user_id' => $userA2->getKey(),
         'rank' => 'Fire Officer 3',
         'station_assigned' => 'BFP Lian Fire Station',
         'employee_number' => 'EMP-043',
@@ -221,16 +221,16 @@ test('swap creates two overrides and moves both people in the roster; rejects sa
 
     // Reject same-group swap (A with A)
     $this->post(route('dutySchedule.swap'), [
-        'user_id' => $userA->id,
-        'swap_with_id' => $userA2->id,
+        'user_id' => $userA->getKey(),
+        'swap_with_id' => $userA2->getKey(),
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
     ])->assertSessionHasErrors('swap_with_id');
 
     // Valid swap between A and B
     $response = $this->post(route('dutySchedule.swap'), [
-        'user_id' => $userA->id,
-        'swap_with_id' => $userB->id,
+        'user_id' => $userA->getKey(),
+        'swap_with_id' => $userB->getKey(),
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
         'reason' => 'Personal request',
@@ -240,7 +240,7 @@ test('swap creates two overrides and moves both people in the roster; rejects sa
 
     // User A takes B
     $this->assertDatabaseHas('duty_overrides', [
-        'user_id' => $userA->id,
+        'user_id' => $userA->getKey(),
         'duty_group' => 'B',
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
@@ -248,7 +248,7 @@ test('swap creates two overrides and moves both people in the roster; rejects sa
 
     // User B takes A
     $this->assertDatabaseHas('duty_overrides', [
-        'user_id' => $userB->id,
+        'user_id' => $userB->getKey(),
         'duty_group' => 'A',
         'starts_on' => '2026-10-12',
         'ends_on' => '2026-10-18',
@@ -261,8 +261,8 @@ test('destroyOverride removes it', function () {
 
     $personnel = User::factory()->bfpPersonnel()->create();
     $override = DutyOverride::factory()->create([
-        'user_id' => $personnel->id,
-        'created_by' => $admin->id,
+        'user_id' => $personnel->getKey(),
+        'created_by' => $admin->getKey(),
     ]);
 
     $response = $this->delete(route('dutySchedule.overrides.destroy', $override));

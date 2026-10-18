@@ -15,7 +15,7 @@ class RecheckIncidentBarangays extends Command
 
     public function handle(): int
     {
-        $boundaries = Barangay::whereNotNull('boundary')->get();
+        $boundaries = Barangay::whereNotNull('boundary_geojson')->get();
 
         $incidents = IncidentRecord::with(['report', 'barangay'])->get();
 
@@ -31,7 +31,7 @@ class RecheckIncidentBarangays extends Command
             $lat = (float) $report->latitude;
             $lng = (float) $report->longitude;
 
-            $correct = $boundaries->first(fn (Barangay $b) => Geo::pointInPolygon($lat, $lng, $b->boundary));
+            $correct = $boundaries->first(fn (Barangay $barangay) => Geo::pointInPolygon($lat, $lng, $barangay->boundary_geojson));
 
             if (! $correct) {
                 continue; // point falls outside every polygon — skip, don't guess

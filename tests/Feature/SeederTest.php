@@ -35,7 +35,7 @@ test('running BfpAccountSeeder and BfpPersonnelSeeder creates 18 accounts with c
     // personnel@firesight.bfp.lian is Dexter Pantas (ID 8)
     $testLoginUser = User::where('email', 'personnel@firesight.bfp.lian')->first();
     expect($testLoginUser)->not->toBeNull();
-    expect($testLoginUser->id)->toBe(8);
+    expect($testLoginUser->user_id)->toBe(8);
     expect($testLoginUser->first_name)->toBe('Dexter');
     expect($testLoginUser->last_name)->toBe('Pantas');
     expect($testLoginUser->personnelDetails?->duty_group)->toBe(DutyGroup::B);
