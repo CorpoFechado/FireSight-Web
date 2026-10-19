@@ -16,7 +16,7 @@ class AnnouncementController extends Controller
     {
         $search = $request->string('search')->trim()->value();
         $announcements = Announcement::query()
-            ->with('creator:id,first_name,last_name')
+            ->with('creator:user_id,first_name,last_name')
             ->when($search !== '', function ($q) use ($search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
