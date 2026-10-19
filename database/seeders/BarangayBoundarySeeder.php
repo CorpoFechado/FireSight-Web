@@ -33,7 +33,9 @@ class BarangayBoundarySeeder extends Seeder
                 continue;
             }
 
-            $barangay = Barangay::where('barangay_name', $name)->first();
+            $barangay = Barangay::where('barangay_name', $name)
+                ->orWhere('barangay_name', str_replace('Poblacion ', 'Barangay ', $name).' (Poblacion)')
+                ->first();
 
             if (! $barangay) {
                 $this->command?->warn("No barangay row matches boundary name \"{$name}\" — skipped.");

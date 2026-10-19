@@ -6,11 +6,16 @@
  * `barangay_name` so the polygon layer can be joined to risk data.
  */
 export const GEOJSON_TO_DB_BARANGAY_NAME: Record<string, string> = {
-    Uno: 'Poblacion 1',
-    Dos: 'Poblacion 2',
-    Tres: 'Poblacion 3',
-    Kwatro: 'Poblacion 4',
-    Singko: 'Poblacion 5',
+    Uno: 'Barangay 1 (Poblacion)',
+    Dos: 'Barangay 2 (Poblacion)',
+    Tres: 'Barangay 3 (Poblacion)',
+    Kwatro: 'Barangay 4 (Poblacion)',
+    Singko: 'Barangay 5 (Poblacion)',
+    'Poblacion 1': 'Barangay 1 (Poblacion)',
+    'Poblacion 2': 'Barangay 2 (Poblacion)',
+    'Poblacion 3': 'Barangay 3 (Poblacion)',
+    'Poblacion 4': 'Barangay 4 (Poblacion)',
+    'Poblacion 5': 'Barangay 5 (Poblacion)',
 };
 
 /** Resolves a GeoJSON feature's `barangay` property to the DB's `barangay_name`. */

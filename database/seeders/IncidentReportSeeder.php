@@ -111,27 +111,27 @@ class IncidentReportSeeder extends Seeder
             $residents[] = $user;
         }
 
-        // Lian 19 barangays coordinates
+        // Lian 19 barangays coordinates matching firesight_db
         $barangayCoordinates = [
-            1 => ['lat' => 14.0353356, 'lng' => 120.6511238, 'name' => 'Poblacion 1'],
-            2 => ['lat' => 14.0381440, 'lng' => 120.6512847, 'name' => 'Poblacion 2'],
-            3 => ['lat' => 14.0404400, 'lng' => 120.6506992, 'name' => 'Poblacion 3'],
-            4 => ['lat' => 14.0379271, 'lng' => 120.6536966, 'name' => 'Poblacion 4'],
-            5 => ['lat' => 14.0412322, 'lng' => 120.6529497, 'name' => 'Poblacion 5'],
-            6 => ['lat' => 13.9422816, 'lng' => 120.6508579, 'name' => 'Balibago'],
-            7 => ['lat' => 14.0336630, 'lng' => 120.6806919, 'name' => 'Bagong Pook'],
-            8 => ['lat' => 13.9687652, 'lng' => 120.6382428, 'name' => 'Binubusan'],
-            9 => ['lat' => 14.0468166, 'lng' => 120.6380702, 'name' => 'Bungahan'],
-            10 => ['lat' => 13.9724523, 'lng' => 120.6636961, 'name' => 'Cumba'],
-            11 => ['lat' => 13.9967267, 'lng' => 120.6718058, 'name' => 'Humayingan'],
-            12 => ['lat' => 14.0385226, 'lng' => 120.6653881, 'name' => 'Malaruhatan'],
-            13 => ['lat' => 13.9465891, 'lng' => 120.6252355, 'name' => 'Matabungkay'],
-            14 => ['lat' => 14.0124515, 'lng' => 120.6396729, 'name' => 'Prenza'],
-            15 => ['lat' => 13.9952352, 'lng' => 120.6321466, 'name' => 'Lumaniag'],
-            16 => ['lat' => 13.9640345, 'lng' => 120.6176000, 'name' => 'Luyahan'],
-            17 => ['lat' => 14.0168316, 'lng' => 120.6704694, 'name' => 'Kapito'],
-            18 => ['lat' => 14.0342584, 'lng' => 120.6338541, 'name' => 'San Diego'],
-            19 => ['lat' => 13.9867855, 'lng' => 120.6518731, 'name' => 'Puting Kahoy'],
+            1 => ['lat' => 14.0392000, 'lng' => 120.6389000, 'name' => 'Barangay 1 (Poblacion)'],
+            2 => ['lat' => 14.0405000, 'lng' => 120.6401000, 'name' => 'Barangay 2 (Poblacion)'],
+            3 => ['lat' => 14.0378000, 'lng' => 120.6410000, 'name' => 'Barangay 3 (Poblacion)'],
+            4 => ['lat' => 14.0365000, 'lng' => 120.6395000, 'name' => 'Barangay 4 (Poblacion)'],
+            5 => ['lat' => 14.0410000, 'lng' => 120.6375000, 'name' => 'Barangay 5 (Poblacion)'],
+            6 => ['lat' => 14.0452000, 'lng' => 120.6320000, 'name' => 'Bagong Pook'],
+            7 => ['lat' => 14.0300000, 'lng' => 120.6450000, 'name' => 'Balibago'],
+            8 => ['lat' => 14.0510000, 'lng' => 120.6280000, 'name' => 'Binubusan'],
+            9 => ['lat' => 14.0250000, 'lng' => 120.6500000, 'name' => 'Bungahan'],
+            10 => ['lat' => 14.0480000, 'lng' => 120.6440000, 'name' => 'Cumba'],
+            11 => ['lat' => 14.0210000, 'lng' => 120.6360000, 'name' => 'Humayingan'],
+            12 => ['lat' => 14.0560000, 'lng' => 120.6350000, 'name' => 'Kapito'],
+            13 => ['lat' => 14.0330000, 'lng' => 120.6280000, 'name' => 'Lumaniag'],
+            14 => ['lat' => 14.0180000, 'lng' => 120.6420000, 'name' => 'Luyahan'],
+            15 => ['lat' => 14.0430000, 'lng' => 120.6470000, 'name' => 'Malaruhatan'],
+            16 => ['lat' => 14.0160000, 'lng' => 120.6180000, 'name' => 'Matabungkay'],
+            17 => ['lat' => 14.0350000, 'lng' => 120.6520000, 'name' => 'Prenza'],
+            18 => ['lat' => 14.0290000, 'lng' => 120.6210000, 'name' => 'Puting Kahoy'],
+            19 => ['lat' => 14.0230000, 'lng' => 120.6250000, 'name' => 'San Diego'],
         ];
 
         $now = Carbon::create(2026, 9, 24, 15, 58, 10);
@@ -149,9 +149,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'fire',
             'ai_fire_confidence' => 0.9420,
             'ai_verified_at' => $now->copy()->subMinutes(24),
-            'latitude' => 14.0353 + 0.0012,
-            'longitude' => 120.6511 - 0.0008,
-            'barangay_id' => 1, // Poblacion 1
+            'latitude' => 14.0392 + 0.0012,
+            'longitude' => 120.6389 - 0.0008,
+            'barangay_id' => 1, // Barangay 1 (Poblacion)
             'status' => CommunityReport::STATUS_PENDING,
             'created_at' => $now->copy()->subMinutes(25),
             'updated_at' => $now->copy()->subMinutes(25),
@@ -176,9 +176,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'fire',
             'ai_fire_confidence' => 0.9650,
             'ai_verified_at' => $now->copy()->subMinutes(48),
-            'latitude' => 13.9465 + 0.0015,
-            'longitude' => 120.6252 + 0.0011,
-            'barangay_id' => 13, // Matabungkay
+            'latitude' => 14.0160 + 0.0015,
+            'longitude' => 120.6180 + 0.0011,
+            'barangay_id' => 16, // Matabungkay
             'status' => CommunityReport::STATUS_PENDING,
             'created_at' => $now->copy()->subMinutes(50),
             'updated_at' => $now->copy()->subMinutes(50),
@@ -203,8 +203,8 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'fire',
             'ai_fire_confidence' => 0.9380,
             'ai_verified_at' => $now->copy()->subHours(2)->addMinute(),
-            'latitude' => 14.0468 - 0.0010,
-            'longitude' => 120.6380 + 0.0014,
+            'latitude' => 14.0250 - 0.0010,
+            'longitude' => 120.6500 + 0.0014,
             'barangay_id' => 9, // Bungahan
             'status' => CommunityReport::STATUS_ACCEPTED,
             'created_at' => $now->copy()->subHours(2),
@@ -237,9 +237,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'smoke',
             'ai_fire_confidence' => 0.9710,
             'ai_verified_at' => $now->copy()->subHours(1)->subMinutes(29),
-            'latitude' => 14.0342 + 0.0018,
-            'longitude' => 120.6338 - 0.0012,
-            'barangay_id' => 18, // San Diego
+            'latitude' => 14.0230 + 0.0018,
+            'longitude' => 120.6250 - 0.0012,
+            'barangay_id' => 19, // San Diego
             'status' => CommunityReport::STATUS_DISPATCHED,
             'created_at' => $now->copy()->subHours(1)->subMinutes(30),
             'updated_at' => $now->copy()->subHours(1)->subMinutes(15),
@@ -288,9 +288,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'smoke',
             'ai_fire_confidence' => 0.9320,
             'ai_verified_at' => $now->copy()->subHours(1)->subMinutes(24),
-            'latitude' => 14.0342 + 0.0022,
-            'longitude' => 120.6338 - 0.0005,
-            'barangay_id' => 18, // San Diego
+            'latitude' => 14.0230 + 0.0022,
+            'longitude' => 120.6250 - 0.0005,
+            'barangay_id' => 19, // San Diego
             'status' => CommunityReport::STATUS_DISPATCHED,
             'created_at' => $now->copy()->subHours(1)->subMinutes(25),
             'updated_at' => $now->copy()->subHours(1)->subMinutes(12),
@@ -333,9 +333,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'fire',
             'ai_fire_confidence' => 0.9850,
             'ai_verified_at' => $now->copy()->setHour(9)->setMinute(16),
-            'latitude' => 14.0381 + 0.0010,
-            'longitude' => 120.6512 + 0.0007,
-            'barangay_id' => 2, // Poblacion 2
+            'latitude' => 14.0405 + 0.0010,
+            'longitude' => 120.6401 + 0.0007,
+            'barangay_id' => 2, // Barangay 2 (Poblacion)
             'status' => CommunityReport::STATUS_RESOLVED,
             'created_at' => $now->copy()->setHour(9)->setMinute(15),
             'updated_at' => $now->copy()->setHour(10)->setMinute(20),
@@ -391,9 +391,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'fire',
             'ai_fire_confidence' => 0.9570,
             'ai_verified_at' => $now->copy()->subDay()->setHour(14)->setMinute(31),
-            'latitude' => 13.9422 + 0.0014,
-            'longitude' => 120.6508 - 0.0009,
-            'barangay_id' => 6, // Balibago
+            'latitude' => 14.0300 + 0.0014,
+            'longitude' => 120.6450 - 0.0009,
+            'barangay_id' => 7, // Balibago
             'status' => CommunityReport::STATUS_RESOLVED,
             'created_at' => $now->copy()->subDay()->setHour(14)->setMinute(30),
             'updated_at' => $now->copy()->subDay()->setHour(15)->setMinute(45),
@@ -449,8 +449,8 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'no_fire',
             'ai_fire_confidence' => 0.9120,
             'ai_verified_at' => $now->copy()->subDay()->setHour(10)->setMinute(3),
-            'latitude' => 13.9687 + 0.0010,
-            'longitude' => 120.6382 - 0.0015,
+            'latitude' => 14.0510 + 0.0010,
+            'longitude' => 120.6280 - 0.0015,
             'barangay_id' => 8, // Binubusan
             'status' => CommunityReport::STATUS_INVALID,
             'created_at' => $now->copy()->subDay()->setHour(10)->setMinute(0),
@@ -483,9 +483,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'fire',
             'ai_fire_confidence' => 0.9780,
             'ai_verified_at' => $now->copy()->subDays(2)->setHour(11)->setMinute(16),
-            'latitude' => 13.9465 - 0.0012,
-            'longitude' => 120.6252 + 0.0020,
-            'barangay_id' => 13, // Matabungkay
+            'latitude' => 14.0160 - 0.0012,
+            'longitude' => 120.6180 + 0.0020,
+            'barangay_id' => 16, // Matabungkay
             'status' => CommunityReport::STATUS_RESOLVED,
             'created_at' => $now->copy()->subDays(2)->setHour(11)->setMinute(15),
             'updated_at' => $now->copy()->subDays(2)->setHour(12)->setMinute(5),
@@ -541,9 +541,9 @@ class IncidentReportSeeder extends Seeder
             'ai_fire_label' => 'fire',
             'ai_fire_confidence' => 0.8870,
             'ai_verified_at' => $now->copy()->subDays(3)->setHour(15)->setMinute(32),
-            'latitude' => 14.0168 + 0.0016,
-            'longitude' => 120.6704 - 0.0011,
-            'barangay_id' => 17, // Kapito
+            'latitude' => 14.0560 + 0.0016,
+            'longitude' => 120.6350 - 0.0011,
+            'barangay_id' => 12, // Kapito
             'status' => CommunityReport::STATUS_RESOLVED,
             'created_at' => $now->copy()->subDays(3)->setHour(15)->setMinute(30),
             'updated_at' => $now->copy()->subDays(3)->setHour(16)->setMinute(25),
