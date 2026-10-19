@@ -22,11 +22,11 @@ class BarangayContactSeeder extends Seeder
      * @var array<string, array{0: string, 1: string}> barangay_name => [captain phone, councilor phone]
      */
     private const CONTACTS = [
-        'Poblacion 1' => ['09941614944', '09804957679'],
-        'Poblacion 2' => ['09653057935', '09452624164'],
-        'Poblacion 3' => ['09563768225', '09222164528'],
-        'Poblacion 4' => ['09227847309', '09636981392'],
-        'Poblacion 5' => ['09469597425', '09441081504'],
+        'Barangay 1 (Poblacion)' => ['09941614944', '09804957679'],
+        'Barangay 2 (Poblacion)' => ['09653057935', '09452624164'],
+        'Barangay 3 (Poblacion)' => ['09563768225', '09222164528'],
+        'Barangay 4 (Poblacion)' => ['09227847309', '09636981392'],
+        'Barangay 5 (Poblacion)' => ['09469597425', '09441081504'],
         'Bagong Pook' => ['09162314220', '09993712332'],
         'Balibago' => ['09640012116', '09687303418'],
         'Binubusan' => ['09915598512', '09811341929'],
