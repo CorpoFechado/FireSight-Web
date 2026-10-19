@@ -68,7 +68,7 @@ class ApiController extends Controller
 
         $profileImage = $user->profile_image;
         if ($profileImage && ! str_starts_with($profileImage, 'http')) {
-            $fullPath = public_path(ltrim($profileImage, '/'));
+            $fullPath = public_path('storage/'.ltrim($profileImage, '/'));
             if (file_exists($fullPath)) {
                 $profileImage .= '?v='.filemtime($fullPath);
             }
