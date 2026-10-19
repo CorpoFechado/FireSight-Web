@@ -76,7 +76,7 @@ class FireEducationController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('fire_education', 'public');
+            $imagePath = $request->file('image')->store('uploads/education', 'public');
         } elseif (! empty($data['image_url'])) {
             $imagePath = $data['image_url'];
         }
@@ -121,7 +121,7 @@ class FireEducationController extends Controller
             if ($imagePath && Storage::disk('public')->exists($imagePath)) {
                 Storage::disk('public')->delete($imagePath);
             }
-            $imagePath = $request->file('image')->store('fire_education', 'public');
+            $imagePath = $request->file('image')->store('uploads/education', 'public');
         } elseif ($request->has('image_url')) {
             $imagePath = $request->input('image_url') ?: null;
         }
