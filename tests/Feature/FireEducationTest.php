@@ -115,12 +115,12 @@ test('fire education seeder populates mobile reference articles', function () {
     ]);
 
     $this->assertDatabaseHas('fire_education_content', [
-        'title' => 'What To Do During a Fire',
+        'title' => 'Emergency Evacuation: The R.A.C.E. & P.A.S.S. Standards',
         'category' => 'emergency_response',
     ]);
 
     $this->assertDatabaseHas('fire_education_content', [
-        'title' => 'Understanding Barangay Fire Risk Levels',
+        'title' => 'Understanding Lian Barangay Risk Levels & Action Steps',
         'category' => 'awareness',
     ]);
 });
