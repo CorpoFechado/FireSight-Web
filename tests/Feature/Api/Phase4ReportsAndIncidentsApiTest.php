@@ -3,9 +3,7 @@
 use App\Models\AuthToken;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
-use App\Models\IncidentRecord;
 use App\Models\Notification;
-use App\Models\ReportEvidence;
 use App\Models\ReportStatusHistory;
 use App\Models\ResidentAddress;
 use App\Models\User;

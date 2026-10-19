@@ -122,8 +122,12 @@ class FireEducationController extends Controller
                 Storage::disk('public')->delete($imagePath);
             }
             $imagePath = $request->file('image')->store('uploads/education', 'public');
-        } elseif ($request->has('image_url')) {
-            $imagePath = $request->input('image_url') ?: null;
+        } elseif ($request->filled('image_url')) {
+            $newImageUrl = $request->input('image_url');
+            if ($imagePath && $imagePath !== $newImageUrl && Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = $newImageUrl;
         }
 
         $fireEducationContent->update([

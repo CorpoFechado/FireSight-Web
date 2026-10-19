@@ -3,7 +3,9 @@
 use App\Models\FireEducationContent;
 use App\Models\User;
 use Database\Seeders\FireEducationContentSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 test('fire education content table does not have a read minutes column', function () {
     expect(Schema::hasColumn('fire_education_content', 'read_minutes'))->toBeFalse();
@@ -83,6 +85,110 @@ test('bfp admin can update a fire education article', function () {
         'category' => 'prevention',
         'is_featured' => 1,
     ]);
+});
+
+test('editing a fire education article retains its existing image when no new image is uploaded', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $this->actingAs($admin);
+
+    $content = FireEducationContent::create([
+        'title' => 'Electrical Safety Protocol',
+        'category' => 'prevention',
+        'summary' => 'Comprehensive electrical safety standards.',
+        'body' => 'Inspect breakers regularly.',
+        'is_featured' => false,
+        'image_path' => 'uploads/education/existing-photo.jpg',
+    ]);
+
+    $response = $this->patch(route('fireEducation.update', $content), [
+        'title' => 'Electrical Safety Protocol',
+        'category' => 'prevention',
+        'summary' => 'Comprehensive electrical safety standards.',
+        'body' => 'Inspect breakers regularly.',
+        'is_featured' => true,
+        'remove_image' => false,
+        'image_url' => '',
+    ]);
+
+    $response->assertRedirect();
+
+    $content->refresh();
+    expect($content->is_featured)->toBeTrue();
+    expect($content->image_path)->toBe('uploads/education/existing-photo.jpg');
+});
+
+test('editing a fire education article deletes old image when remove_image is true', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->bfpAdmin()->create();
+    $this->actingAs($admin);
+
+    $oldPath = 'uploads/education/old-photo.jpg';
+    Storage::disk('public')->put($oldPath, 'dummy-content');
+
+    $content = FireEducationContent::create([
+        'title' => 'Electrical Safety Protocol',
+        'category' => 'prevention',
+        'summary' => 'Comprehensive electrical safety standards.',
+        'body' => 'Inspect breakers regularly.',
+        'is_featured' => false,
+        'image_path' => $oldPath,
+    ]);
+
+    $response = $this->patch(route('fireEducation.update', $content), [
+        'title' => 'Electrical Safety Protocol',
+        'category' => 'prevention',
+        'summary' => 'Comprehensive electrical safety standards.',
+        'body' => 'Inspect breakers regularly.',
+        'is_featured' => false,
+        'remove_image' => true,
+        'image_url' => '',
+    ]);
+
+    $response->assertRedirect();
+
+    $content->refresh();
+    expect($content->image_path)->toBeNull();
+    Storage::disk('public')->assertMissing($oldPath);
+});
+
+test('editing a fire education article replaces existing image when a new file is uploaded', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->bfpAdmin()->create();
+    $this->actingAs($admin);
+
+    $oldPath = 'uploads/education/old-photo.jpg';
+    Storage::disk('public')->put($oldPath, 'dummy-content');
+
+    $content = FireEducationContent::create([
+        'title' => 'Electrical Safety Protocol',
+        'category' => 'prevention',
+        'summary' => 'Comprehensive electrical safety standards.',
+        'body' => 'Inspect breakers regularly.',
+        'is_featured' => false,
+        'image_path' => $oldPath,
+    ]);
+
+    $newFile = UploadedFile::fake()->image('new-photo.jpg');
+
+    $response = $this->patch(route('fireEducation.update', $content), [
+        'title' => 'Electrical Safety Protocol',
+        'category' => 'prevention',
+        'summary' => 'Comprehensive electrical safety standards.',
+        'body' => 'Inspect breakers regularly.',
+        'is_featured' => false,
+        'remove_image' => false,
+        'image' => $newFile,
+    ]);
+
+    $response->assertRedirect();
+
+    $content->refresh();
+    expect($content->image_path)->not->toBeNull()
+        ->and($content->image_path)->not->toBe($oldPath);
+    Storage::disk('public')->assertMissing($oldPath);
+    Storage::disk('public')->assertExists($content->image_path);
 });
 
 test('bfp admin can delete a fire education article', function () {

@@ -1,2 +1,11 @@
 *
 !.gitignore
+
+
+# 1. Allow Git to enter the uploads folder
+!uploads/
+# 2. Ignore everything inside uploads (evidence, profiles, reports, etc.)
+uploads/*
+# 3. Whitelist ONLY the education folder and all photos inside it
+!uploads/education/
+!uploads/education/**

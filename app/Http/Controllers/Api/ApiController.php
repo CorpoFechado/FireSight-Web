@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BfpPersonnelDetails;
+use App\Models\CommunityReport;
 use App\Models\ResidentAddress;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -100,7 +101,6 @@ class ApiController extends Controller
      * Formats a community_report record into the exact CommunityReport shape the frontend expects.
      * Matches firesight-api's formatReportRow helper.
      *
-     * @param  mixed  $row
      * @return array<string, mixed>
      */
     protected function formatReportRow(mixed $row): array
@@ -111,7 +111,7 @@ class ApiController extends Controller
         }
 
         $barangayName = null;
-        if ($row instanceof \App\Models\CommunityReport) {
+        if ($row instanceof CommunityReport) {
             $barangayName = $row->barangay?->barangay_name;
         } elseif (is_array($row)) {
             $barangayName = $row['barangay_name'] ?? ($row['barangay']['barangay_name'] ?? null);
@@ -137,7 +137,6 @@ class ApiController extends Controller
      * into the exact BFPIncident shape the frontend expects.
      * Matches firesight-api's formatIncidentRow helper.
      *
-     * @param  mixed  $row
      * @return array<string, mixed>
      */
     protected function formatIncidentRow(mixed $row): array

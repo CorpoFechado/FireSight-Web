@@ -117,11 +117,24 @@ class IncidentController extends Controller
             ]);
         }
 
+        $evidencePhotos = $report->evidence()
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(fn ($e) => [
+                'evidence_id' => $e->evidence_id,
+                'image_path' => $e->image_path,
+                'caption' => $e->caption,
+                'created_at' => $e->created_at?->format('Y-m-d H:i'),
+            ])
+            ->values()
+            ->all();
+
         return Inertia::render('incidents/show', [
             'report' => [
                 ...$this->toRow($report),
                 'description' => $report->description,
                 'report_image' => $report->report_image,
+                'evidence_photos' => $evidencePhotos,
                 'latitude' => (float) $report->latitude,
                 'longitude' => (float) $report->longitude,
                 'raw_incident_type' => $report->incidentRecord?->incident_type,

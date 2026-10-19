@@ -9,6 +9,8 @@ import {
     Phone,
     ShieldCheck,
     UserCheck,
+    ZoomIn,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { AiVerificationCard } from '@/components/incidents/ai-verification-card';
@@ -42,6 +44,12 @@ type ReportDetail = {
     dateTime: string;
     description: string | null;
     report_image: string | null;
+    evidence_photos?: Array<{
+        evidence_id: number;
+        image_path: string;
+        caption: string | null;
+        created_at?: string | null;
+    }>;
     latitude: number;
     longitude: number;
     raw_incident_type: string | null;
@@ -69,31 +77,113 @@ type LinkedReport = {
     status: ReportStatus;
 };
 
-function ReportPhoto({ path }: { path: string }) {
+function resolveStorageUrl(path?: string | null): string {
+    if (!path) return '';
+    if (
+        path.startsWith('http://') ||
+        path.startsWith('https://') ||
+        path.startsWith('data:')
+    ) {
+        return path;
+    }
+    const clean = path.replace(/^\/?(storage\/)?/, '');
+    return `/storage/${clean}`;
+}
+
+function ReportPhoto({
+    path,
+    label,
+    caption,
+}: {
+    path: string;
+    label?: string;
+    caption?: string | null;
+}) {
     const [failed, setFailed] = useState(false);
+    const [expanded, setExpanded] = useState(false);
+    const url = resolveStorageUrl(path);
 
     if (failed) {
         return (
             <div
-                className="flex h-36 flex-col items-center justify-center gap-1.5 rounded-lg"
-                style={{
-                    background: 'rgba(230,57,70,0.07)',
-                    border: '1px solid rgba(230,57,70,0.18)',
-                }}
+                className="flex h-36 flex-col items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50/50 p-2 text-center"
             >
                 <Camera size={18} className="text-brand-red" />
                 <p className="text-xs text-brand-red">Image unavailable</p>
+                {label && (
+                    <span className="text-[10px] text-brand-muted">{label}</span>
+                )}
             </div>
         );
     }
 
     return (
-        <img
-            src={`/storage/${path}`}
-            alt="Report evidence"
-            onError={() => setFailed(true)}
-            className="h-36 w-full rounded-lg object-cover"
-        />
+        <>
+            <div className="group relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                <img
+                    src={url}
+                    alt={caption || label || 'Fire scene photo'}
+                    onError={() => setFailed(true)}
+                    onClick={() => setExpanded(true)}
+                    className="h-36 w-full cursor-pointer object-cover transition-transform duration-200 group-hover:scale-105"
+                />
+                {label && (
+                    <span className="absolute top-2 left-2 rounded bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
+                        {label}
+                    </span>
+                )}
+                <button
+                    type="button"
+                    onClick={() => setExpanded(true)}
+                    className="absolute right-2 bottom-2 rounded bg-white/90 p-1 text-brand-navy shadow-xs backdrop-blur-xs transition hover:bg-white"
+                    title="Click to view full image"
+                >
+                    <ZoomIn size={13} />
+                </button>
+            </div>
+            {caption ? (
+                <p className="mt-1 text-[11px] text-brand-muted">{caption}</p>
+            ) : null}
+
+            {expanded && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xs"
+                    onClick={() => setExpanded(false)}
+                >
+                    <div
+                        className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-xl bg-black p-2"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setExpanded(false)}
+                            className="absolute top-4 right-4 z-10 rounded-full bg-white/20 p-2 text-white hover:bg-white/40"
+                        >
+                            <X size={18} />
+                        </button>
+                        <img
+                            src={url}
+                            alt={caption || label || 'Full photo'}
+                            className="max-h-[80vh] w-auto max-w-full rounded-lg object-contain"
+                        />
+                        {(label || caption) && (
+                            <div className="p-2 text-center text-white">
+                                {label && (
+                                    <span className="mr-2 text-xs font-bold text-amber-400">
+                                        [{label}]
+                                    </span>
+                                )}
+                                {caption && (
+                                    <span className="text-xs text-gray-200">
+                                        {caption}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
 type Barangay = { barangay_id: number; barangay_name: string };
@@ -422,11 +512,35 @@ export default function IncidentShow({
                             </div>
 
                             <div>
-                                <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                    Photo Evidence
-                                </p>
-                                {report.report_image ? (
-                                    <ReportPhoto path={report.report_image} />
+                                <div className="mb-2 flex items-center justify-between">
+                                    <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                        Fire Scene Photos
+                                    </p>
+                                    <span className="text-[11px] text-brand-muted">
+                                        {(report.report_image ? 1 : 0) +
+                                            (report.evidence_photos?.length ?? 0)}{' '}
+                                        total
+                                    </span>
+                                </div>
+                                {report.report_image ||
+                                (report.evidence_photos &&
+                                    report.evidence_photos.length > 0) ? (
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        {report.report_image && (
+                                            <ReportPhoto
+                                                path={report.report_image}
+                                                label="Reported Photo"
+                                            />
+                                        )}
+                                        {report.evidence_photos?.map((ev) => (
+                                            <ReportPhoto
+                                                key={ev.evidence_id}
+                                                path={ev.image_path}
+                                                label="Fire Scene Photo"
+                                                caption={ev.caption}
+                                            />
+                                        ))}
+                                    </div>
                                 ) : (
                                     <div
                                         className="flex h-24 flex-col items-center justify-center gap-1 rounded-lg"
@@ -437,7 +551,7 @@ export default function IncidentShow({
                                             className="text-brand-muted"
                                         />
                                         <p className="text-xs text-brand-muted">
-                                            No photo submitted
+                                            No photos submitted or attached
                                         </p>
                                     </div>
                                 )}

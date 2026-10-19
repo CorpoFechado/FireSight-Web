@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\Notification;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 
 class MobileNotificationService
 {
@@ -83,7 +83,7 @@ class MobileNotificationService
         if ($locationName === '' && $report->latitude !== null && $report->longitude !== null) {
             $matchedBarangayId = $this->geoService->findBarangayByLocation((float) $report->latitude, (float) $report->longitude);
             if ($matchedBarangayId !== null) {
-                $b = \App\Models\Barangay::find($matchedBarangayId);
+                $b = Barangay::find($matchedBarangayId);
                 if ($b) {
                     $locationName = trim($b->barangay_name);
                 }
