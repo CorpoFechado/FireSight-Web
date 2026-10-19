@@ -3,8 +3,13 @@
 use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EducationController;
+use App\Http\Controllers\Api\IncidentController;
 use App\Http\Controllers\Api\MapController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -69,6 +74,62 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware('auth.mobile')->group(function (): void {
         Route::get('/map/incidents-bfp', [MapController::class, 'incidentsBfp'])->name('api.v1.map.incidents_bfp');
         Route::get('/reports/area-status', [MapController::class, 'areaStatus'])->name('api.v1.reports.area_status');
+
+        // ── 6. Reports Endpoints ─────────────────────────────────────────
+        Route::post('/reports', [ReportController::class, 'store'])->name('api.v1.reports.store');
+        Route::get('/reports', [ReportController::class, 'index'])->name('api.v1.reports.index');
+        Route::get('/reports/{id}', [ReportController::class, 'show'])->whereNumber('id')->name('api.v1.reports.show');
+        Route::get('/reports/{id}/history', [ReportController::class, 'statusHistory'])->whereNumber('id')->name('api.v1.reports.history');
+
+        // Reports Compatibility Aliases
+        Route::post('/reports/create.php', [ReportController::class, 'store']);
+        Route::get('/reports/list.php', [ReportController::class, 'index']);
+        Route::get('/reports/detail.php', [ReportController::class, 'show']);
+        Route::get('/reports/status_history.php', [ReportController::class, 'statusHistory']);
+
+        // ── 7. Incidents Endpoints (BFP Operations) ───────────────────────
+        Route::get('/incidents', [IncidentController::class, 'index'])->name('api.v1.incidents.index');
+        Route::get('/incidents/{id}', [IncidentController::class, 'show'])->whereNumber('id')->name('api.v1.incidents.show');
+        Route::post('/incidents/{id}/verify', [IncidentController::class, 'verify'])->whereNumber('id')->name('api.v1.incidents.verify');
+        Route::post('/incidents/{id}/status', [IncidentController::class, 'updateStatus'])->whereNumber('id')->name('api.v1.incidents.status');
+        Route::match(['put', 'post'], '/incidents/{id}/details', [IncidentController::class, 'updateDetails'])->whereNumber('id')->name('api.v1.incidents.details');
+        Route::get('/incidents/{id}/history', [IncidentController::class, 'statusHistory'])->whereNumber('id')->name('api.v1.incidents.history');
+        Route::post('/incidents/{id}/invalid', [IncidentController::class, 'markInvalid'])->whereNumber('id')->name('api.v1.incidents.invalid');
+        Route::post('/incidents/{id}/evidence', [IncidentController::class, 'addEvidence'])->whereNumber('id')->name('api.v1.incidents.evidence');
+        Route::post('/incidents/manual', [IncidentController::class, 'createManual'])->name('api.v1.incidents.manual');
+
+        // Incidents Compatibility Aliases
+        Route::get('/incidents/list.php', [IncidentController::class, 'index']);
+        Route::get('/incidents/detail.php', [IncidentController::class, 'show']);
+        Route::post('/incidents/verify.php', [IncidentController::class, 'verify']);
+        Route::post('/incidents/update_status.php', [IncidentController::class, 'updateStatus']);
+        Route::match(['put', 'post'], '/incidents/update_details.php', [IncidentController::class, 'updateDetails']);
+        Route::get('/incidents/status_history.php', [IncidentController::class, 'statusHistory']);
+        Route::post('/incidents/mark_invalid.php', [IncidentController::class, 'markInvalid']);
+        Route::post('/incidents/add_evidence.php', [IncidentController::class, 'addEvidence']);
+        Route::post('/incidents/create_manual.php', [IncidentController::class, 'createManual']);
+
+        // ── 8. Profile Endpoints ─────────────────────────────────────────
+        Route::get('/profile', [ProfileController::class, 'show'])->name('api.v1.profile.show');
+        Route::match(['put', 'post'], '/profile', [ProfileController::class, 'update'])->name('api.v1.profile.update');
+        Route::post('/profile/photo', [ProfileController::class, 'uploadPhoto'])->name('api.v1.profile.photo');
+
+        // Profile Compatibility Aliases
+        Route::get('/profile/get.php', [ProfileController::class, 'show']);
+        Route::match(['put', 'post'], '/profile/update.php', [ProfileController::class, 'update']);
+        Route::post('/profile/upload_photo.php', [ProfileController::class, 'uploadPhoto']);
+
+        // ── 9. Notifications Endpoints ───────────────────────────────────
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
+        Route::post('/notifications/mark-read', [NotificationController::class, 'markRead'])->name('api.v1.notifications.mark_read');
+
+        // Notifications Compatibility Aliases
+        Route::get('/notifications/list.php', [NotificationController::class, 'index']);
+        Route::post('/notifications/mark_read.php', [NotificationController::class, 'markRead']);
+
+        // ── 10. Dashboard Analytics ──────────────────────────────────────
+        Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('api.v1.dashboard.analytics');
+        Route::get('/dashboard/analytics.php', [DashboardController::class, 'analytics']);
     });
 
     // Compatibility aliases with firesight-api
@@ -90,5 +151,37 @@ Route::prefix('auth')->group(function (): void {
 
 Route::get('/map/incidents.php', [MapController::class, 'incidents']);
 Route::get('/map/barangay_risk.php', [MapController::class, 'barangayRisk']);
-Route::get('/map/incidents_bfp.php', [MapController::class, 'incidentsBfp'])->middleware('auth.mobile');
-Route::get('/reports/area_status.php', [MapController::class, 'areaStatus'])->middleware('auth.mobile');
+
+Route::middleware('auth.mobile')->group(function (): void {
+    Route::get('/map/incidents_bfp.php', [MapController::class, 'incidentsBfp']);
+    Route::get('/reports/area_status.php', [MapController::class, 'areaStatus']);
+
+    // Reports legacy routes
+    Route::post('/reports/create.php', [ReportController::class, 'store']);
+    Route::get('/reports/list.php', [ReportController::class, 'index']);
+    Route::get('/reports/detail.php', [ReportController::class, 'show']);
+    Route::get('/reports/status_history.php', [ReportController::class, 'statusHistory']);
+
+    // Incidents legacy routes
+    Route::get('/incidents/list.php', [IncidentController::class, 'index']);
+    Route::get('/incidents/detail.php', [IncidentController::class, 'show']);
+    Route::post('/incidents/verify.php', [IncidentController::class, 'verify']);
+    Route::post('/incidents/update_status.php', [IncidentController::class, 'updateStatus']);
+    Route::match(['put', 'post'], '/incidents/update_details.php', [IncidentController::class, 'updateDetails']);
+    Route::get('/incidents/status_history.php', [IncidentController::class, 'statusHistory']);
+    Route::post('/incidents/mark_invalid.php', [IncidentController::class, 'markInvalid']);
+    Route::post('/incidents/add_evidence.php', [IncidentController::class, 'addEvidence']);
+    Route::post('/incidents/create_manual.php', [IncidentController::class, 'createManual']);
+
+    // Profile legacy routes
+    Route::get('/profile/get.php', [ProfileController::class, 'show']);
+    Route::match(['put', 'post'], '/profile/update.php', [ProfileController::class, 'update']);
+    Route::post('/profile/upload_photo.php', [ProfileController::class, 'uploadPhoto']);
+
+    // Notifications legacy routes
+    Route::get('/notifications/list.php', [NotificationController::class, 'index']);
+    Route::post('/notifications/mark_read.php', [NotificationController::class, 'markRead']);
+
+    // Dashboard analytics legacy route
+    Route::get('/dashboard/analytics.php', [DashboardController::class, 'analytics']);
+});
