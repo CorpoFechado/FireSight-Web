@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\EducationController;
+use App\Http\Controllers\Api\MapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -60,9 +61,24 @@ Route::prefix('v1')->group(function (): void {
 
     // Compatibility alias
     Route::get('/announcements/list.php', [AnnouncementController::class, 'index']);
+
+    // ── 5. Map & Risk Endpoints ──────────────────────────────────────────
+    Route::get('/map/incidents', [MapController::class, 'incidents'])->name('api.v1.map.incidents');
+    Route::get('/map/barangay-risk', [MapController::class, 'barangayRisk'])->name('api.v1.map.barangay_risk');
+
+    Route::middleware('auth.mobile')->group(function (): void {
+        Route::get('/map/incidents-bfp', [MapController::class, 'incidentsBfp'])->name('api.v1.map.incidents_bfp');
+        Route::get('/reports/area-status', [MapController::class, 'areaStatus'])->name('api.v1.reports.area_status');
+    });
+
+    // Compatibility aliases with firesight-api
+    Route::get('/map/incidents.php', [MapController::class, 'incidents']);
+    Route::get('/map/barangay_risk.php', [MapController::class, 'barangayRisk']);
+    Route::get('/map/incidents_bfp.php', [MapController::class, 'incidentsBfp'])->middleware('auth.mobile');
+    Route::get('/reports/area_status.php', [MapController::class, 'areaStatus'])->middleware('auth.mobile');
 });
 
-// Root-level legacy compatibility routes for direct /api/auth/*.php requests
+// Root-level legacy compatibility routes for direct /api/*.php requests
 Route::prefix('auth')->group(function (): void {
     Route::post('/login.php', [AuthController::class, 'login']);
     Route::post('/register.php', [AuthController::class, 'register']);
@@ -71,3 +87,8 @@ Route::prefix('auth')->group(function (): void {
     Route::post('/google_login.php', [AuthController::class, 'googleLogin']);
     Route::post('/logout.php', [AuthController::class, 'logout'])->middleware('auth.mobile');
 });
+
+Route::get('/map/incidents.php', [MapController::class, 'incidents']);
+Route::get('/map/barangay_risk.php', [MapController::class, 'barangayRisk']);
+Route::get('/map/incidents_bfp.php', [MapController::class, 'incidentsBfp'])->middleware('auth.mobile');
+Route::get('/reports/area_status.php', [MapController::class, 'areaStatus'])->middleware('auth.mobile');
