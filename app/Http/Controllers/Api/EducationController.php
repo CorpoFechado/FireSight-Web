@@ -55,8 +55,8 @@ class EducationController extends ApiController
     {
         $imagePath = $row->image_path;
 
-        if ($imagePath && ! str_starts_with($imagePath, 'http')) {
-            $fullDiskPath = public_path('storage/'.ltrim($imagePath, '/'));
+        if (! empty($imagePath) && ! str_starts_with($imagePath, 'http')) {
+            $fullDiskPath = public_path('storage/'.ltrim((string) $imagePath, '/'));
             if (file_exists($fullDiskPath)) {
                 $imagePath .= '?v='.filemtime($fullDiskPath);
             }
