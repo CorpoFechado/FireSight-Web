@@ -151,6 +151,10 @@ Route::prefix('auth')->group(function (): void {
 
 Route::get('/map/incidents.php', [MapController::class, 'incidents']);
 Route::get('/map/barangay_risk.php', [MapController::class, 'barangayRisk']);
+Route::get('/education/list.php', [EducationController::class, 'index']);
+Route::get('/education/detail.php', [EducationController::class, 'show']);
+Route::get('/announcements/list.php', [AnnouncementController::class, 'index']);
+Route::get('/contacts/list.php', [ContactController::class, 'index']);
 
 Route::middleware('auth.mobile')->group(function (): void {
     Route::get('/map/incidents_bfp.php', [MapController::class, 'incidentsBfp']);
