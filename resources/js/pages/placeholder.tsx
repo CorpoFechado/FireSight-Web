@@ -8,8 +8,8 @@ export default function Placeholder({ title }: { title: string }) {
                 <Construction className="text-brand-muted" size={28} />
                 <p className="font-semibold text-brand-navy">{title}</p>
                 <p className="max-w-sm text-sm text-brand-muted">
-                    This screen is next up — the layout and navigation are wired, the content is coming in a
-                    following increment.
+                    This screen is next up — the layout and navigation are
+                    wired, the content is coming in a following increment.
                 </p>
             </div>
         </PortalLayout>

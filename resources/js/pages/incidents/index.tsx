@@ -3,11 +3,18 @@ import { Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PaginationBar } from '@/components/portal/pagination-bar';
 import { PortalCard } from '@/components/portal/portal-card';
-import { AiFireBadge, AlarmLevelBadge, StatusBadge } from '@/components/portal/status-badge';
+import {
+    AiFireBadge,
+    AlarmLevelBadge,
+    StatusBadge,
+} from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
-import { ALARM_LEVEL_CFG   } from '@/lib/fire-status';
-import type {AlarmLevel, ReportStatus} from '@/lib/fire-status';
-import { index as incidentsIndex, show as showIncident } from '@/routes/incidents';
+import { ALARM_LEVEL_CFG } from '@/lib/fire-status';
+import type { AlarmLevel, ReportStatus } from '@/lib/fire-status';
+import {
+    index as incidentsIndex,
+    show as showIncident,
+} from '@/routes/incidents';
 import type { Paginated } from '@/types/pagination';
 
 type IncidentRow = {
@@ -58,10 +65,12 @@ const TYPE_OPTIONS: { label: string; value: string }[] = [
     { label: 'Others', value: 'others' },
 ];
 
-const ALARM_LEVEL_OPTIONS = Object.entries(ALARM_LEVEL_CFG).map(([value, cfg]) => ({
-    label: cfg.label,
-    value,
-}));
+const ALARM_LEVEL_OPTIONS = Object.entries(ALARM_LEVEL_CFG).map(
+    ([value, cfg]) => ({
+        label: cfg.label,
+        value,
+    }),
+);
 
 const inputClass =
     'rounded-lg border bg-brand-bg py-2 px-3 text-sm text-brand-navy outline-none focus:ring-1 focus:ring-brand-navy/20';
@@ -92,7 +101,10 @@ export default function IncidentsIndex({
             alarm_level: filters.alarm_level,
             ...overrides,
         };
-        router.get(incidentsIndex().url, params, { preserveState: true, replace: true });
+        router.get(incidentsIndex().url, params, {
+            preserveState: true,
+            replace: true,
+        });
     };
 
     // Debounce search so we're not firing a request on every keystroke.
@@ -121,17 +133,29 @@ export default function IncidentsIndex({
         filters.alarm_level !== '';
 
     const clearSecondaryFilters = () =>
-        navigate({ date_from: '', date_to: '', barangay_id: '', incident_type: '', alarm_level: '' });
+        navigate({
+            date_from: '',
+            date_to: '',
+            barangay_id: '',
+            incident_type: '',
+            alarm_level: '',
+        });
 
     return (
-        <PortalLayout title="Incident Reports" subtitle={`${totalCount} total reports — showing ${reports.total}`}>
+        <PortalLayout
+            title="Incident Reports"
+            subtitle={`${totalCount} total reports — showing ${reports.total}`}
+        >
             <div className="space-y-4">
                 {/* Filter bar */}
                 <PortalCard className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Text search */}
                         <div className="relative">
-                            <Search size={13} className="absolute top-1/2 left-3 -translate-y-1/2 text-brand-muted" />
+                            <Search
+                                size={13}
+                                className="absolute top-1/2 left-3 -translate-y-1/2 text-brand-muted"
+                            />
                             <input
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -143,11 +167,15 @@ export default function IncidentsIndex({
 
                         {/* Date range */}
                         <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-brand-muted">From</span>
+                            <span className="text-xs text-brand-muted">
+                                From
+                            </span>
                             <input
                                 type="date"
                                 value={filters.date_from}
-                                onChange={(e) => navigate({ date_from: e.target.value })}
+                                onChange={(e) =>
+                                    navigate({ date_from: e.target.value })
+                                }
                                 className={inputClass}
                                 style={inputStyle}
                             />
@@ -158,7 +186,9 @@ export default function IncidentsIndex({
                                 type="date"
                                 value={filters.date_to}
                                 min={filters.date_from || undefined}
-                                onChange={(e) => navigate({ date_to: e.target.value })}
+                                onChange={(e) =>
+                                    navigate({ date_to: e.target.value })
+                                }
                                 className={inputClass}
                                 style={inputStyle}
                             />
@@ -167,13 +197,18 @@ export default function IncidentsIndex({
                         {/* Barangay dropdown */}
                         <select
                             value={filters.barangay_id}
-                            onChange={(e) => navigate({ barangay_id: e.target.value })}
+                            onChange={(e) =>
+                                navigate({ barangay_id: e.target.value })
+                            }
                             className={`${inputClass} pr-8`}
                             style={inputStyle}
                         >
                             <option value="">All Barangays</option>
                             {barangays.map((b) => (
-                                <option key={b.barangay_id} value={String(b.barangay_id)}>
+                                <option
+                                    key={b.barangay_id}
+                                    value={String(b.barangay_id)}
+                                >
                                     {b.barangay_name}
                                 </option>
                             ))}
@@ -182,7 +217,9 @@ export default function IncidentsIndex({
                         {/* Type dropdown */}
                         <select
                             value={filters.incident_type}
-                            onChange={(e) => navigate({ incident_type: e.target.value })}
+                            onChange={(e) =>
+                                navigate({ incident_type: e.target.value })
+                            }
                             className={`${inputClass} pr-8`}
                             style={inputStyle}
                         >
@@ -197,7 +234,9 @@ export default function IncidentsIndex({
                         {/* Alarm Level dropdown */}
                         <select
                             value={filters.alarm_level}
-                            onChange={(e) => navigate({ alarm_level: e.target.value })}
+                            onChange={(e) =>
+                                navigate({ alarm_level: e.target.value })
+                            }
                             className={`${inputClass} pr-8`}
                             style={inputStyle}
                         >
@@ -214,7 +253,9 @@ export default function IncidentsIndex({
                             <button
                                 onClick={clearSecondaryFilters}
                                 className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-brand-muted transition-colors hover:bg-red-50 hover:text-red-500"
-                                style={{ border: '1px solid rgba(43,45,66,0.13)' }}
+                                style={{
+                                    border: '1px solid rgba(43,45,66,0.13)',
+                                }}
                             >
                                 <X size={11} />
                                 Clear filters
@@ -229,8 +270,14 @@ export default function IncidentsIndex({
                                     onClick={() => setStatus(s.value)}
                                     className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
                                     style={{
-                                        background: filters.status === s.value ? '#1D3557' : '#F8F9FA',
-                                        color: filters.status === s.value ? '#fff' : '#6B7A8D',
+                                        background:
+                                            filters.status === s.value
+                                                ? '#1D3557'
+                                                : '#F8F9FA',
+                                        color:
+                                            filters.status === s.value
+                                                ? '#fff'
+                                                : '#6B7A8D',
                                     }}
                                 >
                                     {s.label}
@@ -245,7 +292,13 @@ export default function IncidentsIndex({
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr style={{ background: '#FAFBFC', borderBottom: '1px solid rgba(43,45,66,0.08)' }}>
+                                <tr
+                                    style={{
+                                        background: '#FAFBFC',
+                                        borderBottom:
+                                            '1px solid rgba(43,45,66,0.08)',
+                                    }}
+                                >
                                     {[
                                         'Reporter',
                                         'Barangay',
@@ -267,7 +320,10 @@ export default function IncidentsIndex({
                             <tbody>
                                 {reports.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} className="px-4 py-8 text-center text-xs text-brand-muted">
+                                        <td
+                                            colSpan={7}
+                                            className="px-4 py-8 text-center text-xs text-brand-muted"
+                                        >
                                             No reports match these filters.
                                         </td>
                                     </tr>
@@ -278,16 +334,34 @@ export default function IncidentsIndex({
                                         href={showIncident(r.report_id)}
                                         as="tr"
                                         className="cursor-pointer border-t transition-colors hover:bg-blue-50"
-                                        style={{ borderColor: 'rgba(43,45,66,0.06)' }}
+                                        style={{
+                                            borderColor: 'rgba(43,45,66,0.06)',
+                                        }}
                                     >
                                         <td className="px-4 py-3">
-                                            <p className="text-xs font-medium text-brand-navy">{r.reporter_name}</p>
-                                            <p className="text-xs text-brand-muted">{r.contact_number}</p>
+                                            <p className="text-xs font-medium text-brand-navy">
+                                                {r.reporter_name}
+                                            </p>
+                                            <p className="text-xs text-brand-muted">
+                                                {r.contact_number}
+                                            </p>
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-brand-navy">{r.barangay ?? '—'}</td>
-                                        <td className="px-4 py-3 text-xs text-brand-navy">{r.type ?? '—'}</td>
+                                        <td className="px-4 py-3 text-xs text-brand-navy">
+                                            {r.barangay ?? '—'}
+                                        </td>
+                                        <td className="px-4 py-3 text-xs text-brand-navy">
+                                            {r.type ?? '—'}
+                                        </td>
                                         <td className="px-4 py-3">
-                                            {r.alarm_level ? <AlarmLevelBadge alarmLevel={r.alarm_level} /> : <span className="text-xs text-brand-muted">—</span>}
+                                            {r.alarm_level ? (
+                                                <AlarmLevelBadge
+                                                    alarmLevel={r.alarm_level}
+                                                />
+                                            ) : (
+                                                <span className="text-xs text-brand-muted">
+                                                    —
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <StatusBadge status={r.status} />
@@ -295,11 +369,15 @@ export default function IncidentsIndex({
                                         <td className="px-4 py-3">
                                             <AiFireBadge
                                                 label={r.ai_fire_label}
-                                                confidence={r.ai_fire_confidence}
+                                                confidence={
+                                                    r.ai_fire_confidence
+                                                }
                                                 showConfidence
                                             />
                                         </td>
-                                        <td className="px-4 py-3 font-mono text-xs text-brand-muted">{r.dateTime}</td>
+                                        <td className="px-4 py-3 font-mono text-xs text-brand-muted">
+                                            {r.dateTime}
+                                        </td>
                                     </Link>
                                 ))}
                             </tbody>

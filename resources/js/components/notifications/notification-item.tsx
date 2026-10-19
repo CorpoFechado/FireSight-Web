@@ -1,10 +1,9 @@
 import { router } from '@inertiajs/react';
 import {
     formatNotificationTime,
-    getNotificationVisual
-    
+    getNotificationVisual,
 } from '@/lib/notification-visual';
-import type {NotificationType} from '@/lib/notification-visual';
+import type { NotificationType } from '@/lib/notification-visual';
 import { read } from '@/routes/notifications';
 
 export type NotificationRow = {
@@ -32,11 +31,7 @@ export function NotificationItem({
             return;
         }
 
-        router.patch(
-            read(notification.id).url,
-            {},
-            { preserveScroll: true },
-        );
+        router.patch(read(notification.id).url, {}, { preserveScroll: true });
     };
 
     return (

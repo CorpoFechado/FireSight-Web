@@ -19,7 +19,8 @@ export function PortalSidebar({
         <div
             className="relative z-10 flex h-full w-60 flex-shrink-0 flex-col"
             style={{
-                background: 'linear-gradient(165deg, #1d3557 0%, #16294a 60%, #12213d 100%)',
+                background:
+                    'linear-gradient(165deg, #1d3557 0%, #16294a 60%, #12213d 100%)',
             }}
         >
             {/* Logo */}
@@ -31,19 +32,27 @@ export function PortalSidebar({
                 <img
                     src="/images/firesight-logo.png"
                     alt="FireSight Logo"
-                    className="h-10 w-auto object-contain flex-shrink-0 drop-shadow-sm"
+                    className="h-10 w-auto flex-shrink-0 object-contain drop-shadow-sm"
                 />
                 <div className="overflow-hidden">
-                    <p className="text-sm leading-none font-bold text-white">FireSight</p>
-                    <p className="mt-1 text-xs leading-none text-white/45">BFP Lian</p>
+                    <p className="text-sm leading-none font-bold text-white">
+                        FireSight
+                    </p>
+                    <p className="mt-1 text-xs leading-none text-white/45">
+                        BFP Lian
+                    </p>
                 </div>
             </Link>
 
             {/* Role badge */}
             <div className="surface-glass-dark mx-3 mt-3 mb-1 rounded-xl px-3 py-2">
-                <p className="text-xs font-semibold text-white/50">Signed in as</p>
+                <p className="text-xs font-semibold text-white/50">
+                    Signed in as
+                </p>
                 <p className="mt-0.5 text-xs font-bold text-white">
-                    {role === 'bfp_admin' ? 'BFP Administrator' : 'BFP Personnel'}
+                    {role === 'bfp_admin'
+                        ? 'BFP Administrator'
+                        : 'BFP Personnel'}
                 </p>
             </div>
 
@@ -64,8 +73,12 @@ export function PortalSidebar({
                                 background: active
                                     ? 'linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)'
                                     : 'transparent',
-                                color: active ? '#fff' : 'rgba(255,255,255,0.65)',
-                                boxShadow: active ? 'inset 0 1px 0 0 rgba(255,255,255,0.08)' : 'none',
+                                color: active
+                                    ? '#fff'
+                                    : 'rgba(255,255,255,0.65)',
+                                boxShadow: active
+                                    ? 'inset 0 1px 0 0 rgba(255,255,255,0.08)'
+                                    : 'none',
                             }}
                         >
                             {active && (
@@ -82,14 +95,19 @@ export function PortalSidebar({
                                     </span>
                                 )}
                             </span>
-                            <span className="truncate text-sm font-medium">{item.title}</span>
+                            <span className="truncate text-sm font-medium">
+                                {item.title}
+                            </span>
                         </Link>
                     );
                 })}
             </nav>
 
             {/* Footer */}
-            <div className="border-t px-2 py-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+            <div
+                className="border-t px-2 py-3"
+                style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+            >
                 <Link
                     href={logout()}
                     method="post"

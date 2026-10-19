@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useMemo, useState  } from 'react';
-import type {FormEvent} from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { toast } from 'sonner';
 import {
     Dialog,
@@ -14,11 +14,9 @@ import {
     computeWeekEnd,
     formatWeekRange,
     groupLabel,
-    snapToMonday
-    
-    
+    snapToMonday,
 } from '@/lib/duty-schedule';
-import type {GroupOption, Member} from '@/lib/duty-schedule';
+import type { GroupOption, Member } from '@/lib/duty-schedule';
 import { swap as swapRoute } from '@/routes/dutySchedule';
 import { store as storeOverrideRoute } from '@/routes/dutySchedule/overrides';
 
@@ -92,8 +90,8 @@ export function DutyOverrideModal({
 
             // Compute default group that is different from base group
             const defaultTargetGroup =
-                groups.find((g) => g.value !== selectedMember?.base_group)?.value ??
-                '';
+                groups.find((g) => g.value !== selectedMember?.base_group)
+                    ?.value ?? '';
 
             reassignForm.setData({
                 user_id: initialUserId ? String(initialUserId) : '',
@@ -133,8 +131,8 @@ export function DutyOverrideModal({
 
     const handleReassignDateChange = (dateValue: string) => {
         if (!dateValue) {
-return;
-}
+            return;
+        }
 
         const snappedMonday = snapToMonday(dateValue);
         const computedEnd = computeWeekEnd(snappedMonday, reassignWeeks);
@@ -148,7 +146,10 @@ return;
     const handleReassignWeeksChange = (weeks: number) => {
         const clamped = Math.max(1, Math.min(12, weeks));
         setReassignWeeks(clamped);
-        const computedEnd = computeWeekEnd(reassignForm.data.starts_on, clamped);
+        const computedEnd = computeWeekEnd(
+            reassignForm.data.starts_on,
+            clamped,
+        );
         reassignForm.setData('ends_on', computedEnd);
     };
 
@@ -159,14 +160,14 @@ return;
 
     const availableSwapMembersB = useMemo(() => {
         if (!selectedSwapMemberA) {
-return [];
-}
+            return [];
+        }
 
         const baseA = selectedSwapMemberA.base_group;
 
         if (baseA !== 'A' && baseA !== 'B') {
-return [];
-}
+            return [];
+        }
 
         const targetBase = baseA === 'A' ? 'B' : 'A';
 
@@ -179,8 +180,8 @@ return [];
 
     const handleSwapDateChange = (dateValue: string) => {
         if (!dateValue) {
-return;
-}
+            return;
+        }
 
         const snappedMonday = snapToMonday(dateValue);
         const computedEnd = computeWeekEnd(snappedMonday, swapWeeks);
@@ -213,8 +214,8 @@ return;
                 const firstErr = Object.values(errs)[0];
 
                 if (firstErr) {
-toast.error(firstErr);
-}
+                    toast.error(firstErr);
+                }
             },
         });
     };
@@ -228,15 +229,15 @@ toast.error(firstErr);
                 const firstErr = Object.values(errs)[0];
 
                 if (firstErr) {
-toast.error(firstErr);
-}
+                    toast.error(firstErr);
+                }
             },
         });
     };
 
     return (
         <Dialog open={open} onOpenChange={close}>
-            <DialogContent className="bg-white text-brand-navy sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-h-[90vh] overflow-y-auto bg-white text-brand-navy sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-brand-navy">
                         Reassign or Swap Platoon
@@ -275,7 +276,10 @@ toast.error(firstErr);
                     <form onSubmit={submitReassign} className="space-y-4">
                         {/* Personnel Select */}
                         <div>
-                            <Label htmlFor="reassign-user-select" className="text-xs font-semibold uppercase text-brand-muted">
+                            <Label
+                                htmlFor="reassign-user-select"
+                                className="text-xs font-semibold text-brand-muted uppercase"
+                            >
                                 Personnel
                             </Label>
                             <select
@@ -288,7 +292,9 @@ toast.error(firstErr);
                                         : undefined;
                                     const nextGroup =
                                         groups.find(
-                                            (g) => g.value !== nextMember?.base_group,
+                                            (g) =>
+                                                g.value !==
+                                                nextMember?.base_group,
                                         )?.value ?? '';
                                     reassignForm.setData((prev) => ({
                                         ...prev,
@@ -296,7 +302,7 @@ toast.error(firstErr);
                                         duty_group: nextGroup,
                                     }));
                                 }}
-                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                                 required
                             >
                                 <option value="" disabled>
@@ -304,7 +310,8 @@ toast.error(firstErr);
                                 </option>
                                 {allMembers.map((m) => (
                                     <option key={m.user_id} value={m.user_id}>
-                                        {m.name} {m.rank ? `— ${m.rank}` : ''} ({groupLabel(m.base_group)})
+                                        {m.name} {m.rank ? `— ${m.rank}` : ''} (
+                                        {groupLabel(m.base_group)})
                                     </option>
                                 ))}
                             </select>
@@ -317,16 +324,22 @@ toast.error(firstErr);
 
                         {/* Assign To Group */}
                         <div>
-                            <Label htmlFor="reassign-group-select" className="text-xs font-semibold uppercase text-brand-muted">
+                            <Label
+                                htmlFor="reassign-group-select"
+                                className="text-xs font-semibold text-brand-muted uppercase"
+                            >
                                 Assign To
                             </Label>
                             <select
                                 id="reassign-group-select"
                                 value={reassignForm.data.duty_group}
                                 onChange={(e) =>
-                                    reassignForm.setData('duty_group', e.target.value)
+                                    reassignForm.setData(
+                                        'duty_group',
+                                        e.target.value,
+                                    )
                                 }
-                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                                 required
                             >
                                 <option value="" disabled>
@@ -346,9 +359,12 @@ toast.error(firstErr);
                         </div>
 
                         {/* Date & Duration Controls */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
-                                <Label htmlFor="reassign-start-date" className="text-xs font-semibold uppercase text-brand-muted">
+                                <Label
+                                    htmlFor="reassign-start-date"
+                                    className="text-xs font-semibold text-brand-muted uppercase"
+                                >
                                     From Week (Monday)
                                 </Label>
                                 <input
@@ -358,7 +374,7 @@ toast.error(firstErr);
                                     onChange={(e) =>
                                         handleReassignDateChange(e.target.value)
                                     }
-                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                                     required
                                 />
                                 {reassignForm.errors.starts_on && (
@@ -369,18 +385,26 @@ toast.error(firstErr);
                             </div>
 
                             <div>
-                                <Label htmlFor="reassign-duration-weeks" className="text-xs font-semibold uppercase text-brand-muted">
+                                <Label
+                                    htmlFor="reassign-duration-weeks"
+                                    className="text-xs font-semibold text-brand-muted uppercase"
+                                >
                                     Number of Weeks
                                 </Label>
                                 <select
                                     id="reassign-duration-weeks"
                                     value={reassignWeeks}
                                     onChange={(e) =>
-                                        handleReassignWeeksChange(Number(e.target.value))
+                                        handleReassignWeeksChange(
+                                            Number(e.target.value),
+                                        )
                                     }
-                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                                 >
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
+                                    {Array.from(
+                                        { length: 12 },
+                                        (_, i) => i + 1,
+                                    ).map((w) => (
                                         <option key={w} value={w}>
                                             {w} {w === 1 ? 'week' : 'weeks'}
                                         </option>
@@ -396,7 +420,10 @@ toast.error(firstErr);
 
                         {/* Reason */}
                         <div>
-                            <Label htmlFor="reassign-reason-input" className="text-xs font-semibold uppercase text-brand-muted">
+                            <Label
+                                htmlFor="reassign-reason-input"
+                                className="text-xs font-semibold text-brand-muted uppercase"
+                            >
                                 Reason (Optional)
                             </Label>
                             <input
@@ -406,9 +433,12 @@ toast.error(firstErr);
                                 placeholder="e.g. Covering medical leave, training course"
                                 value={reassignForm.data.reason}
                                 onChange={(e) =>
-                                    reassignForm.setData('reason', e.target.value)
+                                    reassignForm.setData(
+                                        'reason',
+                                        e.target.value,
+                                    )
                                 }
-                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                             />
                             {reassignForm.errors.reason && (
                                 <p className="mt-1 text-xs text-red-600">
@@ -418,30 +448,51 @@ toast.error(firstErr);
                         </div>
 
                         {/* Preview Box */}
-                        {selectedReassignMember && reassignForm.data.duty_group && (
-                            <div className="rounded-lg border border-brand-navy/15 bg-brand-navy/5 p-3 text-xs text-brand-navy leading-relaxed">
-                                <span className="font-semibold">{selectedReassignMember.name}</span> will be on{' '}
-                                <span className="font-semibold">{groupLabel(reassignForm.data.duty_group)}</span> from{' '}
-                                <span className="font-semibold">{formatWeekRange(reassignForm.data.starts_on, reassignForm.data.ends_on)}</span>.
-                            </div>
-                        )}
+                        {selectedReassignMember &&
+                            reassignForm.data.duty_group && (
+                                <div className="rounded-lg border border-brand-navy/15 bg-brand-navy/5 p-3 text-xs leading-relaxed text-brand-navy">
+                                    <span className="font-semibold">
+                                        {selectedReassignMember.name}
+                                    </span>{' '}
+                                    will be on{' '}
+                                    <span className="font-semibold">
+                                        {groupLabel(
+                                            reassignForm.data.duty_group,
+                                        )}
+                                    </span>{' '}
+                                    from{' '}
+                                    <span className="font-semibold">
+                                        {formatWeekRange(
+                                            reassignForm.data.starts_on,
+                                            reassignForm.data.ends_on,
+                                        )}
+                                    </span>
+                                    .
+                                </div>
+                            )}
 
                         <DialogFooter className="mt-6 gap-2">
                             <button
                                 type="button"
                                 id="reassign-cancel-btn"
                                 onClick={close}
-                                className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted hover:bg-neutral-100 transition-colors"
+                                className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-neutral-100"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 id="reassign-submit-btn"
-                                disabled={reassignForm.processing || !reassignForm.data.user_id || !reassignForm.data.duty_group}
-                                className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white hover:bg-brand-navy-hover transition-colors disabled:opacity-50"
+                                disabled={
+                                    reassignForm.processing ||
+                                    !reassignForm.data.user_id ||
+                                    !reassignForm.data.duty_group
+                                }
+                                className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-navy-hover disabled:opacity-50"
                             >
-                                {reassignForm.processing ? 'Saving…' : 'Save Reassignment'}
+                                {reassignForm.processing
+                                    ? 'Saving…'
+                                    : 'Save Reassignment'}
                             </button>
                         </DialogFooter>
                     </form>
@@ -449,7 +500,10 @@ toast.error(firstErr);
                     <form onSubmit={submitSwap} className="space-y-4">
                         {/* Person 1 Select */}
                         <div>
-                            <Label htmlFor="swap-person-1-select" className="text-xs font-semibold uppercase text-brand-muted">
+                            <Label
+                                htmlFor="swap-person-1-select"
+                                className="text-xs font-semibold text-brand-muted uppercase"
+                            >
                                 Person 1 (Platoon A or B)
                             </Label>
                             <select
@@ -463,17 +517,26 @@ toast.error(firstErr);
                                         swap_with_id: '',
                                     }));
                                 }}
-                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                                 required
                             >
                                 <option value="" disabled>
                                     Select first person…
                                 </option>
                                 {allMembers
-                                    .filter((m) => m.base_group === 'A' || m.base_group === 'B')
+                                    .filter(
+                                        (m) =>
+                                            m.base_group === 'A' ||
+                                            m.base_group === 'B',
+                                    )
                                     .map((m) => (
-                                        <option key={m.user_id} value={m.user_id}>
-                                            {m.name} {m.rank ? `— ${m.rank}` : ''} ({groupLabel(m.base_group)})
+                                        <option
+                                            key={m.user_id}
+                                            value={m.user_id}
+                                        >
+                                            {m.name}{' '}
+                                            {m.rank ? `— ${m.rank}` : ''} (
+                                            {groupLabel(m.base_group)})
                                         </option>
                                     ))}
                             </select>
@@ -486,17 +549,27 @@ toast.error(firstErr);
 
                         {/* Person 2 Select (Opposite Platoon) */}
                         <div>
-                            <Label htmlFor="swap-person-2-select" className="text-xs font-semibold uppercase text-brand-muted">
+                            <Label
+                                htmlFor="swap-person-2-select"
+                                className="text-xs font-semibold text-brand-muted uppercase"
+                            >
                                 Swap With (Opposite Platoon)
                             </Label>
                             <select
                                 id="swap-person-2-select"
                                 value={swapForm.data.swap_with_id}
                                 onChange={(e) =>
-                                    swapForm.setData('swap_with_id', e.target.value)
+                                    swapForm.setData(
+                                        'swap_with_id',
+                                        e.target.value,
+                                    )
                                 }
-                                disabled={!selectedSwapMemberA || (selectedSwapMemberA.base_group !== 'A' && selectedSwapMemberA.base_group !== 'B')}
-                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy disabled:bg-neutral-100 disabled:text-neutral-400"
+                                disabled={
+                                    !selectedSwapMemberA ||
+                                    (selectedSwapMemberA.base_group !== 'A' &&
+                                        selectedSwapMemberA.base_group !== 'B')
+                                }
+                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-400"
                                 required
                             >
                                 <option value="" disabled>
@@ -506,7 +579,8 @@ toast.error(firstErr);
                                 </option>
                                 {availableSwapMembersB.map((m) => (
                                     <option key={m.user_id} value={m.user_id}>
-                                        {m.name} {m.rank ? `— ${m.rank}` : ''} ({groupLabel(m.base_group)})
+                                        {m.name} {m.rank ? `— ${m.rank}` : ''} (
+                                        {groupLabel(m.base_group)})
                                     </option>
                                 ))}
                             </select>
@@ -518,9 +592,12 @@ toast.error(firstErr);
                         </div>
 
                         {/* Date & Duration Controls */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
-                                <Label htmlFor="swap-start-date" className="text-xs font-semibold uppercase text-brand-muted">
+                                <Label
+                                    htmlFor="swap-start-date"
+                                    className="text-xs font-semibold text-brand-muted uppercase"
+                                >
                                     From Week (Monday)
                                 </Label>
                                 <input
@@ -530,7 +607,7 @@ toast.error(firstErr);
                                     onChange={(e) =>
                                         handleSwapDateChange(e.target.value)
                                     }
-                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                                     required
                                 />
                                 {swapForm.errors.starts_on && (
@@ -541,18 +618,26 @@ toast.error(firstErr);
                             </div>
 
                             <div>
-                                <Label htmlFor="swap-duration-weeks" className="text-xs font-semibold uppercase text-brand-muted">
+                                <Label
+                                    htmlFor="swap-duration-weeks"
+                                    className="text-xs font-semibold text-brand-muted uppercase"
+                                >
                                     Number of Weeks
                                 </Label>
                                 <select
                                     id="swap-duration-weeks"
                                     value={swapWeeks}
                                     onChange={(e) =>
-                                        handleSwapWeeksChange(Number(e.target.value))
+                                        handleSwapWeeksChange(
+                                            Number(e.target.value),
+                                        )
                                     }
-                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                    className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                                 >
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
+                                    {Array.from(
+                                        { length: 12 },
+                                        (_, i) => i + 1,
+                                    ).map((w) => (
                                         <option key={w} value={w}>
                                             {w} {w === 1 ? 'week' : 'weeks'}
                                         </option>
@@ -568,7 +653,10 @@ toast.error(firstErr);
 
                         {/* Reason */}
                         <div>
-                            <Label htmlFor="swap-reason-input" className="text-xs font-semibold uppercase text-brand-muted">
+                            <Label
+                                htmlFor="swap-reason-input"
+                                className="text-xs font-semibold text-brand-muted uppercase"
+                            >
                                 Reason (Optional)
                             </Label>
                             <input
@@ -580,7 +668,7 @@ toast.error(firstErr);
                                 onChange={(e) =>
                                     swapForm.setData('reason', e.target.value)
                                 }
-                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                                className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-brand-navy focus:border-brand-navy focus:ring-1 focus:ring-brand-navy focus:outline-none"
                             />
                             {swapForm.errors.reason && (
                                 <p className="mt-1 text-xs text-red-600">
@@ -591,10 +679,22 @@ toast.error(firstErr);
 
                         {/* Swap Preview Box */}
                         {selectedSwapMemberA && selectedSwapMemberB && (
-                            <div className="rounded-lg border border-brand-navy/15 bg-brand-navy/5 p-3 text-xs text-brand-navy leading-relaxed">
-                                <span className="font-semibold">{selectedSwapMemberA.name}</span> (Duty {selectedSwapMemberA.base_group}) ⇄{' '}
-                                <span className="font-semibold">{selectedSwapMemberB.name}</span> (Duty {selectedSwapMemberB.base_group}) for{' '}
-                                <span className="font-semibold">{formatWeekRange(swapForm.data.starts_on, swapForm.data.ends_on)}</span>.
+                            <div className="rounded-lg border border-brand-navy/15 bg-brand-navy/5 p-3 text-xs leading-relaxed text-brand-navy">
+                                <span className="font-semibold">
+                                    {selectedSwapMemberA.name}
+                                </span>{' '}
+                                (Duty {selectedSwapMemberA.base_group}) ⇄{' '}
+                                <span className="font-semibold">
+                                    {selectedSwapMemberB.name}
+                                </span>{' '}
+                                (Duty {selectedSwapMemberB.base_group}) for{' '}
+                                <span className="font-semibold">
+                                    {formatWeekRange(
+                                        swapForm.data.starts_on,
+                                        swapForm.data.ends_on,
+                                    )}
+                                </span>
+                                .
                             </div>
                         )}
 
@@ -603,15 +703,19 @@ toast.error(firstErr);
                                 type="button"
                                 id="swap-cancel-btn"
                                 onClick={close}
-                                className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted hover:bg-neutral-100 transition-colors"
+                                className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-neutral-100"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 id="swap-submit-btn"
-                                disabled={swapForm.processing || !swapForm.data.user_id || !swapForm.data.swap_with_id}
-                                className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white hover:bg-brand-navy-hover transition-colors disabled:opacity-50"
+                                disabled={
+                                    swapForm.processing ||
+                                    !swapForm.data.user_id ||
+                                    !swapForm.data.swap_with_id
+                                }
+                                className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-navy-hover disabled:opacity-50"
                             >
                                 {swapForm.processing ? 'Saving…' : 'Save Swap'}
                             </button>

@@ -1,5 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
-import type {ReactNode} from 'react';
+import type { ReactNode } from 'react';
 import { AuroraBackground } from '@/components/aurora-background';
 import { PortalSidebar } from '@/layouts/portal/portal-sidebar';
 import { PortalTopbar } from '@/layouts/portal/portal-topbar';

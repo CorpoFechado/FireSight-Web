@@ -28,7 +28,11 @@ type IncidentTypeSlice = {
     color: string;
 };
 
-type MonthlyTrendPoint = { month: string; incidents: number; resolved?: number };
+type MonthlyTrendPoint = {
+    month: string;
+    incidents: number;
+    resolved?: number;
+};
 
 type AlarmLevelBar = {
     level: string;
@@ -101,7 +105,10 @@ export default function Analytics({
             trend_year: filters.trend_year,
             ...overrides,
         };
-        router.get(analytics().url, params, { preserveState: true, replace: true });
+        router.get(analytics().url, params, {
+            preserveState: true,
+            replace: true,
+        });
     };
 
     const setPeriod = (period: Period) => {
@@ -118,9 +125,12 @@ export default function Analytics({
             <div className="space-y-4">
                 {/* Page header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-brand-navy">Analytics &amp; Reports</h1>
+                    <h1 className="text-2xl font-bold text-brand-navy">
+                        Analytics &amp; Reports
+                    </h1>
                     <p className="mt-1 text-sm text-brand-muted">
-                        System performance metrics and fire incident intelligence — {periodLabel}
+                        System performance metrics and fire incident
+                        intelligence — {periodLabel}
                     </p>
                 </div>
 
@@ -128,8 +138,11 @@ export default function Analytics({
                 <PortalCard className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-1.5">
-                            <CalendarDays size={14} className="text-brand-muted" />
-                            <span className="text-xs font-semibold text-brand-muted uppercase tracking-wide">
+                            <CalendarDays
+                                size={14}
+                                className="text-brand-muted"
+                            />
+                            <span className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
                                 Snapshot period
                             </span>
                         </div>
@@ -143,8 +156,14 @@ export default function Analytics({
                                     onClick={() => setPeriod(opt.value)}
                                     className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
                                     style={{
-                                        background: filters.period === opt.value ? '#1D3557' : '#F8F9FA',
-                                        color: filters.period === opt.value ? '#fff' : '#6B7A8D',
+                                        background:
+                                            filters.period === opt.value
+                                                ? '#1D3557'
+                                                : '#F8F9FA',
+                                        color:
+                                            filters.period === opt.value
+                                                ? '#fff'
+                                                : '#6B7A8D',
                                     }}
                                 >
                                     {opt.label}
@@ -156,24 +175,36 @@ export default function Analytics({
                         {filters.period === 'custom' && (
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-brand-muted">From</span>
+                                    <span className="text-xs text-brand-muted">
+                                        From
+                                    </span>
                                     <input
                                         id="analytics-date-from"
                                         type="date"
                                         value={filters.date_from}
-                                        onChange={(e) => navigate({ date_from: e.target.value })}
+                                        onChange={(e) =>
+                                            navigate({
+                                                date_from: e.target.value,
+                                            })
+                                        }
                                         className={inputClass}
                                         style={inputStyle}
                                     />
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-brand-muted">To</span>
+                                    <span className="text-xs text-brand-muted">
+                                        To
+                                    </span>
                                     <input
                                         id="analytics-date-to"
                                         type="date"
                                         value={filters.date_to}
                                         min={filters.date_from || undefined}
-                                        onChange={(e) => navigate({ date_to: e.target.value })}
+                                        onChange={(e) =>
+                                            navigate({
+                                                date_to: e.target.value,
+                                            })
+                                        }
                                         className={inputClass}
                                         style={inputStyle}
                                     />
@@ -186,11 +217,19 @@ export default function Analytics({
                 <div className="grid gap-4 lg:grid-cols-2">
                     {/* Incidents by Type */}
                     <PortalCard>
-                        <div className="border-b px-5 py-4" style={{ borderColor: 'rgba(43,45,66,0.08)' }}>
-                            <h2 className="text-sm font-bold text-brand-navy">Incidents by Type</h2>
+                        <div
+                            className="border-b px-5 py-4"
+                            style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                        >
+                            <h2 className="text-sm font-bold text-brand-navy">
+                                Incidents by Type
+                            </h2>
                         </div>
                         <div className="flex flex-col items-center gap-4 p-5 sm:flex-row sm:items-center">
-                            <div className="mx-auto" style={{ width: 220, height: 220 }}>
+                            <div
+                                className="mx-auto"
+                                style={{ width: 220, height: 220 }}
+                            >
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
@@ -203,7 +242,10 @@ export default function Analytics({
                                             stroke="none"
                                         >
                                             {incidentsByType.map((slice) => (
-                                                <Cell key={slice.type} fill={slice.color} />
+                                                <Cell
+                                                    key={slice.type}
+                                                    fill={slice.color}
+                                                />
                                             ))}
                                         </Pie>
                                         <Tooltip
@@ -212,7 +254,11 @@ export default function Analytics({
                                                 borderRadius: 8,
                                                 border: '1px solid rgba(43,45,66,0.1)',
                                             }}
-                                            formatter={(value: number, _name, item) => [
+                                            formatter={(
+                                                value: number,
+                                                _name,
+                                                item,
+                                            ) => [
                                                 `${value} (${item.payload.percentage}%)`,
                                                 item.payload.label,
                                             ]}
@@ -227,12 +273,17 @@ export default function Analytics({
                                     </p>
                                 )}
                                 {incidentsByType.map((slice) => (
-                                    <div key={slice.type} className="flex items-center gap-2 text-sm">
+                                    <div
+                                        key={slice.type}
+                                        className="flex items-center gap-2 text-sm"
+                                    >
                                         <span
                                             className="size-2.5 flex-shrink-0 rounded-full"
                                             style={{ background: slice.color }}
                                         />
-                                        <span className="flex-1 text-brand-navy">{slice.label}</span>
+                                        <span className="flex-1 text-brand-navy">
+                                            {slice.label}
+                                        </span>
                                         <span className="font-mono text-xs font-semibold text-brand-muted">
                                             {slice.percentage}%
                                         </span>
@@ -257,7 +308,11 @@ export default function Analytics({
                                 <select
                                     id="trend-year"
                                     value={filters.trend_year}
-                                    onChange={(e) => navigate({ trend_year: Number(e.target.value) })}
+                                    onChange={(e) =>
+                                        navigate({
+                                            trend_year: Number(e.target.value),
+                                        })
+                                    }
                                     className="appearance-none rounded-lg border bg-brand-bg py-1 pr-6 pl-2.5 text-xs font-semibold text-brand-navy outline-none focus:ring-1 focus:ring-brand-navy/20"
                                     style={inputStyle}
                                 >
@@ -277,7 +332,12 @@ export default function Analytics({
                             <ResponsiveContainer width="100%" height={260}>
                                 <AreaChart
                                     data={monthlyTrend}
-                                    margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+                                    margin={{
+                                        top: 8,
+                                        right: 8,
+                                        bottom: 0,
+                                        left: 0,
+                                    }}
                                 >
                                     <defs>
                                         <linearGradient
@@ -322,7 +382,8 @@ export default function Analytics({
                                             fontSize: 12,
                                             borderRadius: 8,
                                             border: '1px solid rgba(43,45,66,0.1)',
-                                            boxShadow: '0 4px 12px rgba(29, 53, 87, 0.08)',
+                                            boxShadow:
+                                                '0 4px 12px rgba(29, 53, 87, 0.08)',
                                         }}
                                         formatter={(value: number) => [
                                             `${value} incident${value === 1 ? '' : 's'}`,
@@ -359,14 +420,24 @@ export default function Analytics({
                 <div className="grid gap-4 lg:grid-cols-2">
                     {/* Incidents by Alarm Level */}
                     <PortalCard>
-                        <div className="border-b px-5 py-4" style={{ borderColor: 'rgba(43,45,66,0.08)' }}>
-                            <h2 className="text-sm font-bold text-brand-navy">Incidents by Alarm Level</h2>
+                        <div
+                            className="border-b px-5 py-4"
+                            style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                        >
+                            <h2 className="text-sm font-bold text-brand-navy">
+                                Incidents by Alarm Level
+                            </h2>
                         </div>
                         <div className="p-5">
                             <ResponsiveContainer width="100%" height={240}>
                                 <BarChart
                                     data={incidentsByAlarmLevel}
-                                    margin={{ top: 4, right: 4, bottom: 25, left: 0 }}
+                                    margin={{
+                                        top: 4,
+                                        right: 4,
+                                        bottom: 25,
+                                        left: 0,
+                                    }}
                                 >
                                     <CartesianGrid
                                         strokeDasharray="3 3"
@@ -396,9 +467,17 @@ export default function Analytics({
                                             border: '1px solid rgba(43,45,66,0.1)',
                                         }}
                                     />
-                                    <Bar dataKey="count" name="Incidents" radius={[3, 3, 0, 0]} maxBarSize={32}>
+                                    <Bar
+                                        dataKey="count"
+                                        name="Incidents"
+                                        radius={[3, 3, 0, 0]}
+                                        maxBarSize={32}
+                                    >
                                         {incidentsByAlarmLevel.map((row) => (
-                                            <Cell key={row.level} fill={row.color} />
+                                            <Cell
+                                                key={row.level}
+                                                fill={row.color}
+                                            />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -408,7 +487,10 @@ export default function Analytics({
 
                     {/* Barangays with Most Incidents */}
                     <PortalCard>
-                        <div className="border-b px-5 py-4" style={{ borderColor: 'rgba(43,45,66,0.08)' }}>
+                        <div
+                            className="border-b px-5 py-4"
+                            style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                        >
                             <h2 className="text-sm font-bold text-brand-navy">
                                 Barangays with Most Incidents
                             </h2>
@@ -424,7 +506,12 @@ export default function Analytics({
                                 <ResponsiveContainer width="100%" height={220}>
                                     <BarChart
                                         data={barangaysWithMostIncidents}
-                                        margin={{ top: 4, right: 4, bottom: 20, left: 0 }}
+                                        margin={{
+                                            top: 4,
+                                            right: 4,
+                                            bottom: 20,
+                                            left: 0,
+                                        }}
                                     >
                                         <CartesianGrid
                                             strokeDasharray="3 3"
@@ -433,7 +520,10 @@ export default function Analytics({
                                         />
                                         <XAxis
                                             dataKey="barangay_name"
-                                            tick={{ fontSize: 11, fill: '#6B7A8D' }}
+                                            tick={{
+                                                fontSize: 11,
+                                                fill: '#6B7A8D',
+                                            }}
                                             axisLine={false}
                                             tickLine={false}
                                             interval={0}
@@ -443,7 +533,10 @@ export default function Analytics({
                                         />
                                         <YAxis
                                             allowDecimals={false}
-                                            tick={{ fontSize: 11, fill: '#6B7A8D' }}
+                                            tick={{
+                                                fontSize: 11,
+                                                fill: '#6B7A8D',
+                                            }}
                                             axisLine={false}
                                             tickLine={false}
                                             width={28}
@@ -466,12 +559,18 @@ export default function Analytics({
                                             radius={[3, 3, 0, 0]}
                                             maxBarSize={48}
                                         >
-                                            {barangaysWithMostIncidents.map((_, index) => (
-                                                <Cell
-                                                    key={`barangay-cell-${index}`}
-                                                    fill={BARANGAY_BAR_COLORS[index] ?? '#2A9D8F'}
-                                                />
-                                            ))}
+                                            {barangaysWithMostIncidents.map(
+                                                (_, index) => (
+                                                    <Cell
+                                                        key={`barangay-cell-${index}`}
+                                                        fill={
+                                                            BARANGAY_BAR_COLORS[
+                                                                index
+                                                            ] ?? '#2A9D8F'
+                                                        }
+                                                    />
+                                                ),
+                                            )}
                                         </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>

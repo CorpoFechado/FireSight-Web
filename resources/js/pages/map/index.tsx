@@ -3,13 +3,29 @@ import { router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import L from 'leaflet';
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import {
+    CalendarDays,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Layers,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CircleMarker, GeoJSON, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import {
+    CircleMarker,
+    GeoJSON,
+    MapContainer,
+    Marker,
+    Popup,
+    TileLayer,
+} from 'react-leaflet';
 import { PortalCard } from '@/components/portal/portal-card';
 import { AlarmLevelBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
-import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
+import {
+    BARANGAY_GEOJSON_URL,
+    resolveDbBarangayName,
+} from '@/lib/barangay-geo';
 import {
     ALARM_LEVEL_CFG,
     ALARM_LEVEL_MARKER_COLORS,
@@ -18,7 +34,12 @@ import {
     riskMapPolygonStyle,
 } from '@/lib/fire-status';
 import type { AlarmLevel, IncidentType, RiskLevel } from '@/lib/fire-status';
-import { LIAN_CENTER, LIAN_DEFAULT_ZOOM, OSM_ATTRIBUTION, OSM_TILE_URL } from '@/lib/map-constants';
+import {
+    LIAN_CENTER,
+    LIAN_DEFAULT_ZOOM,
+    OSM_ATTRIBUTION,
+    OSM_TILE_URL,
+} from '@/lib/map-constants';
 import { show as showIncident } from '@/routes/incidents';
 import { map as mapRoute } from '@/routes/index';
 
@@ -106,10 +127,14 @@ const FALLBACK_COLOR = '#6B7A8D';
 
 function markerColor(inc: MapIncident, colorBy: ColorBy): string {
     if (colorBy === 'alarm_level') {
-        return inc.alarm_level ? (ALARM_LEVEL_MARKER_COLORS[inc.alarm_level] ?? FALLBACK_COLOR) : FALLBACK_COLOR;
+        return inc.alarm_level
+            ? (ALARM_LEVEL_MARKER_COLORS[inc.alarm_level] ?? FALLBACK_COLOR)
+            : FALLBACK_COLOR;
     }
 
-    return inc.type ? (TYPE_CFG[inc.type]?.color ?? FALLBACK_COLOR) : FALLBACK_COLOR;
+    return inc.type
+        ? (TYPE_CFG[inc.type]?.color ?? FALLBACK_COLOR)
+        : FALLBACK_COLOR;
 }
 
 function buildResultSummary(
@@ -124,11 +149,14 @@ function buildResultSummary(
             : null;
     const alarmLevelLabel =
         filters.alarm_level !== 'all'
-            ? (ALARM_LEVEL_CFG[filters.alarm_level as AlarmLevel]?.label ?? null)
+            ? (ALARM_LEVEL_CFG[filters.alarm_level as AlarmLevel]?.label ??
+              null)
             : null;
 
     const qualifier = [alarmLevelLabel, typeLabel].filter(Boolean).join(' ');
-    const noun = qualifier ? `${qualifier} incident${count !== 1 ? 's' : ''}` : `incident${count !== 1 ? 's' : ''}`;
+    const noun = qualifier
+        ? `${qualifier} incident${count !== 1 ? 's' : ''}`
+        : `incident${count !== 1 ? 's' : ''}`;
 
     return `${count} ${noun} · ${periodLabel}`;
 }
@@ -147,25 +175,38 @@ export default function FireIncidentsMap({
     filters: Filters;
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [layers, setLayers] = useState({ pins: true, risk: true, station: true });
+    const [layers, setLayers] = useState({
+        pins: true,
+        risk: true,
+        station: true,
+    });
     const [colorBy, setColorBy] = useState<ColorBy>('alarm_level');
     const [selectedId, setSelectedId] = useState<number | null>(null);
-    const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<Geometry, BarangayGeoProperties> | null>(null);
+    const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<
+        Geometry,
+        BarangayGeoProperties
+    > | null>(null);
     const mapRef = useRef<L.Map | null>(null);
     const incidentMarkerRefs = useRef(new Map<number, L.CircleMarker>());
 
-    const activeSelectedId = incidents.some((incident) => incident.report_id === selectedId) ? selectedId : null;
+    const activeSelectedId = incidents.some(
+        (incident) => incident.report_id === selectedId,
+    )
+        ? selectedId
+        : null;
 
     // Load barangay GeoJSON
     useEffect(() => {
         let cancelled = false;
         fetch(BARANGAY_GEOJSON_URL)
             .then((res) => res.json())
-            .then((data: FeatureCollection<Geometry, BarangayGeoProperties>) => {
-                if (!cancelled) {
-                    setBarangayGeo(data);
-                }
-            })
+            .then(
+                (data: FeatureCollection<Geometry, BarangayGeoProperties>) => {
+                    if (!cancelled) {
+                        setBarangayGeo(data);
+                    }
+                },
+            )
             .catch(() => {
                 // Boundary layer is decorative — silently fall back to no overlay.
             });
@@ -190,7 +231,10 @@ export default function FireIncidentsMap({
         const counts: Record<string, number> = {};
 
         for (const inc of incidents) {
-            const key = colorBy === 'alarm_level' ? (inc.alarm_level ?? 'unknown') : (inc.type ?? 'unknown');
+            const key =
+                colorBy === 'alarm_level'
+                    ? (inc.alarm_level ?? 'unknown')
+                    : (inc.type ?? 'unknown');
             counts[key] = (counts[key] ?? 0) + 1;
         }
 
@@ -202,12 +246,20 @@ export default function FireIncidentsMap({
         if (colorBy === 'alarm_level') {
             return (Object.keys(ALARM_LEVEL_CFG) as AlarmLevel[])
                 .filter((s) => groupedCounts[s] !== undefined)
-                .map((s) => ({ key: s, label: ALARM_LEVEL_CFG[s].label, color: ALARM_LEVEL_MARKER_COLORS[s] }));
+                .map((s) => ({
+                    key: s,
+                    label: ALARM_LEVEL_CFG[s].label,
+                    color: ALARM_LEVEL_MARKER_COLORS[s],
+                }));
         }
 
         return (Object.keys(TYPE_CFG) as IncidentType[])
             .filter((t) => groupedCounts[t] !== undefined)
-            .map((t) => ({ key: t, label: TYPE_CFG[t].label, color: TYPE_CFG[t].color }));
+            .map((t) => ({
+                key: t,
+                label: TYPE_CFG[t].label,
+                color: TYPE_CFG[t].color,
+            }));
     }, [colorBy, groupedCounts]);
 
     const navigate = (overrides: Partial<Filters>) => {
@@ -235,7 +287,10 @@ export default function FireIncidentsMap({
             params.alarm_level = raw.alarm_level;
         }
 
-        router.get(mapRoute().url, params, { preserveState: true, replace: true });
+        router.get(mapRoute().url, params, {
+            preserveState: true,
+            replace: true,
+        });
     };
 
     const setPeriod = (period: Period) => {
@@ -249,21 +304,29 @@ export default function FireIncidentsMap({
     const focusIncident = (inc: MapIncident) => {
         setSelectedId(inc.report_id);
         incidentMarkerRefs.current.get(inc.report_id)?.openPopup();
-        mapRef.current?.flyTo([inc.latitude, inc.longitude], 15, { duration: 0.6 });
+        mapRef.current?.flyTo([inc.latitude, inc.longitude], 15, {
+            duration: 0.6,
+        });
     };
 
     const resultSummary = buildResultSummary(incidents, filters, periodLabel);
 
     return (
-        <PortalLayout title="Fire Incidents Map" subtitle="Lian, Batangas — Resolved Incidents">
+        <PortalLayout
+            title="Fire Incidents Map"
+            subtitle="Lian, Batangas — Resolved Incidents"
+        >
             <div className="space-y-3">
                 {/* ── Filter bar ─────────────────────────────────────────── */}
                 <PortalCard className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Period label */}
                         <div className="flex items-center gap-1.5">
-                            <CalendarDays size={14} className="text-brand-muted" />
-                            <span className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
+                            <CalendarDays
+                                size={14}
+                                className="text-brand-muted"
+                            />
+                            <span className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
                                 Period
                             </span>
                         </div>
@@ -277,8 +340,14 @@ export default function FireIncidentsMap({
                                     onClick={() => setPeriod(opt.value)}
                                     className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
                                     style={{
-                                        background: filters.period === opt.value ? '#1D3557' : '#F8F9FA',
-                                        color: filters.period === opt.value ? '#fff' : '#6B7A8D',
+                                        background:
+                                            filters.period === opt.value
+                                                ? '#1D3557'
+                                                : '#F8F9FA',
+                                        color:
+                                            filters.period === opt.value
+                                                ? '#fff'
+                                                : '#6B7A8D',
                                     }}
                                 >
                                     {opt.label}
@@ -290,24 +359,36 @@ export default function FireIncidentsMap({
                         {filters.period === 'custom' && (
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-brand-muted">From</span>
+                                    <span className="text-xs text-brand-muted">
+                                        From
+                                    </span>
                                     <input
                                         id="map-date-from"
                                         type="date"
                                         value={filters.date_from}
-                                        onChange={(e) => navigate({ date_from: e.target.value })}
+                                        onChange={(e) =>
+                                            navigate({
+                                                date_from: e.target.value,
+                                            })
+                                        }
                                         className={inputClass}
                                         style={inputStyle}
                                     />
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-brand-muted">To</span>
+                                    <span className="text-xs text-brand-muted">
+                                        To
+                                    </span>
                                     <input
                                         id="map-date-to"
                                         type="date"
                                         value={filters.date_to}
                                         min={filters.date_from || undefined}
-                                        onChange={(e) => navigate({ date_to: e.target.value })}
+                                        onChange={(e) =>
+                                            navigate({
+                                                date_to: e.target.value,
+                                            })
+                                        }
                                         className={inputClass}
                                         style={inputStyle}
                                     />
@@ -316,14 +397,19 @@ export default function FireIncidentsMap({
                         )}
 
                         {/* Separator */}
-                        <div className="h-5 w-px" style={{ background: 'rgba(43,45,66,0.12)' }} />
+                        <div
+                            className="h-5 w-px"
+                            style={{ background: 'rgba(43,45,66,0.12)' }}
+                        />
 
                         {/* Type dropdown */}
                         <div className="relative flex items-center">
                             <select
                                 id="map-type-filter"
                                 value={filters.incident_type}
-                                onChange={(e) => navigate({ incident_type: e.target.value })}
+                                onChange={(e) =>
+                                    navigate({ incident_type: e.target.value })
+                                }
                                 className={selectClass}
                                 style={inputStyle}
                             >
@@ -333,7 +419,10 @@ export default function FireIncidentsMap({
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown size={11} className="pointer-events-none absolute right-1.5 text-brand-muted" />
+                            <ChevronDown
+                                size={11}
+                                className="pointer-events-none absolute right-1.5 text-brand-muted"
+                            />
                         </div>
 
                         {/* Alarm Level dropdown */}
@@ -341,7 +430,9 @@ export default function FireIncidentsMap({
                             <select
                                 id="map-alarm-level-filter"
                                 value={filters.alarm_level}
-                                onChange={(e) => navigate({ alarm_level: e.target.value })}
+                                onChange={(e) =>
+                                    navigate({ alarm_level: e.target.value })
+                                }
                                 className={selectClass}
                                 style={inputStyle}
                             >
@@ -351,35 +442,56 @@ export default function FireIncidentsMap({
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown size={11} className="pointer-events-none absolute right-1.5 text-brand-muted" />
+                            <ChevronDown
+                                size={11}
+                                className="pointer-events-none absolute right-1.5 text-brand-muted"
+                            />
                         </div>
 
                         {/* Separator */}
-                        <div className="h-5 w-px" style={{ background: 'rgba(43,45,66,0.12)' }} />
+                        <div
+                            className="h-5 w-px"
+                            style={{ background: 'rgba(43,45,66,0.12)' }}
+                        />
 
                         {/* Color-by toggle */}
                         <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-brand-muted">Color by:</span>
-                            {(['alarm_level', 'type'] as ColorBy[]).map((opt) => (
-                                <button
-                                    key={opt}
-                                    id={`map-color-by-${opt}`}
-                                    onClick={() => setColorBy(opt)}
-                                    className="rounded-lg px-2.5 py-1.5 text-xs font-semibold capitalize transition-all"
-                                    style={{
-                                        background: colorBy === opt ? '#1D3557' : '#F8F9FA',
-                                        color: colorBy === opt ? '#fff' : '#6B7A8D',
-                                    }}
-                                >
-                                    {opt === 'alarm_level' ? 'Alarm Level' : 'Type'}
-                                </button>
-                            ))}
+                            <span className="text-xs text-brand-muted">
+                                Color by:
+                            </span>
+                            {(['alarm_level', 'type'] as ColorBy[]).map(
+                                (opt) => (
+                                    <button
+                                        key={opt}
+                                        id={`map-color-by-${opt}`}
+                                        onClick={() => setColorBy(opt)}
+                                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold capitalize transition-all"
+                                        style={{
+                                            background:
+                                                colorBy === opt
+                                                    ? '#1D3557'
+                                                    : '#F8F9FA',
+                                            color:
+                                                colorBy === opt
+                                                    ? '#fff'
+                                                    : '#6B7A8D',
+                                        }}
+                                    >
+                                        {opt === 'alarm_level'
+                                            ? 'Alarm Level'
+                                            : 'Type'}
+                                    </button>
+                                ),
+                            )}
                         </div>
                     </div>
                 </PortalCard>
 
                 {/* ── Map + Sidebar ──────────────────────────────────────── */}
-                <div className="flex gap-4" style={{ height: 'calc(100vh - 64px - 48px - 80px)' }}>
+                <div
+                    className="flex gap-4"
+                    style={{ height: 'calc(100vh - 64px - 48px - 80px)' }}
+                >
                     {/* Incident sidebar */}
                     {sidebarOpen && (
                         <PortalCard className="flex w-64 flex-shrink-0 flex-col overflow-hidden">
@@ -388,7 +500,9 @@ export default function FireIncidentsMap({
                                 className="flex items-center justify-between border-b px-4 py-3"
                                 style={{ borderColor: 'rgba(43,45,66,0.08)' }}
                             >
-                                <h3 className="text-sm font-bold text-brand-navy">Incidents</h3>
+                                <h3 className="text-sm font-bold text-brand-navy">
+                                    Incidents
+                                </h3>
                                 <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-brand-orange">
                                     {incidents.length}
                                 </span>
@@ -399,34 +513,54 @@ export default function FireIncidentsMap({
                                 className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-4 py-2"
                                 style={{ borderColor: 'rgba(43,45,66,0.06)' }}
                             >
-                                {Object.entries(groupedCounts).map(([key, count]) => {
-                                    const color =
-                                        colorBy === 'alarm_level'
-                                            ? (ALARM_LEVEL_MARKER_COLORS[key as AlarmLevel] ?? FALLBACK_COLOR)
-                                            : (TYPE_CFG[key as IncidentType]?.color ?? FALLBACK_COLOR);
-                                    const label =
-                                        colorBy === 'alarm_level'
-                                            ? (ALARM_LEVEL_CFG[key as AlarmLevel]?.label ?? key)
-                                            : (TYPE_CFG[key as IncidentType]?.label ?? key);
+                                {Object.entries(groupedCounts).map(
+                                    ([key, count]) => {
+                                        const color =
+                                            colorBy === 'alarm_level'
+                                                ? (ALARM_LEVEL_MARKER_COLORS[
+                                                      key as AlarmLevel
+                                                  ] ?? FALLBACK_COLOR)
+                                                : (TYPE_CFG[key as IncidentType]
+                                                      ?.color ??
+                                                  FALLBACK_COLOR);
+                                        const label =
+                                            colorBy === 'alarm_level'
+                                                ? (ALARM_LEVEL_CFG[
+                                                      key as AlarmLevel
+                                                  ]?.label ?? key)
+                                                : (TYPE_CFG[key as IncidentType]
+                                                      ?.label ?? key);
 
-                                    return (
-                                        <div key={key} className="flex items-center gap-1">
-                                            <span className="size-1.5 rounded-full" style={{ background: color }} />
-                                            <span className="text-xs text-brand-muted">
-                                                {count} {label}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
+                                        return (
+                                            <div
+                                                key={key}
+                                                className="flex items-center gap-1"
+                                            >
+                                                <span
+                                                    className="size-1.5 rounded-full"
+                                                    style={{
+                                                        background: color,
+                                                    }}
+                                                />
+                                                <span className="text-xs text-brand-muted">
+                                                    {count} {label}
+                                                </span>
+                                            </div>
+                                        );
+                                    },
+                                )}
                             </div>
 
                             {/* Incident list */}
                             <div className="flex-1 overflow-y-auto">
                                 {incidents.length === 0 && (
                                     <div className="flex flex-col items-center gap-2 p-6 text-center">
-                                        <p className="text-xs font-semibold text-brand-muted">No incidents found</p>
+                                        <p className="text-xs font-semibold text-brand-muted">
+                                            No incidents found
+                                        </p>
                                         <p className="text-xs text-brand-muted">
-                                            Try adjusting the period or filters above.
+                                            Try adjusting the period or filters
+                                            above.
                                         </p>
                                     </div>
                                 )}
@@ -437,26 +571,40 @@ export default function FireIncidentsMap({
                                         className="cursor-pointer border-b px-4 py-3 transition-colors hover:bg-blue-50"
                                         style={{
                                             borderColor: 'rgba(43,45,66,0.06)',
-                                            background: activeSelectedId === inc.report_id ? '#EBF3FB' : undefined,
+                                            background:
+                                                activeSelectedId ===
+                                                inc.report_id
+                                                    ? '#EBF3FB'
+                                                    : undefined,
                                         }}
                                     >
                                         <div className="flex items-start gap-2">
                                             <div
                                                 className="mt-1 size-2 flex-shrink-0 rounded-full"
-                                                style={{ background: markerColor(inc, colorBy) }}
+                                                style={{
+                                                    background: markerColor(
+                                                        inc,
+                                                        colorBy,
+                                                    ),
+                                                }}
                                             />
                                             <div className="min-w-0 flex-1">
                                                 <p className="font-mono text-xs font-medium text-brand-blue">
                                                     {inc.reference}
                                                 </p>
                                                 <p className="truncate text-xs font-semibold text-brand-navy">
-                                                    {inc.typeLabel ?? 'Unclassified'}
+                                                    {inc.typeLabel ??
+                                                        'Unclassified'}
                                                 </p>
                                                 <p className="text-xs text-brand-muted">
                                                     {inc.barangay ?? '—'}
                                                 </p>
                                             </div>
-                                            {inc.alarm_level && <AlarmLevelBadge alarmLevel={inc.alarm_level} />}
+                                            {inc.alarm_level && (
+                                                <AlarmLevelBadge
+                                                    alarmLevel={inc.alarm_level}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -475,11 +623,17 @@ export default function FireIncidentsMap({
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                                 className="rounded p-1.5 text-brand-muted transition-colors hover:bg-gray-100"
                             >
-                                {sidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                                {sidebarOpen ? (
+                                    <ChevronLeft size={16} />
+                                ) : (
+                                    <ChevronRight size={16} />
+                                )}
                             </button>
 
                             {/* Result summary */}
-                            <span className="text-sm text-brand-muted">{resultSummary}</span>
+                            <span className="text-sm text-brand-muted">
+                                {resultSummary}
+                            </span>
 
                             <div className="ml-auto flex items-center gap-2">
                                 {(
@@ -491,12 +645,23 @@ export default function FireIncidentsMap({
                                 ).map(([key, label]) => (
                                     <button
                                         key={key}
-                                        onClick={() => setLayers((l) => ({ ...l, [key]: !l[key] }))}
+                                        onClick={() =>
+                                            setLayers((l) => ({
+                                                ...l,
+                                                [key]: !l[key],
+                                            }))
+                                        }
                                         className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all"
                                         style={{
-                                            background: layers[key] ? '#1D3557' : 'white',
-                                            color: layers[key] ? 'white' : '#6B7A8D',
-                                            borderColor: layers[key] ? '#1D3557' : 'rgba(43,45,66,0.13)',
+                                            background: layers[key]
+                                                ? '#1D3557'
+                                                : 'white',
+                                            color: layers[key]
+                                                ? 'white'
+                                                : '#6B7A8D',
+                                            borderColor: layers[key]
+                                                ? '#1D3557'
+                                                : 'rgba(43,45,66,0.13)',
                                         }}
                                     >
                                         <Layers size={11} />
@@ -514,7 +679,10 @@ export default function FireIncidentsMap({
                                 zoom={LIAN_DEFAULT_ZOOM}
                                 style={{ height: '100%', width: '100%' }}
                             >
-                                <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
+                                <TileLayer
+                                    url={OSM_TILE_URL}
+                                    attribution={OSM_ATTRIBUTION}
+                                />
 
                                 {layers.risk && barangayGeo && (
                                     <GeoJSON
@@ -523,18 +691,29 @@ export default function FireIncidentsMap({
                                         style={(feature) => {
                                             const risk = feature
                                                 ? riskByBarangayName.get(
-                                                      resolveDbBarangayName(feature.properties.barangay),
+                                                      resolveDbBarangayName(
+                                                          feature.properties
+                                                              .barangay,
+                                                      ),
                                                   )
                                                 : undefined;
 
-                                            return riskMapPolygonStyle(risk?.risk_level);
+                                            return riskMapPolygonStyle(
+                                                risk?.risk_level,
+                                            );
                                         }}
-                                        onEachFeature={(feature: BarangayFeature, layer) => {
+                                        onEachFeature={(
+                                            feature: BarangayFeature,
+                                            layer,
+                                        ) => {
                                             const risk = riskByBarangayName.get(
-                                                resolveDbBarangayName(feature.properties.barangay),
+                                                resolveDbBarangayName(
+                                                    feature.properties.barangay,
+                                                ),
                                             );
                                             const label = risk?.risk_level
-                                                ? RISK_CFG[risk.risk_level].label
+                                                ? RISK_CFG[risk.risk_level]
+                                                      .label
                                                 : 'No risk data';
                                             layer.bindPopup(
                                                 `<p class="text-sm font-semibold">${feature.properties.barangay}</p>` +
@@ -545,9 +724,14 @@ export default function FireIncidentsMap({
                                 )}
 
                                 {layers.station && (
-                                    <Marker position={LIAN_CENTER} icon={stationIcon}>
+                                    <Marker
+                                        position={LIAN_CENTER}
+                                        icon={stationIcon}
+                                    >
                                         <Popup>
-                                            <p className="text-sm font-semibold">BFP Lian Fire Station</p>
+                                            <p className="text-sm font-semibold">
+                                                BFP Lian Fire Station
+                                            </p>
                                         </Popup>
                                     </Marker>
                                 )}
@@ -558,20 +742,45 @@ export default function FireIncidentsMap({
                                             key={inc.report_id}
                                             ref={(marker) => {
                                                 if (marker) {
-                                                    incidentMarkerRefs.current.set(inc.report_id, marker);
+                                                    incidentMarkerRefs.current.set(
+                                                        inc.report_id,
+                                                        marker,
+                                                    );
                                                 } else {
-                                                    incidentMarkerRefs.current.delete(inc.report_id);
+                                                    incidentMarkerRefs.current.delete(
+                                                        inc.report_id,
+                                                    );
                                                 }
                                             }}
-                                            center={[inc.latitude, inc.longitude]}
-                                            radius={activeSelectedId === inc.report_id ? 11 : 8}
+                                            center={[
+                                                inc.latitude,
+                                                inc.longitude,
+                                            ]}
+                                            radius={
+                                                activeSelectedId ===
+                                                inc.report_id
+                                                    ? 11
+                                                    : 8
+                                            }
                                             pathOptions={{
                                                 color: '#fff',
-                                                weight: activeSelectedId === inc.report_id ? 3 : 1.5,
-                                                fillColor: markerColor(inc, colorBy),
+                                                weight:
+                                                    activeSelectedId ===
+                                                    inc.report_id
+                                                        ? 3
+                                                        : 1.5,
+                                                fillColor: markerColor(
+                                                    inc,
+                                                    colorBy,
+                                                ),
                                                 fillOpacity: 0.9,
                                             }}
-                                            eventHandlers={{ click: () => setSelectedId(inc.report_id) }}
+                                            eventHandlers={{
+                                                click: () =>
+                                                    setSelectedId(
+                                                        inc.report_id,
+                                                    ),
+                                            }}
                                         >
                                             <Popup>
                                                 <div className="space-y-1">
@@ -579,22 +788,38 @@ export default function FireIncidentsMap({
                                                         {inc.reference}
                                                     </p>
                                                     <p className="text-sm font-semibold">
-                                                        {inc.typeLabel ?? 'Unclassified'}
+                                                        {inc.typeLabel ??
+                                                            'Unclassified'}
                                                     </p>
                                                     {inc.alarm_level && (
-                                                        <p className="text-xs capitalize text-gray-600">
+                                                        <p className="text-xs text-gray-600 capitalize">
                                                             Alarm Level:{' '}
-                                                            <span style={{ color: ALARM_LEVEL_MARKER_COLORS[inc.alarm_level] }}>
-                                                                {ALARM_LEVEL_CFG[inc.alarm_level]?.label ?? inc.alarm_level}
+                                                            <span
+                                                                style={{
+                                                                    color: ALARM_LEVEL_MARKER_COLORS[
+                                                                        inc
+                                                                            .alarm_level
+                                                                    ],
+                                                                }}
+                                                            >
+                                                                {ALARM_LEVEL_CFG[
+                                                                    inc
+                                                                        .alarm_level
+                                                                ]?.label ??
+                                                                    inc.alarm_level}
                                                             </span>
                                                         </p>
                                                     )}
                                                     <p className="text-xs text-gray-500">
                                                         {inc.barangay ?? '—'}
                                                     </p>
-                                                    <p className="text-xs text-gray-400">{inc.dateTime}</p>
+                                                    <p className="text-xs text-gray-400">
+                                                        {inc.dateTime}
+                                                    </p>
                                                     <Link
-                                                        href={showIncident(inc.report_id)}
+                                                        href={showIncident(
+                                                            inc.report_id,
+                                                        )}
                                                         className="text-xs font-semibold text-blue-600 underline"
                                                     >
                                                         View full report →
@@ -610,17 +835,27 @@ export default function FireIncidentsMap({
                                 <div className="absolute bottom-3 left-3 z-[1000] space-y-2 rounded-lg bg-white/95 px-3 py-2 shadow">
                                     {legendEntries.length > 0 && (
                                         <div className="space-y-1.5">
-                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-muted">
-                                                {colorBy === 'alarm_level' ? 'Alarm Level' : 'Type'}
+                                            <p className="text-[10px] font-semibold tracking-wide text-brand-muted uppercase">
+                                                {colorBy === 'alarm_level'
+                                                    ? 'Alarm Level'
+                                                    : 'Type'}
                                             </p>
                                             <div className="flex flex-col gap-1">
                                                 {legendEntries.map((entry) => (
-                                                    <div key={entry.key} className="flex items-center gap-1.5">
+                                                    <div
+                                                        key={entry.key}
+                                                        className="flex items-center gap-1.5"
+                                                    >
                                                         <span
                                                             className="size-2 rounded-full"
-                                                            style={{ background: entry.color }}
+                                                            style={{
+                                                                background:
+                                                                    entry.color,
+                                                            }}
                                                         />
-                                                        <span className="text-xs text-brand-muted">{entry.label}</span>
+                                                        <span className="text-xs text-brand-muted">
+                                                            {entry.label}
+                                                        </span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -628,21 +863,49 @@ export default function FireIncidentsMap({
                                     )}
                                     {layers.risk && (
                                         <div
-                                            className={legendEntries.length > 0 ? 'border-t pt-2 space-y-1.5' : 'space-y-1.5'}
-                                            style={legendEntries.length > 0 ? { borderColor: 'rgba(43,45,66,0.1)' } : undefined}
+                                            className={
+                                                legendEntries.length > 0
+                                                    ? 'space-y-1.5 border-t pt-2'
+                                                    : 'space-y-1.5'
+                                            }
+                                            style={
+                                                legendEntries.length > 0
+                                                    ? {
+                                                          borderColor:
+                                                              'rgba(43,45,66,0.1)',
+                                                      }
+                                                    : undefined
+                                            }
                                         >
-                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-muted">
+                                            <p className="text-[10px] font-semibold tracking-wide text-brand-muted uppercase">
                                                 Barangay Risk
                                             </p>
                                             <div className="flex flex-col gap-1">
-                                                {(['high', 'moderate', 'mild'] as const).map((lvl) => (
-                                                    <div key={lvl} className="flex items-center gap-1.5">
+                                                {(
+                                                    [
+                                                        'high',
+                                                        'moderate',
+                                                        'mild',
+                                                    ] as const
+                                                ).map((lvl) => (
+                                                    <div
+                                                        key={lvl}
+                                                        className="flex items-center gap-1.5"
+                                                    >
                                                         <span
                                                             className="size-2 rounded-full"
-                                                            style={{ background: RISK_CFG[lvl].color }}
+                                                            style={{
+                                                                background:
+                                                                    RISK_CFG[
+                                                                        lvl
+                                                                    ].color,
+                                                            }}
                                                         />
                                                         <span className="text-xs text-brand-muted">
-                                                            {RISK_CFG[lvl].label}
+                                                            {
+                                                                RISK_CFG[lvl]
+                                                                    .label
+                                                            }
                                                         </span>
                                                     </div>
                                                 ))}
@@ -660,7 +923,8 @@ export default function FireIncidentsMap({
                                             No resolved incidents found
                                         </p>
                                         <p className="mt-1 text-xs text-brand-muted">
-                                            Try a different period, type, or alarm level.
+                                            Try a different period, type, or
+                                            alarm level.
                                         </p>
                                     </div>
                                 </div>

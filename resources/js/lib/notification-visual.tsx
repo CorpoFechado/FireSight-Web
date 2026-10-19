@@ -7,7 +7,7 @@ import {
     Megaphone,
     Send,
 } from 'lucide-react';
-import type {LucideIcon} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export type NotificationType =
     'incident_alert' | 'status_update' | 'system' | 'reminder';

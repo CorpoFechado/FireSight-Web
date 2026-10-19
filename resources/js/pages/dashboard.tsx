@@ -151,29 +151,25 @@ export default function Dashboard({
                                 height={300}
                             />
                             <div className="flex items-center gap-4 px-1">
-                                {(
-                                    [
-                                        'mild',
-                                        'moderate',
-                                        'high',
-                                    ] as const
-                                ).map((level) => (
-                                    <div
-                                        key={level}
-                                        className="flex items-center gap-1.5"
-                                    >
+                                {(['mild', 'moderate', 'high'] as const).map(
+                                    (level) => (
                                         <div
-                                            className="size-2.5 rounded-full"
-                                            style={{
-                                                background:
-                                                    RISK_CFG[level].color,
-                                            }}
-                                        />
-                                        <span className="text-xs text-brand-muted">
-                                            {RISK_CFG[level].label}
-                                        </span>
-                                    </div>
-                                ))}
+                                            key={level}
+                                            className="flex items-center gap-1.5"
+                                        >
+                                            <div
+                                                className="size-2.5 rounded-full"
+                                                style={{
+                                                    background:
+                                                        RISK_CFG[level].color,
+                                                }}
+                                            />
+                                            <span className="text-xs text-brand-muted">
+                                                {RISK_CFG[level].label}
+                                            </span>
+                                        </div>
+                                    ),
+                                )}
                             </div>
                         </div>
                     </PortalCard>
@@ -326,7 +322,8 @@ export default function Dashboard({
                                             fontSize: 12,
                                             borderRadius: 8,
                                             border: '1px solid rgba(43,45,66,0.1)',
-                                            boxShadow: '0 4px 12px rgba(29, 53, 87, 0.08)',
+                                            boxShadow:
+                                                '0 4px 12px rgba(29, 53, 87, 0.08)',
                                         }}
                                         formatter={(value: number) => [
                                             `${value} incident${value === 1 ? '' : 's'}`,
@@ -379,7 +376,10 @@ export default function Dashboard({
                             ) : (
                                 <>
                                     <div className="h-[180px] w-full">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
                                             <PieChart>
                                                 <Pie
                                                     data={incidentsByType}
@@ -390,21 +390,30 @@ export default function Dashboard({
                                                     paddingAngle={2}
                                                     stroke="none"
                                                 >
-                                                    {incidentsByType.map((slice) => (
-                                                        <Cell
-                                                            key={slice.type}
-                                                            fill={slice.color}
-                                                        />
-                                                    ))}
+                                                    {incidentsByType.map(
+                                                        (slice) => (
+                                                            <Cell
+                                                                key={slice.type}
+                                                                fill={
+                                                                    slice.color
+                                                                }
+                                                            />
+                                                        ),
+                                                    )}
                                                 </Pie>
                                                 <Tooltip
                                                     contentStyle={{
                                                         fontSize: 12,
                                                         borderRadius: 8,
                                                         border: '1px solid rgba(43,45,66,0.1)',
-                                                        boxShadow: '0 4px 12px rgba(29, 53, 87, 0.08)',
+                                                        boxShadow:
+                                                            '0 4px 12px rgba(29, 53, 87, 0.08)',
                                                     }}
-                                                    formatter={(value: number, _name, item) => [
+                                                    formatter={(
+                                                        value: number,
+                                                        _name,
+                                                        item,
+                                                    ) => [
                                                         `${value} (${item.payload.percentage}%)`,
                                                         item.payload.label,
                                                     ]}
@@ -420,7 +429,9 @@ export default function Dashboard({
                                             >
                                                 <span
                                                     className="size-2 flex-shrink-0 rounded-full"
-                                                    style={{ background: slice.color }}
+                                                    style={{
+                                                        background: slice.color,
+                                                    }}
                                                 />
                                                 <span className="flex-1 truncate text-brand-navy">
                                                     {slice.label}

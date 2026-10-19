@@ -2,10 +2,18 @@ import 'leaflet/dist/leaflet.css';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import { useEffect, useMemo, useState } from 'react';
 import { GeoJSON, MapContainer, TileLayer } from 'react-leaflet';
-import { BARANGAY_GEOJSON_URL, resolveDbBarangayName } from '@/lib/barangay-geo';
+import {
+    BARANGAY_GEOJSON_URL,
+    resolveDbBarangayName,
+} from '@/lib/barangay-geo';
 import { RISK_CFG, riskMapPolygonStyle } from '@/lib/fire-status';
 import type { RiskLevel } from '@/lib/fire-status';
-import { LIAN_CENTER, LIAN_DEFAULT_ZOOM, OSM_ATTRIBUTION, OSM_TILE_URL } from '@/lib/map-constants';
+import {
+    LIAN_CENTER,
+    LIAN_DEFAULT_ZOOM,
+    OSM_ATTRIBUTION,
+    OSM_TILE_URL,
+} from '@/lib/map-constants';
 
 type BarangayGeoProperties = { barangay: string };
 type BarangayFeature = Feature<Geometry, BarangayGeoProperties>;
@@ -26,18 +34,23 @@ export function BarangayRiskMap({
     barangays: BarangayRiskPoint[];
     height?: number;
 }) {
-    const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<Geometry, BarangayGeoProperties> | null>(null);
+    const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<
+        Geometry,
+        BarangayGeoProperties
+    > | null>(null);
 
     useEffect(() => {
         let cancelled = false;
 
         fetch(BARANGAY_GEOJSON_URL)
             .then((res) => res.json())
-            .then((data: FeatureCollection<Geometry, BarangayGeoProperties>) => {
-                if (!cancelled) {
-                    setBarangayGeo(data);
-                }
-            })
+            .then(
+                (data: FeatureCollection<Geometry, BarangayGeoProperties>) => {
+                    if (!cancelled) {
+                        setBarangayGeo(data);
+                    }
+                },
+            )
             .catch(() => {
                 // Boundary layer is decorative — silently fall back to no overlay.
             });
@@ -72,16 +85,27 @@ export function BarangayRiskMap({
                         data={barangayGeo}
                         style={(feature) => {
                             const risk = feature
-                                ? riskByBarangayName.get(resolveDbBarangayName(feature.properties.barangay))
+                                ? riskByBarangayName.get(
+                                      resolveDbBarangayName(
+                                          feature.properties.barangay,
+                                      ),
+                                  )
                                 : undefined;
 
                             return riskMapPolygonStyle(risk?.risk_level);
                         }}
                         onEachFeature={(feature: BarangayFeature, layer) => {
-                            const risk = riskByBarangayName.get(resolveDbBarangayName(feature.properties.barangay));
-                            const label = risk?.risk_level ? RISK_CFG[risk.risk_level].label : 'No data';
+                            const risk = riskByBarangayName.get(
+                                resolveDbBarangayName(
+                                    feature.properties.barangay,
+                                ),
+                            );
+                            const label = risk?.risk_level
+                                ? RISK_CFG[risk.risk_level].label
+                                : 'No data';
                             const score =
-                                risk?.prediction_score !== null && risk?.prediction_score !== undefined
+                                risk?.prediction_score !== null &&
+                                risk?.prediction_score !== undefined
                                     ? ` · ${Math.round(risk.prediction_score * 100)}% score`
                                     : '';
 

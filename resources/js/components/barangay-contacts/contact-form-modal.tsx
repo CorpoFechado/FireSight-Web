@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect  } from 'react';
-import type {FormEvent} from 'react';
+import { useEffect } from 'react';
+import type { FormEvent } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -112,7 +112,9 @@ export function ContactFormModal({
             <DialogContent className="bg-white text-brand-navy sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="text-brand-navy">
-                        {mode === 'create' ? 'Add Barangay Contact' : 'Edit Barangay Contact'}
+                        {mode === 'create'
+                            ? 'Add Barangay Contact'
+                            : 'Edit Barangay Contact'}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -138,7 +140,9 @@ export function ContactFormModal({
                             </SelectContent>
                         </Select>
                         {errors.barangay_id && (
-                            <p className="text-xs text-brand-red">{errors.barangay_id}</p>
+                            <p className="text-xs text-brand-red">
+                                {errors.barangay_id}
+                            </p>
                         )}
                     </div>
 
@@ -147,13 +151,17 @@ export function ContactFormModal({
                             <Label>Name</Label>
                             <input
                                 value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    setData('name', e.target.value)
+                                }
                                 placeholder="Enter full name"
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.name && (
-                                <p className="text-xs text-brand-red">{errors.name}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.name}
+                                </p>
                             )}
                         </div>
 
@@ -161,13 +169,17 @@ export function ContactFormModal({
                             <Label>Role / Position</Label>
                             <input
                                 value={data.role}
-                                onChange={(e) => setData('role', e.target.value)}
+                                onChange={(e) =>
+                                    setData('role', e.target.value)
+                                }
                                 placeholder="e.g. Barangay Captain"
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.role && (
-                                <p className="text-xs text-brand-red">{errors.role}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.role}
+                                </p>
                             )}
                         </div>
 
@@ -175,13 +187,17 @@ export function ContactFormModal({
                             <Label>Phone Number</Label>
                             <input
                                 value={data.phone_number}
-                                onChange={(e) => setData('phone_number', e.target.value)}
+                                onChange={(e) =>
+                                    setData('phone_number', e.target.value)
+                                }
                                 placeholder="Enter phone number"
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.phone_number && (
-                                <p className="text-xs text-brand-red">{errors.phone_number}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.phone_number}
+                                </p>
                             )}
                         </div>
                     </div>

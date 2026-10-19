@@ -8,12 +8,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    formatWeekRange,
-    groupLabel
-    
-} from '@/lib/duty-schedule';
-import type {Override} from '@/lib/duty-schedule';
+import { formatWeekRange, groupLabel } from '@/lib/duty-schedule';
+import type { Override } from '@/lib/duty-schedule';
 import { destroy as destroyOverride } from '@/routes/dutySchedule/overrides';
 
 export function RemoveOverrideDialog({
@@ -38,7 +34,8 @@ export function RemoveOverrideDialog({
             preserveScroll: true,
             onError: (errors) =>
                 toast.error(
-                    Object.values(errors)[0] ?? "Couldn't remove this reassignment.",
+                    Object.values(errors)[0] ??
+                        "Couldn't remove this reassignment.",
                 ),
             onFinish: () => {
                 setProcessing(false);
@@ -72,7 +69,7 @@ export function RemoveOverrideDialog({
                         type="button"
                         id="cancel-remove-override-btn"
                         onClick={() => onOpenChange(false)}
-                        className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted hover:bg-neutral-100 transition-colors"
+                        className="rounded-lg px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-neutral-100"
                     >
                         Cancel
                     </button>
@@ -81,7 +78,7 @@ export function RemoveOverrideDialog({
                         id="confirm-remove-override-btn"
                         onClick={confirmDelete}
                         disabled={processing}
-                        className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition-colors"
+                        className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-50"
                         style={{ background: '#E63946' }}
                     >
                         {processing ? 'Removing…' : 'Remove Reassignment'}

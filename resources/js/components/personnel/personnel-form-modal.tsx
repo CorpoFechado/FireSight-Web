@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useState  } from 'react';
-import type {FormEvent} from 'react';
+import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -311,7 +311,10 @@ export function PersonnelFormModal({
                         <Select
                             value={data.duty_group ?? 'unassigned'}
                             onValueChange={(v) =>
-                                setData('duty_group', v === 'unassigned' ? null : v)
+                                setData(
+                                    'duty_group',
+                                    v === 'unassigned' ? null : v,
+                                )
                             }
                         >
                             <SelectTrigger className="w-full">
@@ -319,10 +322,7 @@ export function PersonnelFormModal({
                             </SelectTrigger>
                             <SelectContent className="bg-white text-brand-navy">
                                 {DUTY_GROUP_OPTIONS.map((g) => (
-                                    <SelectItem
-                                        key={g.value}
-                                        value={g.value}
-                                    >
+                                    <SelectItem key={g.value} value={g.value}>
                                         {g.label}
                                     </SelectItem>
                                 ))}

@@ -8,7 +8,7 @@ export default function AppLogo() {
             <img
                 src="/images/firesight-logo.png"
                 alt="FireSight Logo"
-                className="h-8 w-auto object-contain flex-shrink-0"
+                className="h-8 w-auto flex-shrink-0 object-contain"
             />
             <div className="ml-1 grid flex-1 text-left text-sm">
                 <span className="mb-0.5 truncate leading-tight font-semibold">

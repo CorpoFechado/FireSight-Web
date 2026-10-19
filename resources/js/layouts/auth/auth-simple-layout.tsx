@@ -12,7 +12,8 @@ export default function AuthSimpleLayout({
         <div
             className="relative isolate flex min-h-svh flex-col items-center justify-center overflow-hidden p-6 md:p-10"
             style={{
-                background: 'linear-gradient(165deg, #1d3557 0%, #16294a 55%, #10192e 100%)',
+                background:
+                    'linear-gradient(165deg, #1d3557 0%, #16294a 55%, #10192e 100%)',
             }}
         >
             <AuroraBackground variant="dark" className="!fixed inset-0" />
@@ -33,7 +34,9 @@ export default function AuthSimpleLayout({
                         </Link>
 
                         <div className="space-y-1.5 text-center">
-                            <h1 className="text-xl font-semibold text-white">{title}</h1>
+                            <h1 className="text-xl font-semibold text-white">
+                                {title}
+                            </h1>
                             <p className="text-center text-sm text-white/60">
                                 {description}
                             </p>

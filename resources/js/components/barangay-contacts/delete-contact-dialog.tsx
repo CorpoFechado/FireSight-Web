@@ -56,7 +56,8 @@ export function DeleteContactDialog({
                     <span className="font-semibold text-brand-navy">
                         {contact.name}
                     </span>{' '}
-                    ({contact.role}) from Barangay Contacts. This can&apos;t be undone.
+                    ({contact.role}) from Barangay Contacts. This can&apos;t be
+                    undone.
                 </p>
 
                 <DialogFooter>

@@ -36,7 +36,6 @@ export function PortalTopbar({
 
             <div className="flex-1" />
 
-
             {/* Notifications */}
             <Link
                 href={notifications()}
@@ -59,10 +58,17 @@ export function PortalTopbar({
                     <DropdownMenuTrigger asChild>
                         <button className="flex cursor-pointer items-center gap-2">
                             <UserInfo user={auth.user} />
-                            <ChevronDown size={13} className="text-brand-muted" />
+                            <ChevronDown
+                                size={13}
+                                className="text-brand-muted"
+                            />
                         </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="min-w-56 rounded-lg" align="end" side="bottom">
+                    <DropdownMenuContent
+                        className="min-w-56 rounded-lg"
+                        align="end"
+                        side="bottom"
+                    >
                         <UserMenuContent user={auth.user} />
                     </DropdownMenuContent>
                 </DropdownMenu>

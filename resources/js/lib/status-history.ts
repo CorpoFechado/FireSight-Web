@@ -22,10 +22,7 @@ const STANDARD_SEQUENCE: ReportStatus[] = [
     'resolved',
 ];
 
-const INVALID_SEQUENCE: ReportStatus[] = [
-    'pending',
-    'invalid',
-];
+const INVALID_SEQUENCE: ReportStatus[] = ['pending', 'invalid'];
 
 const STATUS_PERSONNEL: Record<ReportStatus, string> = {
     pending: 'FO1 J. Dela Cruz (Intake)',
@@ -48,9 +45,10 @@ function parseDate(dateStr: string): Date {
         return new Date();
     }
 
-    const normalized = dateStr.includes(' ') && !dateStr.includes('T')
-        ? dateStr.replace(' ', 'T')
-        : dateStr;
+    const normalized =
+        dateStr.includes(' ') && !dateStr.includes('T')
+            ? dateStr.replace(' ', 'T')
+            : dateStr;
     const parsed = new Date(normalized);
 
     return isNaN(parsed.getTime()) ? new Date() : parsed;
@@ -73,15 +71,18 @@ function formatDateTime(d: Date): string {
  */
 export function generateStatusHistory(
     currentStatus: ReportStatus,
-    submissionDateTime: string
+    submissionDateTime: string,
 ): StatusHistoryEntry[] {
-    const sequence = currentStatus === 'invalid'
-        ? INVALID_SEQUENCE
-        : (() => {
-            const idx = STANDARD_SEQUENCE.indexOf(currentStatus);
+    const sequence =
+        currentStatus === 'invalid'
+            ? INVALID_SEQUENCE
+            : (() => {
+                  const idx = STANDARD_SEQUENCE.indexOf(currentStatus);
 
-            return idx >= 0 ? STANDARD_SEQUENCE.slice(0, idx + 1) : ['pending' as ReportStatus];
-        })();
+                  return idx >= 0
+                      ? STANDARD_SEQUENCE.slice(0, idx + 1)
+                      : ['pending' as ReportStatus];
+              })();
 
     const baseTime = parseDate(submissionDateTime);
     let cumulativeMs = baseTime.getTime();

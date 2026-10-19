@@ -2,7 +2,10 @@ import { router } from '@inertiajs/react';
 import { Filter, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { ContactFormModal } from '@/components/barangay-contacts/contact-form-modal';
-import type {BarangayOption, ContactRow} from '@/components/barangay-contacts/contact-form-modal';
+import type {
+    BarangayOption,
+    ContactRow,
+} from '@/components/barangay-contacts/contact-form-modal';
 import { DeleteContactDialog } from '@/components/barangay-contacts/delete-contact-dialog';
 import { PortalCard } from '@/components/portal/portal-card';
 import {
@@ -75,7 +78,8 @@ export default function BarangayContactsIndex({
                             Barangay Contacts
                         </h1>
                         <p className="mt-1 text-sm text-brand-muted">
-                            {totalCount} contact{totalCount !== 1 ? 's' : ''} registered across all barangays
+                            {totalCount} contact{totalCount !== 1 ? 's' : ''}{' '}
+                            registered across all barangays
                         </p>
                     </div>
                     <button
@@ -107,7 +111,9 @@ export default function BarangayContactsIndex({
                             <DropdownMenuTrigger asChild>
                                 <button
                                     className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold text-brand-navy"
-                                    style={{ borderColor: 'rgba(43,45,66,0.15)' }}
+                                    style={{
+                                        borderColor: 'rgba(43,45,66,0.15)',
+                                    }}
                                 >
                                     <Filter size={13} /> Barangay
                                     {hasFilter && (
@@ -121,7 +127,9 @@ export default function BarangayContactsIndex({
                                 align="start"
                                 className="max-h-72 w-56 overflow-y-auto bg-white text-brand-navy"
                             >
-                                <DropdownMenuLabel>Filter by Barangay</DropdownMenuLabel>
+                                <DropdownMenuLabel>
+                                    Filter by Barangay
+                                </DropdownMenuLabel>
                                 <DropdownMenuRadioGroup
                                     value={activeBarangayId}
                                     onValueChange={setBarangayFilter}
@@ -151,7 +159,8 @@ export default function BarangayContactsIndex({
                                 <tr
                                     style={{
                                         background: '#FAFBFC',
-                                        borderBottom: '1px solid rgba(43,45,66,0.08)',
+                                        borderBottom:
+                                            '1px solid rgba(43,45,66,0.08)',
                                     }}
                                 >
                                     {[
@@ -196,7 +205,9 @@ export default function BarangayContactsIndex({
                                             <div className="flex items-center gap-2.5">
                                                 <span
                                                     className="flex size-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-                                                    style={{ background: '#1D3557' }}
+                                                    style={{
+                                                        background: '#1D3557',
+                                                    }}
                                                 >
                                                     {c.name
                                                         .split(' ')
@@ -219,14 +230,18 @@ export default function BarangayContactsIndex({
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-1">
                                                 <button
-                                                    onClick={() => setEditing(c)}
+                                                    onClick={() =>
+                                                        setEditing(c)
+                                                    }
                                                     className="rounded-lg p-1.5 text-brand-blue hover:bg-blue-50"
                                                     aria-label={`Edit ${c.name}`}
                                                 >
                                                     <Pencil size={14} />
                                                 </button>
                                                 <button
-                                                    onClick={() => setDeleting(c)}
+                                                    onClick={() =>
+                                                        setDeleting(c)
+                                                    }
                                                     className="rounded-lg p-1.5 hover:bg-red-50"
                                                     style={{ color: '#E63946' }}
                                                     aria-label={`Delete ${c.name}`}

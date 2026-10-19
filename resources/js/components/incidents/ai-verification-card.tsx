@@ -1,4 +1,13 @@
-import { Bot, CheckCircle2, Clock, Flame, Info, ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+    Bot,
+    CheckCircle2,
+    Clock,
+    Flame,
+    Info,
+    ShieldAlert,
+    ShieldCheck,
+    Sparkles,
+} from 'lucide-react';
 import { AI_FIRE_LABEL_CFG } from '@/lib/fire-status';
 
 interface AiVerificationCardProps {
@@ -21,8 +30,12 @@ export function AiVerificationCard({
                             <Bot size={15} />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-brand-navy">AI Fire Verification</p>
-                            <p className="text-[11px] text-brand-muted">Mobile App Detection Model</p>
+                            <p className="text-xs font-bold text-brand-navy">
+                                AI Fire Verification
+                            </p>
+                            <p className="text-[11px] text-brand-muted">
+                                Mobile App Detection Model
+                            </p>
                         </div>
                     </div>
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-brand-muted">
@@ -30,9 +43,13 @@ export function AiVerificationCard({
                     </span>
                 </div>
                 <div className="mt-3 flex items-start gap-2 rounded-lg bg-white/70 p-2.5 text-xs text-brand-muted">
-                    <Info size={14} className="mt-0.5 shrink-0 text-brand-muted" />
+                    <Info
+                        size={14}
+                        className="mt-0.5 shrink-0 text-brand-muted"
+                    />
                     <p>
-                        No automated AI classification received from the mobile app backend for this report.
+                        No automated AI classification received from the mobile
+                        app backend for this report.
                     </p>
                 </div>
             </div>
@@ -65,7 +82,10 @@ export function AiVerificationCard({
             }}
         >
             {/* Header */}
-            <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'rgba(43,45,66,0.08)' }}>
+            <div
+                className="flex items-center justify-between border-b pb-3"
+                style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+            >
                 <div className="flex items-center gap-2">
                     <div
                         className="flex size-7 items-center justify-center rounded-lg"
@@ -81,12 +101,16 @@ export function AiVerificationCard({
                     </div>
                     <div>
                         <div className="flex items-center gap-1.5">
-                            <p className="text-xs font-bold text-brand-navy">AI Fire Verification</p>
+                            <p className="text-xs font-bold text-brand-navy">
+                                AI Fire Verification
+                            </p>
                             <span className="flex items-center gap-0.5 text-[10px] font-semibold text-brand-blue">
                                 <Sparkles size={10} /> Mobile AI
                             </span>
                         </div>
-                        <p className="text-[11px] text-brand-muted">Mobile App Automated Model</p>
+                        <p className="text-[11px] text-brand-muted">
+                            Mobile App Automated Model
+                        </p>
                     </div>
                 </div>
 
@@ -94,7 +118,10 @@ export function AiVerificationCard({
                     className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold shadow-xs"
                     style={{ background: cfg.badgeBg, color: cfg.badgeText }}
                 >
-                    <span className="size-1.5 rounded-full" style={{ background: cfg.badgeText }} />
+                    <span
+                        className="size-1.5 rounded-full"
+                        style={{ background: cfg.badgeText }}
+                    />
                     {cfg.label}
                 </span>
             </div>
@@ -104,7 +131,9 @@ export function AiVerificationCard({
                 {confidencePct !== null ? (
                     <div>
                         <div className="flex items-center justify-between text-xs">
-                            <span className="font-medium text-brand-muted">Model Confidence</span>
+                            <span className="font-medium text-brand-muted">
+                                Model Confidence
+                            </span>
                             <span className="font-mono font-bold text-brand-navy">
                                 {confidencePct.toFixed(1)}%
                             </span>
@@ -120,14 +149,20 @@ export function AiVerificationCard({
                         </div>
                     </div>
                 ) : (
-                    <div className="text-xs text-brand-muted">Confidence score not specified</div>
+                    <div className="text-xs text-brand-muted">
+                        Confidence score not specified
+                    </div>
                 )}
 
                 {/* Verification Timestamp & Source Note */}
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-brand-muted">
                     <div className="flex items-center gap-1">
                         <Clock size={12} className="text-brand-muted" />
-                        <span>{verifiedAt ? `Verified: ${verifiedAt}` : 'Timestamp not recorded'}</span>
+                        <span>
+                            {verifiedAt
+                                ? `Verified: ${verifiedAt}`
+                                : 'Timestamp not recorded'}
+                        </span>
                     </div>
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium text-brand-navy/70">
                         <CheckCircle2 size={11} className="text-brand-blue" />

@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect  } from 'react';
-import type {FormEvent} from 'react';
+import { useEffect } from 'react';
+import type { FormEvent } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -75,8 +75,7 @@ export function AcceptReportModal({
                     <p className="text-xs text-brand-muted">
                         Confirm the barangay for dispatch routing. Incident
                         type, alarm level, and other assessment details are
-                        recorded later, once the fire has been marked
-                        Resolved.
+                        recorded later, once the fire has been marked Resolved.
                     </p>
 
                     <div className="space-y-1.5">

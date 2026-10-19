@@ -74,8 +74,18 @@ export type DutySchedulePageProps = {
 };
 
 const MONTH_NAMES = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
 ];
 
 /** Parse a 'YYYY-MM-DD' string into a local-time Date (no UTC shift). */
@@ -115,7 +125,10 @@ export function snapToMonday(iso: string): string {
  * Given a Monday ISO date string and number of weeks (1-12),
  * calculate the ending Sunday's ISO date string.
  */
-export function computeWeekEnd(startMondayISO: string, numberOfWeeks: number): string {
+export function computeWeekEnd(
+    startMondayISO: string,
+    numberOfWeeks: number,
+): string {
     const monday = parseISODate(startMondayISO);
     const totalDays = Math.max(1, numberOfWeeks) * 7 - 1;
 
@@ -154,8 +167,8 @@ export function formatChipDate(iso: string): string {
 /** Human-friendly group label. */
 export function groupLabel(group: string | null | undefined): string {
     if (!group) {
-return 'Unassigned';
-}
+        return 'Unassigned';
+    }
 
     switch (group) {
         case 'A':
@@ -184,7 +197,8 @@ export const DUTY_COLORS = {
         border: 'border-indigo-400',
         ring: 'ring-indigo-500',
         chipActive: 'bg-indigo-600 text-white font-semibold shadow-sm',
-        chipInactive: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200',
+        chipInactive:
+            'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200',
         subtle: 'text-indigo-600',
     },
     B: {
@@ -194,7 +208,8 @@ export const DUTY_COLORS = {
         border: 'border-amber-400',
         ring: 'ring-amber-500',
         chipActive: 'bg-amber-600 text-white font-semibold shadow-sm',
-        chipInactive: 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200',
+        chipInactive:
+            'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200',
         subtle: 'text-amber-700',
     },
 } as const;

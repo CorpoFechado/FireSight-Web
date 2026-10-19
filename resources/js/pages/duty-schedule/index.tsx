@@ -39,12 +39,13 @@ import {
     formatWeekRange,
     groupLabel,
     parseISODate,
-    toISODate
-    
-    
-    
+    toISODate,
 } from '@/lib/duty-schedule';
-import type {DutySchedulePageProps, Member, Override} from '@/lib/duty-schedule';
+import type {
+    DutySchedulePageProps,
+    Member,
+    Override,
+} from '@/lib/duty-schedule';
 import { dutySchedule } from '@/routes';
 import { updateGroup } from '@/routes/dutySchedule';
 
@@ -139,18 +140,15 @@ export default function DutySchedulePage({
                     const firstErr = Object.values(errs)[0];
 
                     if (firstErr) {
-toast.error(firstErr);
-}
+                        toast.error(firstErr);
+                    }
                 },
             },
         );
     };
 
     // Open override modal with prefill
-    const openOverrideModal = (
-        mode: 'reassign' | 'swap',
-        userId?: number,
-    ) => {
+    const openOverrideModal = (mode: 'reassign' | 'swap', userId?: number) => {
         setModalPrefill({ mode, userId });
         setOverrideModalOpen(true);
     };
@@ -158,8 +156,8 @@ toast.error(firstErr);
     // Open remove override dialog for a member
     const handleRemoveOverrideForMember = (member: Member) => {
         if (!member.override_id) {
-return;
-}
+            return;
+        }
 
         const ov =
             overridesMap.get(member.override_id) ??
@@ -190,27 +188,30 @@ return;
                     isDimmed ? 'opacity-65 hover:opacity-95' : ''
                 }`}
             >
-                <div className="flex items-center gap-3 min-w-0 pr-2">
+                <div className="flex min-w-0 items-center gap-3 pr-2">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-navy/10 text-xs font-bold text-brand-navy">
                         {getInitials(member.name)}
                     </span>
                     <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-sm font-semibold text-brand-navy truncate">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="truncate text-sm font-semibold text-brand-navy">
                                 {member.name}
                             </span>
                             {member.is_overridden && (
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <span className="inline-flex cursor-help items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.2 text-[10px] font-semibold text-amber-800">
+                                            <span className="py-0.2 inline-flex cursor-help items-center rounded-full border border-amber-200 bg-amber-50 px-2 text-[10px] font-semibold text-amber-800">
                                                 Reassigned
                                             </span>
                                         </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs bg-brand-navy text-white text-xs p-2.5">
+                                        <TooltipContent className="max-w-xs bg-brand-navy p-2.5 text-xs text-white">
                                             <p className="font-semibold text-amber-300">
-                                                {groupLabel(member.base_group)} →{' '}
-                                                {groupLabel(member.effective_group)}
+                                                {groupLabel(member.base_group)}{' '}
+                                                →{' '}
+                                                {groupLabel(
+                                                    member.effective_group,
+                                                )}
                                             </p>
                                             {memberOverride ? (
                                                 <>
@@ -221,8 +222,12 @@ return;
                                                         )}
                                                     </p>
                                                     {memberOverride.reason && (
-                                                        <p className="mt-1 text-[11px] italic text-neutral-200">
-                                                            “{memberOverride.reason}”
+                                                        <p className="mt-1 text-[11px] text-neutral-200 italic">
+                                                            “
+                                                            {
+                                                                memberOverride.reason
+                                                            }
+                                                            ”
                                                         </p>
                                                     )}
                                                 </>
@@ -236,7 +241,7 @@ return;
                                 </TooltipProvider>
                             )}
                         </div>
-                        <div className="text-xs font-medium text-brand-muted truncate">
+                        <div className="truncate text-xs font-medium text-brand-muted">
                             {member.rank ?? 'Firefighter'}
                         </div>
                     </div>
@@ -248,13 +253,16 @@ return;
                         <button
                             type="button"
                             id={`member-actions-btn-${member.user_id}`}
-                            className="shrink-0 rounded-lg p-1.5 text-brand-muted hover:bg-neutral-100 hover:text-brand-navy transition-colors focus:outline-none"
+                            className="shrink-0 rounded-lg p-1.5 text-brand-muted transition-colors hover:bg-neutral-100 hover:text-brand-navy focus:outline-none"
                             aria-label={`Actions for ${member.name}`}
                         >
                             <MoreHorizontal size={16} />
                         </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 bg-white text-brand-navy">
+                    <DropdownMenuContent
+                        align="end"
+                        className="w-56 bg-white text-brand-navy"
+                    >
                         <DropdownMenuLabel className="text-xs font-medium text-brand-muted">
                             {member.name}
                         </DropdownMenuLabel>
@@ -273,19 +281,24 @@ return;
                                 {PERMANENT_MOVE_OPTIONS.map((opt) => {
                                     const isCurrent =
                                         member.base_group === opt.value ||
-                                        (member.base_group === null && opt.value === null);
+                                        (member.base_group === null &&
+                                            opt.value === null);
 
                                     return (
                                         <DropdownMenuItem
                                             key={opt.value ?? 'unassigned'}
                                             disabled={isCurrent}
                                             onClick={() =>
-                                                handleMoveGroup(member, opt.value)
+                                                handleMoveGroup(
+                                                    member,
+                                                    opt.value,
+                                                )
                                             }
-                                            className="cursor-pointer flex flex-col items-start gap-0.5"
+                                            className="flex cursor-pointer flex-col items-start gap-0.5"
                                         >
-                                            <span className="font-semibold text-xs text-brand-navy">
-                                                {opt.label} {isCurrent ? '(Current)' : ''}
+                                            <span className="text-xs font-semibold text-brand-navy">
+                                                {opt.label}{' '}
+                                                {isCurrent ? '(Current)' : ''}
                                             </span>
                                             <span className="text-[10px] text-brand-muted">
                                                 Permanent roster update
@@ -299,16 +312,21 @@ return;
                         {/* Reassign For a Period */}
                         <DropdownMenuItem
                             className="cursor-pointer gap-2 text-xs"
-                            onClick={() => openOverrideModal('reassign', member.user_id)}
+                            onClick={() =>
+                                openOverrideModal('reassign', member.user_id)
+                            }
                         >
                             <Calendar size={14} /> Reassign for a period…
                         </DropdownMenuItem>
 
                         {/* Swap With (only for base group A or B) */}
-                        {(member.base_group === 'A' || member.base_group === 'B') && (
+                        {(member.base_group === 'A' ||
+                            member.base_group === 'B') && (
                             <DropdownMenuItem
                                 className="cursor-pointer gap-2 text-xs"
-                                onClick={() => openOverrideModal('swap', member.user_id)}
+                                onClick={() =>
+                                    openOverrideModal('swap', member.user_id)
+                                }
                             >
                                 <ArrowLeftRight size={14} /> Swap with…
                             </DropdownMenuItem>
@@ -319,8 +337,10 @@ return;
                             <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                    className="cursor-pointer gap-2 text-xs text-red-600 focus:text-red-700 focus:bg-red-50"
-                                    onClick={() => handleRemoveOverrideForMember(member)}
+                                    className="cursor-pointer gap-2 text-xs text-red-600 focus:bg-red-50 focus:text-red-700"
+                                    onClick={() =>
+                                        handleRemoveOverrideForMember(member)
+                                    }
                                 >
                                     <Trash2 size={14} /> Remove reassignment
                                 </DropdownMenuItem>
@@ -359,20 +379,21 @@ return;
                                 type="button"
                                 id="prev-week-btn"
                                 onClick={() => goToOffset(-7)}
-                                className="rounded-md p-1.5 text-brand-muted hover:bg-neutral-100 hover:text-brand-navy transition-colors"
+                                className="rounded-md p-1.5 text-brand-muted transition-colors hover:bg-neutral-100 hover:text-brand-navy"
                                 title="Previous week"
                                 aria-label="Previous week"
                             >
                                 <ChevronLeft size={16} />
                             </button>
                             <span className="px-3 text-xs font-semibold text-brand-navy select-none">
-                                {formatChipDate(week.start)} – {formatChipDate(week.end)}
+                                {formatChipDate(week.start)} –{' '}
+                                {formatChipDate(week.end)}
                             </span>
                             <button
                                 type="button"
                                 id="next-week-btn"
                                 onClick={() => goToOffset(7)}
-                                className="rounded-md p-1.5 text-brand-muted hover:bg-neutral-100 hover:text-brand-navy transition-colors"
+                                className="rounded-md p-1.5 text-brand-muted transition-colors hover:bg-neutral-100 hover:text-brand-navy"
                                 title="Next week"
                                 aria-label="Next week"
                             >
@@ -387,8 +408,8 @@ return;
                             disabled={week.isCurrent}
                             className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
                                 week.isCurrent
-                                    ? 'border-neutral-200 bg-neutral-100 text-neutral-400 cursor-default'
-                                    : 'border-neutral-300 bg-white text-brand-navy hover:bg-neutral-50 shadow-2xs'
+                                    ? 'cursor-default border-neutral-200 bg-neutral-100 text-neutral-400'
+                                    : 'border-neutral-300 bg-white text-brand-navy shadow-2xs hover:bg-neutral-50'
                             }`}
                         >
                             This week
@@ -398,7 +419,7 @@ return;
                             type="button"
                             id="reassign-swap-open-btn"
                             onClick={() => openOverrideModal('reassign')}
-                            className="flex items-center gap-1.5 rounded-lg bg-brand-navy px-4 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-brand-navy-hover transition-colors"
+                            className="flex items-center gap-1.5 rounded-lg bg-brand-navy px-4 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-brand-navy-hover"
                         >
                             <ArrowLeftRight size={14} /> Reassign / Swap
                         </button>
@@ -407,8 +428,8 @@ return;
 
                 {/* Rotation Strip */}
                 <div className="overflow-x-auto pb-1">
-                    <div className="flex items-center gap-2 min-w-max">
-                        <span className="text-xs font-semibold text-brand-muted uppercase tracking-wider pr-1">
+                    <div className="flex min-w-max items-center gap-2">
+                        <span className="pr-1 text-xs font-semibold tracking-wider text-brand-muted uppercase">
                             Rotation:
                         </span>
                         {upcoming.map((u) => {
@@ -424,16 +445,18 @@ return;
                                     className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-all ${
                                         isSelected
                                             ? isA
-                                                ? 'bg-indigo-600 text-white font-semibold ring-2 ring-indigo-500 ring-offset-1 shadow-sm'
-                                                : 'bg-amber-600 text-white font-semibold ring-2 ring-amber-500 ring-offset-1 shadow-sm'
+                                                ? 'bg-indigo-600 font-semibold text-white shadow-sm ring-2 ring-indigo-500 ring-offset-1'
+                                                : 'bg-amber-600 font-semibold text-white shadow-sm ring-2 ring-amber-500 ring-offset-1'
                                             : isA
-                                              ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80'
-                                              : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200/80'
+                                              ? 'border border-indigo-200/80 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                              : 'border border-amber-200/80 bg-amber-50 text-amber-800 hover:bg-amber-100'
                                     }`}
                                 >
                                     <span>{formatChipDate(u.week_start)}</span>
                                     <span>·</span>
-                                    <span className="font-bold">Duty {u.group}</span>
+                                    <span className="font-bold">
+                                        Duty {u.group}
+                                    </span>
                                 </button>
                             );
                         })}
@@ -448,15 +471,16 @@ return;
                             No Personnel Registered
                         </h3>
                         <p className="mt-1 text-sm text-brand-muted">
-                            Register personnel accounts first to populate the station duty roster.
+                            Register personnel accounts first to populate the
+                            station duty roster.
                         </p>
                     </PortalCard>
                 ) : (
                     /* Roster Board: 3 Columns like the Station's Wall Board */
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                         {/* COLUMN 1: Duty A */}
                         <div className="flex flex-col rounded-2xl border border-indigo-200/90 bg-indigo-50/20 p-4 shadow-2xs">
-                            <div className="flex items-center justify-between pb-3 border-b border-indigo-100">
+                            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="h-3 w-3 rounded-full bg-indigo-600" />
                                     <h2 className="text-base font-bold text-indigo-950">
@@ -468,9 +492,9 @@ return;
                                 </div>
                                 {isDutyAActive ? (
                                     <span className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 shadow-2xs">
-                                        <span className="relative flex h-2 w-2 mr-1.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                        <span className="relative mr-1.5 flex h-2 w-2">
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                                         </span>
                                         On Duty
                                     </span>
@@ -481,14 +505,17 @@ return;
                                 )}
                             </div>
 
-                            <div className="mt-3.5 space-y-2.5 flex-1">
+                            <div className="mt-3.5 flex-1 space-y-2.5">
                                 {roster.A.length === 0 ? (
                                     <div className="rounded-xl border border-dashed border-indigo-200 bg-white/50 p-6 text-center text-xs text-brand-muted">
                                         No personnel assigned to Duty A.
                                     </div>
                                 ) : (
                                     roster.A.map((member) =>
-                                        renderMemberCard(member, !isDutyAActive),
+                                        renderMemberCard(
+                                            member,
+                                            !isDutyAActive,
+                                        ),
                                     )
                                 )}
                             </div>
@@ -496,7 +523,7 @@ return;
 
                         {/* COLUMN 2: Always on Duty (Command Group / Regular) */}
                         <div className="flex flex-col rounded-2xl border border-emerald-200/90 bg-emerald-50/20 p-4 shadow-2xs">
-                            <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
+                            <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="h-3 w-3 rounded-full bg-emerald-600" />
                                     <h2 className="text-base font-bold text-emerald-950">
@@ -507,15 +534,15 @@ return;
                                     </span>
                                 </div>
                                 <span className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 shadow-2xs">
-                                    <span className="relative flex h-2 w-2 mr-1.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                    <span className="relative mr-1.5 flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                                     </span>
                                     On Duty
                                 </span>
                             </div>
 
-                            <div className="mt-3.5 space-y-2.5 flex-1">
+                            <div className="mt-3.5 flex-1 space-y-2.5">
                                 {roster.regular.length === 0 ? (
                                     <div className="rounded-xl border border-dashed border-emerald-200 bg-white/50 p-6 text-center text-xs text-brand-muted">
                                         No personnel assigned to Always on Duty.
@@ -530,7 +557,7 @@ return;
 
                         {/* COLUMN 3: Duty B */}
                         <div className="flex flex-col rounded-2xl border border-amber-200/90 bg-amber-50/20 p-4 shadow-2xs">
-                            <div className="flex items-center justify-between pb-3 border-b border-amber-100">
+                            <div className="flex items-center justify-between border-b border-amber-100 pb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="h-3 w-3 rounded-full bg-amber-600" />
                                     <h2 className="text-base font-bold text-amber-950">
@@ -542,9 +569,9 @@ return;
                                 </div>
                                 {isDutyBActive ? (
                                     <span className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 shadow-2xs">
-                                        <span className="relative flex h-2 w-2 mr-1.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                        <span className="relative mr-1.5 flex h-2 w-2">
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                                         </span>
                                         On Duty
                                     </span>
@@ -555,14 +582,17 @@ return;
                                 )}
                             </div>
 
-                            <div className="mt-3.5 space-y-2.5 flex-1">
+                            <div className="mt-3.5 flex-1 space-y-2.5">
                                 {roster.B.length === 0 ? (
                                     <div className="rounded-xl border border-dashed border-amber-200 bg-white/50 p-6 text-center text-xs text-brand-muted">
                                         No personnel assigned to Duty B.
                                     </div>
                                 ) : (
                                     roster.B.map((member) =>
-                                        renderMemberCard(member, !isDutyBActive),
+                                        renderMemberCard(
+                                            member,
+                                            !isDutyBActive,
+                                        ),
                                     )
                                 )}
                             </div>
@@ -571,47 +601,57 @@ return;
                 )}
 
                 {/* Below Board: 2 Smaller PortalCards Side-by-Side */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Detached / Unassigned Card */}
                     <PortalCard className="p-5">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="mb-4 flex items-center justify-between">
                             <div>
                                 <h2 className="text-base font-bold text-brand-navy">
                                     Detached / Unassigned
                                 </h2>
                                 <p className="text-xs text-brand-muted">
-                                    Personnel not currently active in Duty A, Duty B, or command rotation
+                                    Personnel not currently active in Duty A,
+                                    Duty B, or command rotation
                                 </p>
                             </div>
                             <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-brand-muted">
-                                {roster.detached.length + roster.unassigned.length} personnel
+                                {roster.detached.length +
+                                    roster.unassigned.length}{' '}
+                                personnel
                             </span>
                         </div>
 
-                        {roster.detached.length === 0 && roster.unassigned.length === 0 ? (
+                        {roster.detached.length === 0 &&
+                        roster.unassigned.length === 0 ? (
                             <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50/50 p-8 text-center text-xs text-brand-muted">
                                 No detached or unassigned personnel this week.
                             </div>
                         ) : (
                             <div className="space-y-2.5">
-                                {roster.detached.map((m) => renderMemberCard(m, true))}
-                                {roster.unassigned.map((m) => renderMemberCard(m, true))}
+                                {roster.detached.map((m) =>
+                                    renderMemberCard(m, true),
+                                )}
+                                {roster.unassigned.map((m) =>
+                                    renderMemberCard(m, true),
+                                )}
                             </div>
                         )}
                     </PortalCard>
 
                     {/* Reassignments this week Card */}
                     <PortalCard className="p-5">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="mb-4 flex items-center justify-between">
                             <div>
                                 <h2 className="text-base font-bold text-brand-navy">
                                     Reassignments this week
                                 </h2>
                                 <p className="text-xs text-brand-muted">
-                                    Active temporary overrides covering {formatChipDate(week.start)} – {formatChipDate(week.end)}
+                                    Active temporary overrides covering{' '}
+                                    {formatChipDate(week.start)} –{' '}
+                                    {formatChipDate(week.end)}
                                 </p>
                             </div>
-                            <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                            <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
                                 {overrides.length} active
                             </span>
                         </div>
@@ -625,24 +665,33 @@ return;
                                 {overrides.map((ov) => (
                                     <div
                                         key={ov.override_id}
-                                        className="flex items-center justify-between rounded-xl border border-neutral-200/80 bg-white p-3 shadow-2xs hover:shadow-xs transition-shadow"
+                                        className="flex items-center justify-between rounded-xl border border-neutral-200/80 bg-white p-3 shadow-2xs transition-shadow hover:shadow-xs"
                                     >
                                         <div className="min-w-0 pr-3">
-                                            <div className="flex items-center gap-2 flex-wrap">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <span className="text-sm font-semibold text-brand-navy">
                                                     {ov.name}
                                                 </span>
                                                 <span className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-brand-navy">
-                                                    <span>{groupLabel(ov.from_group)}</span>
+                                                    <span>
+                                                        {groupLabel(
+                                                            ov.from_group,
+                                                        )}
+                                                    </span>
                                                     <span>→</span>
                                                     <span className="font-semibold text-brand-navy">
-                                                        {groupLabel(ov.duty_group)}
+                                                        {groupLabel(
+                                                            ov.duty_group,
+                                                        )}
                                                     </span>
                                                 </span>
                                             </div>
-                                            <div className="mt-1 flex items-center gap-2 text-xs text-brand-muted flex-wrap">
+                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-brand-muted">
                                                 <span>
-                                                    {formatWeekRange(ov.starts_on, ov.ends_on)}
+                                                    {formatWeekRange(
+                                                        ov.starts_on,
+                                                        ov.ends_on,
+                                                    )}
                                                 </span>
                                                 {ov.reason && (
                                                     <>
@@ -656,7 +705,8 @@ return;
                                                     <>
                                                         <span>•</span>
                                                         <span className="text-[11px]">
-                                                            By {ov.created_by_name}
+                                                            By{' '}
+                                                            {ov.created_by_name}
                                                         </span>
                                                     </>
                                                 )}
@@ -665,8 +715,10 @@ return;
                                         <button
                                             type="button"
                                             id={`delete-override-btn-${ov.override_id}`}
-                                            onClick={() => setRemoveOverrideTarget(ov)}
-                                            className="shrink-0 rounded-lg p-2 text-brand-muted hover:bg-red-50 hover:text-red-600 transition-colors"
+                                            onClick={() =>
+                                                setRemoveOverrideTarget(ov)
+                                            }
+                                            className="shrink-0 rounded-lg p-2 text-brand-muted transition-colors hover:bg-red-50 hover:text-red-600"
                                             title="Remove reassignment"
                                             aria-label={`Remove reassignment for ${ov.name}`}
                                         >
@@ -696,8 +748,8 @@ return;
                 open={removeOverrideTarget !== null}
                 onOpenChange={(open) => {
                     if (!open) {
-setRemoveOverrideTarget(null);
-}
+                        setRemoveOverrideTarget(null);
+                    }
                 }}
             />
         </PortalLayout>

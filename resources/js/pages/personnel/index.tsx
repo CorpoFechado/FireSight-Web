@@ -2,11 +2,8 @@ import { router } from '@inertiajs/react';
 import { Filter, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { DeletePersonnelDialog } from '@/components/personnel/delete-personnel-dialog';
-import {
-    PersonnelFormModal
-    
-} from '@/components/personnel/personnel-form-modal';
-import type {PersonnelRow} from '@/components/personnel/personnel-form-modal';
+import { PersonnelFormModal } from '@/components/personnel/personnel-form-modal';
+import type { PersonnelRow } from '@/components/personnel/personnel-form-modal';
 import { PortalCard } from '@/components/portal/portal-card';
 import {
     PersonnelStatusBadge,
@@ -253,12 +250,14 @@ export default function PersonnelIndex({
                                             <div>{p.rank ?? '—'}</div>
                                             {p.duty_group && (
                                                 <span
-                                                    className={`mt-1 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold border ${
+                                                    className={`mt-1 inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${
                                                         p.duty_group === 'A'
                                                             ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
-                                                            : p.duty_group === 'B'
+                                                            : p.duty_group ===
+                                                                'B'
                                                               ? 'border-amber-200 bg-amber-50 text-amber-800'
-                                                              : p.duty_group === 'regular'
+                                                              : p.duty_group ===
+                                                                  'regular'
                                                                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                                                                 : 'border-neutral-200 bg-neutral-100 text-neutral-600'
                                                     }`}
