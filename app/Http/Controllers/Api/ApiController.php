@@ -95,4 +95,101 @@ class ApiController extends Controller
             'personnel_details' => $personnelDetails,
         ];
     }
+
+    /**
+     * Formats a community_report record into the exact CommunityReport shape the frontend expects.
+     * Matches firesight-api's formatReportRow helper.
+     *
+     * @param  mixed  $row
+     * @return array<string, mixed>
+     */
+    protected function formatReportRow(mixed $row): array
+    {
+        $createdAt = $row['created_at'] ?? ($row->created_at ?? null);
+        if ($createdAt instanceof \DateTimeInterface) {
+            $createdAt = $createdAt->format('Y-m-d H:i:s');
+        }
+
+        $barangayName = null;
+        if ($row instanceof \App\Models\CommunityReport) {
+            $barangayName = $row->barangay?->barangay_name;
+        } elseif (is_array($row)) {
+            $barangayName = $row['barangay_name'] ?? ($row['barangay']['barangay_name'] ?? null);
+        } elseif (is_object($row)) {
+            $barangayName = $row->barangay_name ?? ($row->barangay->barangay_name ?? null);
+        }
+
+        return [
+            'report_id' => (int) ($row['report_id'] ?? $row->report_id ?? 0),
+            'description' => $row['description'] ?? $row->description ?? null,
+            'report_image' => $row['report_image'] ?? $row->report_image ?? null,
+            'latitude' => (float) ($row['latitude'] ?? $row->latitude ?? 0),
+            'longitude' => (float) ($row['longitude'] ?? $row->longitude ?? 0),
+            'barangay_id' => (int) ($row['barangay_id'] ?? $row->barangay_id ?? 0),
+            'barangay_name' => $barangayName,
+            'status' => $row['status'] ?? $row->status ?? null,
+            'created_at' => $createdAt,
+        ];
+    }
+
+    /**
+     * Formats an incident record (community_report joined with incident_record and barangay)
+     * into the exact BFPIncident shape the frontend expects.
+     * Matches firesight-api's formatIncidentRow helper.
+     *
+     * @param  mixed  $row
+     * @return array<string, mixed>
+     */
+    protected function formatIncidentRow(mixed $row): array
+    {
+        $createdAt = $row['created_at'] ?? ($row->created_at ?? null);
+        if ($createdAt instanceof \DateTimeInterface) {
+            $createdAt = $createdAt->format('Y-m-d H:i:s');
+        }
+
+        $incidentDatetime = $row['incident_datetime'] ?? ($row->incident_datetime ?? null);
+        if ($incidentDatetime instanceof \DateTimeInterface) {
+            $incidentDatetime = $incidentDatetime->format('Y-m-d H:i:s');
+        }
+
+        $alarmLevel = $row['alarm_level'] ?? ($row->alarm_level ?? null);
+        if ($alarmLevel instanceof \BackedEnum) {
+            $alarmLevel = $alarmLevel->value;
+        }
+
+        $barangayName = null;
+        if (is_array($row)) {
+            $barangayName = $row['barangay_name'] ?? ($row['barangay']['barangay_name'] ?? null);
+        } elseif (is_object($row)) {
+            $barangayName = $row->barangay_name ?? ($row->barangay->barangay_name ?? null);
+        }
+
+        $accuracy = isset($row['location_accuracy_m']) ? $row['location_accuracy_m'] : ($row->location_accuracy_m ?? null);
+        $confidence = isset($row['ai_fire_confidence']) ? $row['ai_fire_confidence'] : ($row->ai_fire_confidence ?? null);
+        $casualties = isset($row['casualties']) ? $row['casualties'] : ($row->casualties ?? null);
+
+        return [
+            'report_id' => (int) ($row['report_id'] ?? $row->report_id ?? 0),
+            'reporter_name' => $row['reporter_name'] ?? $row->reporter_name ?? null,
+            'contact_number' => $row['contact_number'] ?? $row->contact_number ?? null,
+            'description' => $row['description'] ?? $row->description ?? null,
+            'report_image' => $row['report_image'] ?? $row->report_image ?? null,
+            'latitude' => (float) ($row['latitude'] ?? $row->latitude ?? 0),
+            'longitude' => (float) ($row['longitude'] ?? $row->longitude ?? 0),
+            'location_accuracy_m' => $accuracy !== null ? (float) $accuracy : null,
+            'barangay_id' => (int) ($row['barangay_id'] ?? $row->barangay_id ?? 0),
+            'barangay_name' => $barangayName,
+            'status' => $row['status'] ?? $row->status ?? null,
+            'created_at' => $createdAt,
+            'ai_fire_label' => $row['ai_fire_label'] ?? $row->ai_fire_label ?? null,
+            'ai_fire_confidence' => $confidence !== null ? (float) $confidence : null,
+            'incident_type' => $row['incident_type'] ?? $row->incident_type ?? null,
+            'alarm_level' => $alarmLevel,
+            'incident_datetime' => $incidentDatetime,
+            'data_time' => $incidentDatetime ?? $createdAt,
+            'cause_of_fire' => $row['cause_of_fire'] ?? $row->cause_of_fire ?? null,
+            'casualties' => $casualties !== null ? (int) $casualties : null,
+            'notes' => $row['notes'] ?? $row->notes ?? null,
+        ];
+    }
 }
