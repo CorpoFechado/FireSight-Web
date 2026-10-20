@@ -24,6 +24,7 @@ import { AlarmLevelBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
 import {
     BARANGAY_GEOJSON_URL,
+    getFeatureBarangayName,
     resolveDbBarangayName,
 } from '@/lib/barangay-geo';
 import {
@@ -45,7 +46,13 @@ import { map as mapRoute } from '@/routes/index';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type BarangayGeoProperties = { barangay: string };
+type BarangayGeoProperties = {
+    adm4_name?: string;
+    barangay?: string;
+    name?: string;
+    BGY_NAME?: string;
+    [key: string]: unknown;
+};
 type BarangayFeature = Feature<Geometry, BarangayGeoProperties>;
 
 type MapIncident = {
@@ -689,13 +696,15 @@ export default function FireIncidentsMap({
                                         key="barangay-risk-layer"
                                         data={barangayGeo}
                                         style={(feature) => {
-                                            const risk = feature
-                                                ? riskByBarangayName.get(
-                                                      resolveDbBarangayName(
-                                                          feature.properties
-                                                              .barangay,
-                                                      ),
+                                            const rawName = feature
+                                                ? getFeatureBarangayName(
+                                                      feature.properties,
                                                   )
+                                                : '';
+                                            const dbName =
+                                                resolveDbBarangayName(rawName);
+                                            const risk = dbName
+                                                ? riskByBarangayName.get(dbName)
                                                 : undefined;
 
                                             return riskMapPolygonStyle(
@@ -706,17 +715,21 @@ export default function FireIncidentsMap({
                                             feature: BarangayFeature,
                                             layer,
                                         ) => {
-                                            const risk = riskByBarangayName.get(
-                                                resolveDbBarangayName(
-                                                    feature.properties.barangay,
-                                                ),
-                                            );
+                                            const rawName =
+                                                getFeatureBarangayName(
+                                                    feature.properties,
+                                                );
+                                            const dbName =
+                                                resolveDbBarangayName(rawName);
+                                            const risk = riskByBarangayName.get(dbName);
                                             const label = risk?.risk_level
                                                 ? RISK_CFG[risk.risk_level]
                                                       .label
                                                 : 'No risk data';
+                                            const displayName =
+                                                dbName || rawName || 'Unknown Barangay';
                                             layer.bindPopup(
-                                                `<p class="text-sm font-semibold">${feature.properties.barangay}</p>` +
+                                                `<p class="text-sm font-semibold">${displayName}</p>` +
                                                     `<p class="text-xs text-gray-500">${label} risk</p>`,
                                             );
                                         }}

@@ -28,7 +28,7 @@ class FireVerificationService
             return $result;
         }
 
-        $serviceUrl = config('services.fire_verification.url', 'http://localhost:8000/predict');
+        $serviceUrl = config('services.fire_verification.url', 'http://127.0.0.1:8001/predict');
         $mimeType = mime_content_type($absoluteImagePath) ?: 'image/jpeg';
 
         try {

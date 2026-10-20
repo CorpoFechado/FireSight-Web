@@ -2,7 +2,7 @@
 
 FastAPI AI microservice that runs the trained MobileNetV3 ONNX model (`fire_verification_model.onnx`) to classify uploaded fire incident photos.
 
-Called automatically by Laravel (`App\Services\FireVerificationService`) on port `8000`.
+Called automatically by Laravel (`App\Services\FireVerificationService`) on port `8001`.
 
 ## Quick Start (Local Development)
 
@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 ### 3. Run the Service
 ```bash
-uvicorn main:app --reload --port 8000
+uvicorn main:app --reload --port 8001
 ```
 
 ## Endpoints

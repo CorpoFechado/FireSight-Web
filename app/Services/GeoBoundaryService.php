@@ -38,7 +38,8 @@ class GeoBoundaryService
             if ($geometry['type'] === 'Polygon') {
                 $polygon = $geometry['coordinates'][0] ?? [];
                 if (Geo::pointInPolygon($lat, $lng, $polygon)) {
-                    $matchedBarangayName = $feature['properties']['BGY_NAME']
+                    $matchedBarangayName = $feature['properties']['barangay_name']
+                        ?? $feature['properties']['BGY_NAME']
                         ?? $feature['properties']['name']
                         ?? $feature['properties']['adm4_name']
                         ?? null;
@@ -48,7 +49,8 @@ class GeoBoundaryService
                 foreach ($geometry['coordinates'] as $poly) {
                     $polygon = $poly[0] ?? [];
                     if (Geo::pointInPolygon($lat, $lng, $polygon)) {
-                        $matchedBarangayName = $feature['properties']['BGY_NAME']
+                        $matchedBarangayName = $feature['properties']['barangay_name']
+                            ?? $feature['properties']['BGY_NAME']
                             ?? $feature['properties']['name']
                             ?? $feature['properties']['adm4_name']
                             ?? null;

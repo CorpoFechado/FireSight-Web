@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { GeoJSON, MapContainer, TileLayer } from 'react-leaflet';
 import {
     BARANGAY_GEOJSON_URL,
+    getFeatureBarangayName,
     resolveDbBarangayName,
 } from '@/lib/barangay-geo';
 import { RISK_CFG, riskMapPolygonStyle } from '@/lib/fire-status';
@@ -15,7 +16,13 @@ import {
     OSM_TILE_URL,
 } from '@/lib/map-constants';
 
-type BarangayGeoProperties = { barangay: string };
+type BarangayGeoProperties = {
+    adm4_name?: string;
+    barangay?: string;
+    name?: string;
+    BGY_NAME?: string;
+    [key: string]: unknown;
+};
 type BarangayFeature = Feature<Geometry, BarangayGeoProperties>;
 
 export type BarangayRiskPoint = {
@@ -84,22 +91,22 @@ export function BarangayRiskMap({
                         key="barangay-risk-layer"
                         data={barangayGeo}
                         style={(feature) => {
-                            const risk = feature
-                                ? riskByBarangayName.get(
-                                      resolveDbBarangayName(
-                                          feature.properties.barangay,
-                                      ),
-                                  )
+                            const rawName = feature
+                                ? getFeatureBarangayName(feature.properties)
+                                : '';
+                            const dbName = resolveDbBarangayName(rawName);
+                            const risk = dbName
+                                ? riskByBarangayName.get(dbName)
                                 : undefined;
 
                             return riskMapPolygonStyle(risk?.risk_level);
                         }}
                         onEachFeature={(feature: BarangayFeature, layer) => {
-                            const risk = riskByBarangayName.get(
-                                resolveDbBarangayName(
-                                    feature.properties.barangay,
-                                ),
+                            const rawName = getFeatureBarangayName(
+                                feature.properties,
                             );
+                            const dbName = resolveDbBarangayName(rawName);
+                            const risk = riskByBarangayName.get(dbName);
                             const label = risk?.risk_level
                                 ? RISK_CFG[risk.risk_level].label
                                 : 'No data';
@@ -108,9 +115,11 @@ export function BarangayRiskMap({
                                 risk?.prediction_score !== undefined
                                     ? ` · ${Math.round(risk.prediction_score * 100)}% score`
                                     : '';
+                            const displayName =
+                                dbName || rawName || 'Unknown Barangay';
 
                             layer.bindPopup(
-                                `<p class="text-sm font-semibold">${feature.properties.barangay}</p>` +
+                                `<p class="text-sm font-semibold">${displayName}</p>` +
                                     `<p class="text-xs text-gray-500">${label}${score}</p>`,
                             );
                         }}

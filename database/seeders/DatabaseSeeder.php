@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             BarangaySeeder::class,
+            BarangayBoundarySeeder::class,
             BarangayContactSeeder::class,
             BfpAccountSeeder::class,
             BfpPersonnelSeeder::class,

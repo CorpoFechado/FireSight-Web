@@ -6,9 +6,9 @@ your PHP backend calls after a resident uploads a report photo.
 
 Run locally (VSCode):
     pip install -r requirements.txt
-    uvicorn main:app --reload --port 8000
+    uvicorn main:app --reload --port 8001
 
-The PHP backend calls: POST http://localhost:8000/predict
+The PHP backend calls: POST http://localhost:8001/predict
     (multipart/form-data, field name: "image")
 
 Response:

@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'fire_verification' => [
+        'url' => env('FIRE_VERIFICATION_URL', 'http://127.0.0.1:8001/predict'),
+    ],
+
 ];

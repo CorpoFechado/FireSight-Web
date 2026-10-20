@@ -11,12 +11,12 @@ class BarangayBoundarySeeder extends Seeder
 {
     /**
      * Populates `barangay.boundary_geojson` from the exterior ring of each polygon
-     * in database/seeders/data/barangay-boundaries.geojson. Matches purely
+     * in public/geo/barangay_boundaries_lian.json. Matches purely
      * by `barangay_name`, so run BarangaySeeder first.
      */
     public function run(): void
     {
-        $path = database_path('seeders/data/barangay-boundaries.geojson');
+        $path = public_path('geo/barangay_boundaries_lian.json');
 
         if (! File::exists($path)) {
             throw new RuntimeException("Boundary file not found at {$path}");
@@ -24,8 +24,22 @@ class BarangayBoundarySeeder extends Seeder
 
         $geojson = json_decode(File::get($path), associative: true, flags: JSON_THROW_ON_ERROR);
 
+        $nameMap = [
+            'Barangay 1 (Pob.)' => 'Barangay 1 (Poblacion)',
+            'Barangay 2 (Pob.)' => 'Barangay 2 (Poblacion)',
+            'Barangay 3 (Pob.)' => 'Barangay 3 (Poblacion)',
+            'Barangay 4 (Pob.)' => 'Barangay 4 (Poblacion)',
+            'Barangay 5 (Pob.)' => 'Barangay 5 (Poblacion)',
+            'Puting-Kahoy' => 'Puting Kahoy',
+        ];
+
         foreach ($geojson['features'] as $feature) {
-            $name = $feature['properties']['barangay_name'] ?? null;
+            $name = $feature['properties']['barangay_name']
+                ?? $feature['properties']['adm4_name']
+                ?? $feature['properties']['name']
+                ?? $feature['properties']['BGY_NAME']
+                ?? null;
+
             // Exterior ring only (index 0) — these polygons have no holes.
             $ring = $feature['geometry']['coordinates'][0] ?? null;
 
@@ -33,7 +47,10 @@ class BarangayBoundarySeeder extends Seeder
                 continue;
             }
 
-            $barangay = Barangay::where('barangay_name', $name)
+            $canonicalName = $nameMap[$name] ?? $name;
+
+            $barangay = Barangay::where('barangay_name', $canonicalName)
+                ->orWhere('barangay_name', $name)
                 ->orWhere('barangay_name', str_replace('Poblacion ', 'Barangay ', $name).' (Poblacion)')
                 ->first();
 

@@ -23,6 +23,7 @@ import { PortalCard } from '@/components/portal/portal-card';
 import PortalLayout from '@/layouts/portal-layout';
 import {
     BARANGAY_GEOJSON_URL,
+    getFeatureBarangayName,
     resolveDbBarangayName,
 } from '@/lib/barangay-geo';
 import {
@@ -38,7 +39,13 @@ import {
     OSM_TILE_URL,
 } from '@/lib/map-constants';
 
-type BarangayGeoProperties = { barangay: string };
+type BarangayGeoProperties = {
+    adm4_name?: string;
+    barangay?: string;
+    name?: string;
+    BGY_NAME?: string;
+    [key: string]: unknown;
+};
 type BarangayFeature = Feature<Geometry, BarangayGeoProperties>;
 
 type BarangayRiskPoint = {
@@ -206,13 +213,15 @@ export default function RiskAnalytics({
                                         key="risk-analytics-layer"
                                         data={barangayGeo}
                                         style={(feature) => {
-                                            const risk = feature
-                                                ? riskByBarangayName.get(
-                                                      resolveDbBarangayName(
-                                                          feature.properties
-                                                              .barangay,
-                                                      ),
+                                            const rawName = feature
+                                                ? getFeatureBarangayName(
+                                                      feature.properties,
                                                   )
+                                                : '';
+                                            const dbName =
+                                                resolveDbBarangayName(rawName);
+                                            const risk = dbName
+                                                ? riskByBarangayName.get(dbName)
                                                 : undefined;
 
                                             return riskMapPolygonStyle(
@@ -223,11 +232,13 @@ export default function RiskAnalytics({
                                             feature: BarangayFeature,
                                             layer,
                                         ) => {
-                                            const risk = riskByBarangayName.get(
-                                                resolveDbBarangayName(
-                                                    feature.properties.barangay,
-                                                ),
-                                            );
+                                            const rawName =
+                                                getFeatureBarangayName(
+                                                    feature.properties,
+                                                );
+                                            const dbName =
+                                                resolveDbBarangayName(rawName);
+                                            const risk = riskByBarangayName.get(dbName);
                                             const score =
                                                 risk?.prediction_score !==
                                                     null &&
@@ -239,8 +250,11 @@ export default function RiskAnalytics({
                                                       )
                                                     : null;
 
+                                            const displayName =
+                                                dbName || rawName || 'Unknown Barangay';
+
                                             layer.bindTooltip(
-                                                `<div style="text-align:center"><div style="font-weight:700">${feature.properties.barangay}</div>${
+                                                `<div style="text-align:center"><div style="font-weight:700">${displayName}</div>${
                                                     score !== null
                                                         ? `<div>${score}</div>`
                                                         : ''
