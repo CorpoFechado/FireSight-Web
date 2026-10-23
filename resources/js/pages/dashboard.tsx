@@ -26,7 +26,7 @@ import { StatusBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
 import { RISK_CFG } from '@/lib/fire-status';
 import type { ReportStatus } from '@/lib/fire-status';
-import { map as fireMap } from '@/routes';
+import { fireProne } from '@/routes';
 import { index as incidents, show as showIncident } from '@/routes/incidents';
 
 type Kpis = {
@@ -139,7 +139,7 @@ export default function Dashboard({
                                 Barangay Risk Map
                             </h2>
                             <Link
-                                href={fireMap()}
+                                href={fireProne()}
                                 className="flex items-center gap-1 text-xs font-semibold text-brand-blue"
                             >
                                 Expand <ChevronRight size={13} />

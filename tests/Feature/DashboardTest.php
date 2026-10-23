@@ -5,6 +5,15 @@ use App\Models\IncidentRecord;
 use App\Models\ReportStatusHistory;
 use App\Models\User;
 
+test('barangay risk map expands to risk analytics', function () {
+    $source = file_get_contents(resource_path('js/pages/dashboard.tsx'));
+
+    expect($source)
+        ->toContain("import { fireProne } from '@/routes';")
+        ->toContain('href={fireProne()}')
+        ->not->toContain('href={fireMap()}');
+});
+
 test('guests are redirected to the login page', function () {
     $response = $this->get(route('dashboard'));
     $response->assertRedirect(route('login'));
