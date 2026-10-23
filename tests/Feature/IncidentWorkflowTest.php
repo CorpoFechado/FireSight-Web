@@ -336,6 +336,35 @@ test('incidents show includes barangay contact person and number', function () {
         );
 });
 
+test('incidents show serializes reporter device coordinates as nullable floats', function (
+    ?float $deviceLatitude,
+    ?float $deviceLongitude,
+) {
+    $report = CommunityReport::create([
+        'user_id' => $this->resident->getKey(),
+        'reporter_name' => 'Mobile Reporter',
+        'contact_number' => '09123456789',
+        'description' => 'Fire pinned away from the reporter',
+        'latitude' => 13.95,
+        'longitude' => 120.65,
+        'device_latitude' => $deviceLatitude,
+        'device_longitude' => $deviceLongitude,
+        'status' => CommunityReport::STATUS_PENDING,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get(route('incidents.show', $report))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('incidents/show')
+            ->where('report.device_latitude', $deviceLatitude)
+            ->where('report.device_longitude', $deviceLongitude)
+        );
+})->with([
+    'with device coordinates' => [13.94567891, 120.61234567],
+    'with null device coordinates' => [null, null],
+]);
+
 test('staff and admin can update incident assessment details after resolution', function () {
     $report = CommunityReport::create([
         'user_id' => $this->resident->getKey(),

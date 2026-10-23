@@ -137,6 +137,8 @@ class IncidentController extends Controller
                 'evidence_photos' => $evidencePhotos,
                 'latitude' => (float) $report->latitude,
                 'longitude' => (float) $report->longitude,
+                'device_latitude' => $report->device_latitude !== null ? (float) $report->device_latitude : null,
+                'device_longitude' => $report->device_longitude !== null ? (float) $report->device_longitude : null,
                 'raw_incident_type' => $report->incidentRecord?->incident_type,
                 'raw_alarm_level' => $report->incidentRecord?->alarm_level?->value ?? $report->incidentRecord?->alarm_level,
                 'cause_of_fire' => $report->incidentRecord?->cause_of_fire,

@@ -16,8 +16,8 @@ import { useState } from 'react';
 import { AiVerificationCard } from '@/components/incidents/ai-verification-card';
 import { EditDetailsModal } from '@/components/incidents/edit-details-modal';
 import { IncidentActions } from '@/components/incidents/incident-actions';
+import { IncidentLocationMap } from '@/components/portal/incident-location-map';
 import { PortalCard } from '@/components/portal/portal-card';
-import { SinglePointMap } from '@/components/portal/single-point-map';
 import {
     AiFireBadge,
     AlarmLevelBadge,
@@ -52,6 +52,8 @@ type ReportDetail = {
     }>;
     latitude: number;
     longitude: number;
+    device_latitude: number | null;
+    device_longitude: number | null;
     raw_incident_type: string | null;
     raw_alarm_level: string | null;
     cause_of_fire: string | null;
@@ -78,7 +80,10 @@ type LinkedReport = {
 };
 
 function resolveStorageUrl(path?: string | null): string {
-    if (!path) return '';
+    if (!path) {
+        return '';
+    }
+
     if (
         path.startsWith('http://') ||
         path.startsWith('https://') ||
@@ -86,7 +91,9 @@ function resolveStorageUrl(path?: string | null): string {
     ) {
         return path;
     }
+
     const clean = path.replace(/^\/?(storage\/)?/, '');
+
     return `/storage/${clean}`;
 }
 
@@ -494,9 +501,13 @@ export default function IncidentShow({
                                     Incident Location
                                 </p>
                                 <div className="relative">
-                                    <SinglePointMap
+                                    <IncidentLocationMap
                                         latitude={report.latitude}
                                         longitude={report.longitude}
+                                        deviceLatitude={report.device_latitude}
+                                        deviceLongitude={
+                                            report.device_longitude
+                                        }
                                     />
                                     <div className="absolute top-2 left-2 z-[20] flex items-center gap-1.5 rounded bg-white/90 px-2 py-1">
                                         <MapPin
