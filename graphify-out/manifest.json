@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/AnnouncementController.php": {
-    "mtime": 1792328370.8450725,
-    "seen": 1792365660.7259977,
-    "ast_hash": "1b016ebed1ad04f66f1d8beabefe4fa3",
+    "mtime": 1792662933.7340171,
+    "seen": 1792719406.5282793,
+    "ast_hash": "beeec91275afcbc973559501d0c6db0a",
     "semantic_hash": ""
   },
   "app/Http/Controllers/Controller.php": {
@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/IncidentController.php": {
-    "mtime": 1792328148.6097133,
-    "seen": 1792365660.7271307,
-    "ast_hash": "1c4f19994e87d79d93d0588d72700d95",
+    "mtime": 1792662933.7484844,
+    "seen": 1792719406.5289981,
+    "ast_hash": "79cb6ed629925fbb864d0d88d1ccd4d6",
     "semantic_hash": ""
   },
   "app/Http/Controllers/NotificationController.php": {
@@ -240,10 +240,10 @@
     "semantic_hash": "4e88677928fba2e6ef683eeb3353c85d"
   },
   "bootstrap/app.php": {
-    "mtime": 1785051850.3968801,
-    "seen": 1789390676.6392367,
-    "ast_hash": "1d604222610ba60fe6da4c82bfa4c465",
-    "semantic_hash": "1d604222610ba60fe6da4c82bfa4c465"
+    "mtime": 1792662933.7544842,
+    "seen": 1792719406.533881,
+    "ast_hash": "a3bf41b469b852ce9e961f2cd83cdb60",
+    "semantic_hash": ""
   },
   "bootstrap/providers.php": {
     "mtime": 1784798088.0,
@@ -258,10 +258,10 @@
     "semantic_hash": "c78a304d2e8f73ae0051a56276bfe9a4"
   },
   "composer.json": {
-    "mtime": 1785042835.9382699,
-    "seen": 1789390676.6392393,
-    "ast_hash": "c806b2a9cadde66b9d5dfbab4b5e5e80",
-    "semantic_hash": "c806b2a9cadde66b9d5dfbab4b5e5e80"
+    "mtime": 1792662933.7564805,
+    "seen": 1792719406.5340853,
+    "ast_hash": "b33f47cdf38963daf60c12324bcde386",
+    "semantic_hash": ""
   },
   "config/app.php": {
     "mtime": 1789825089.2465248,
@@ -324,10 +324,10 @@
     "semantic_hash": "f98ce92e7bf51db1fabaf8a30e12fc5a"
   },
   "config/services.php": {
-    "mtime": 1784798088.0,
-    "seen": 1789390676.6392484,
-    "ast_hash": "918f5aa09663e375f4570301a91548f9",
-    "semantic_hash": "918f5aa09663e375f4570301a91548f9"
+    "mtime": 1792662933.757484,
+    "seen": 1792719406.535307,
+    "ast_hash": "4e56787e47c9a35cc184f2eddc0c765f",
+    "semantic_hash": ""
   },
   "config/session.php": {
     "mtime": 1784798088.0,
@@ -450,15 +450,15 @@
     "semantic_hash": ""
   },
   "database/seeders/BarangayBoundarySeeder.php": {
-    "mtime": 1792326922.548003,
-    "seen": 1792327483.572477,
-    "ast_hash": "7c652ac30c86099d29b886715f72dace",
+    "mtime": 1792662933.7594833,
+    "seen": 1792719406.5394216,
+    "ast_hash": "a205c1d518eeeb20a85688794c2d323b",
     "semantic_hash": ""
   },
   "database/seeders/BarangaySeeder.php": {
-    "mtime": 1792326922.124688,
-    "seen": 1792327483.5725925,
-    "ast_hash": "d57efab1f380ee02d45d844bec683dbd",
+    "mtime": 1792662933.7624846,
+    "seen": 1792719406.5394242,
+    "ast_hash": "843e7c24b210e344cf2308f1baafeeb4",
     "semantic_hash": ""
   },
   "database/seeders/BfpAccountSeeder.php": {
@@ -468,9 +468,9 @@
     "semantic_hash": ""
   },
   "database/seeders/DatabaseSeeder.php": {
-    "mtime": 1792071273.7140243,
-    "seen": 1792071432.058764,
-    "ast_hash": "7cd68e80028421ea94d0c79e845d4b06",
+    "mtime": 1792662933.7634835,
+    "seen": 1792719406.5396066,
+    "ast_hash": "439baae1d479ad93518fad67d6a5ab3c",
     "semantic_hash": ""
   },
   "database/seeders/DummyDataSeeder.php": {
@@ -552,9 +552,9 @@
     "semantic_hash": "877a5f8edb7079553b99970b11864acb"
   },
   "resources/js/components/app-logo.tsx": {
-    "mtime": 1789564726.281585,
-    "seen": 1789567210.5099266,
-    "ast_hash": "d671429df99c93c1aaf232decddd4f8b",
+    "mtime": 1792662933.8517556,
+    "seen": 1792719406.5407524,
+    "ast_hash": "cf608dfed255bd25886553836518b188",
     "semantic_hash": ""
   },
   "resources/js/components/app-shell.tsx": {
@@ -594,9 +594,9 @@
     "semantic_hash": "b4bea168fb49a02e768a11a307a9ca21"
   },
   "resources/js/components/dashboard/barangay-risk-map.tsx": {
-    "mtime": 1792327338.462567,
-    "seen": 1792327483.575178,
-    "ast_hash": "667a5bbd303337dcbde77dcccdec35dd",
+    "mtime": 1792719342.8785124,
+    "seen": 1792719406.5413148,
+    "ast_hash": "b7dee36db4d52f11efc0ebeb3288dd11",
     "semantic_hash": ""
   },
   "resources/js/components/delete-user.tsx": {
@@ -654,9 +654,9 @@
     "semantic_hash": "139cc3e475910384da1cfd9c7470b0c8"
   },
   "resources/js/components/notifications/notification-item.tsx": {
-    "mtime": 1792071358.768183,
-    "seen": 1792071432.064881,
-    "ast_hash": "93a6f3bfd8ae5ca6d19ada244e347649",
+    "mtime": 1792662933.8583124,
+    "seen": 1792719406.5436492,
+    "ast_hash": "3b98c32756d18c30beda2e31a58bb0d0",
     "semantic_hash": ""
   },
   "resources/js/components/passkey-item.tsx": {
@@ -690,9 +690,9 @@
     "semantic_hash": ""
   },
   "resources/js/components/personnel/personnel-form-modal.tsx": {
-    "mtime": 1792328256.4559155,
-    "seen": 1792365660.7835152,
-    "ast_hash": "ac3d9e1872f0b8aea7479848a1b0438d",
+    "mtime": 1792662933.859508,
+    "seen": 1792719406.544111,
+    "ast_hash": "74cf0bef839cdbe1e30861dfd366d884",
     "semantic_hash": ""
   },
   "resources/js/components/portal/kpi-card.tsx": {
@@ -702,16 +702,16 @@
     "semantic_hash": ""
   },
   "resources/js/components/portal/pagination-bar.tsx": {
-    "mtime": 1785083349.566084,
-    "seen": 1789390676.6393025,
-    "ast_hash": "d3302b73be620f0bdeb04e59b1be3618",
-    "semantic_hash": "d3302b73be620f0bdeb04e59b1be3618"
+    "mtime": 1792662933.859508,
+    "seen": 1792719406.5442092,
+    "ast_hash": "c3069a17b9e95ea42b5681736b0fc2ef",
+    "semantic_hash": ""
   },
   "resources/js/components/portal/portal-card.tsx": {
-    "mtime": 1785297530.4883945,
-    "seen": 1789390676.6393034,
-    "ast_hash": "f50792b08ce035cda7e7685dc805c1c1",
-    "semantic_hash": "f50792b08ce035cda7e7685dc805c1c1"
+    "mtime": 1792662933.8605163,
+    "seen": 1792719406.5442104,
+    "ast_hash": "69c8402eb41f6dbdff3a6bfc2b07f4fc",
+    "semantic_hash": ""
   },
   "resources/js/components/portal/single-point-map.tsx": {
     "mtime": 1785151288.7227662,
@@ -990,9 +990,9 @@
     "semantic_hash": "3a00a3735acac9e91e961eb1c901b44f"
   },
   "resources/js/layouts/auth/auth-simple-layout.tsx": {
-    "mtime": 1789566376.3344946,
-    "seen": 1789567210.5190616,
-    "ast_hash": "ab8187e8d8a7d84ab68977ae63ad7b25",
+    "mtime": 1792662933.8605163,
+    "seen": 1792719406.5487957,
+    "ast_hash": "a959bc611fd044bbf5ef3021b6fb0184",
     "semantic_hash": ""
   },
   "resources/js/layouts/auth/auth-split-layout.tsx": {
@@ -1002,27 +1002,27 @@
     "semantic_hash": "f3ef07e8086a8feb1b8147e6b75d203a"
   },
   "resources/js/layouts/portal-layout.tsx": {
-    "mtime": 1792327376.7873049,
-    "seen": 1792327483.58453,
-    "ast_hash": "23219bbec4e7f5f7a7ba049484601253",
+    "mtime": 1792662933.8615167,
+    "seen": 1792719406.5489953,
+    "ast_hash": "67bd41ca417313098b6fc01b34b6525f",
     "semantic_hash": ""
   },
   "resources/js/layouts/portal/nav-config.ts": {
-    "mtime": 1790194889.4921536,
-    "seen": 1790195384.0763102,
-    "ast_hash": "e250249d6b466cd0fd0866e0ec7a9fd7",
+    "mtime": 1792662933.8615167,
+    "seen": 1792719406.548997,
+    "ast_hash": "2207d45236bce5755ad042e15b1f04f5",
     "semantic_hash": ""
   },
   "resources/js/layouts/portal/portal-sidebar.tsx": {
-    "mtime": 1792327376.7873049,
-    "seen": 1792327483.5846574,
-    "ast_hash": "ac744cb7ec9380073dc61f6eb346404b",
+    "mtime": 1792662933.8625164,
+    "seen": 1792719406.548998,
+    "ast_hash": "09c2b886ebae9cb1fc125f6d121ca319",
     "semantic_hash": ""
   },
   "resources/js/layouts/portal/portal-topbar.tsx": {
-    "mtime": 1792327340.1331887,
-    "seen": 1792327483.584659,
-    "ast_hash": "c6c43162724d0316b9c264d1b14f8b06",
+    "mtime": 1792662933.8625164,
+    "seen": 1792719406.548999,
+    "ast_hash": "ac6b513a6b3520de6f7ae54cfcf8b8e9",
     "semantic_hash": ""
   },
   "resources/js/layouts/settings/layout.tsx": {
@@ -1032,10 +1032,10 @@
     "semantic_hash": "e8ed5ddcb94d222087bec3fd65b14899"
   },
   "resources/js/lib/barangay-geo.ts": {
-    "mtime": 1785088744.4496007,
-    "seen": 1789390676.639367,
-    "ast_hash": "b96ad5d4f77d326d547ec345f8f2bb2a",
-    "semantic_hash": "b96ad5d4f77d326d547ec345f8f2bb2a"
+    "mtime": 1792662933.8635156,
+    "seen": 1792719406.5490983,
+    "ast_hash": "a7d0a623693003235db17231afe1d5da",
+    "semantic_hash": ""
   },
   "resources/js/lib/fire-status.ts": {
     "mtime": 1792162473.5123546,
@@ -1044,15 +1044,15 @@
     "semantic_hash": ""
   },
   "resources/js/lib/map-constants.ts": {
-    "mtime": 1785087953.9005463,
-    "seen": 1789390676.6393688,
-    "ast_hash": "cf28b51fb50ed68cb310079394fe70f0",
-    "semantic_hash": "cf28b51fb50ed68cb310079394fe70f0"
+    "mtime": 1792662933.8645158,
+    "seen": 1792719406.5491993,
+    "ast_hash": "35d982fda9e395ed53f0d3076037c2e6",
+    "semantic_hash": ""
   },
   "resources/js/lib/notification-visual.tsx": {
-    "mtime": 1792327515.2299771,
-    "seen": 1792365660.8002453,
-    "ast_hash": "934238ad23789fa9e1962a29102194c2",
+    "mtime": 1792662933.865517,
+    "seen": 1792719406.549201,
+    "ast_hash": "812c73b856b1e60256c6caa06acec533",
     "semantic_hash": ""
   },
   "resources/js/lib/utils.ts": {
@@ -1062,9 +1062,9 @@
     "semantic_hash": "124815982d54f0f237a784890b464a1b"
   },
   "resources/js/pages/analytics/index.tsx": {
-    "mtime": 1791428055.4960601,
-    "seen": 1791429651.7914536,
-    "ast_hash": "0f66d253f4aca3ab82f6f3a79547fe52",
+    "mtime": 1792662933.866516,
+    "seen": 1792719406.5492985,
+    "ast_hash": "d3ed1f806107a43e4df7049fa4e179b3",
     "semantic_hash": ""
   },
   "resources/js/pages/announcements/index.tsx": {
@@ -1116,46 +1116,46 @@
     "semantic_hash": "e2323a929692ecdbbc0346287c82b555"
   },
   "resources/js/pages/dashboard.tsx": {
-    "mtime": 1791971064.7258549,
-    "seen": 1791971661.2565486,
-    "ast_hash": "eabe38ec61d54707133a0e9f180aedc3",
+    "mtime": 1792719343.4429047,
+    "seen": 1792719406.5501664,
+    "ast_hash": "1f1410dcb2ae66988c3aa576c03c44dc",
     "semantic_hash": ""
   },
   "resources/js/pages/incidents/index.tsx": {
-    "mtime": 1792327376.7873049,
-    "seen": 1792327483.5864165,
-    "ast_hash": "e8bbc7a57e1621802c2d7472d3fd080e",
+    "mtime": 1792662933.871524,
+    "seen": 1792719406.5502906,
+    "ast_hash": "d761b6e57d1d919e07c34f198c81e039",
     "semantic_hash": ""
   },
   "resources/js/pages/incidents/show.tsx": {
-    "mtime": 1792136530.919126,
-    "seen": 1792139722.1276228,
-    "ast_hash": "2e6b545add99a88ede4ff60d4ffeae2d",
+    "mtime": 1792662933.872523,
+    "seen": 1792719406.5502918,
+    "ast_hash": "b277074b4e60a6842fc35bd8379e0608",
     "semantic_hash": ""
   },
   "resources/js/pages/map/index.tsx": {
-    "mtime": 1792327339.0367143,
-    "seen": 1792327483.5865386,
-    "ast_hash": "0defcb9d65085723bb43436bc4c3940b",
+    "mtime": 1792714112.525322,
+    "seen": 1792719406.550293,
+    "ast_hash": "2b1021f2e8744c8b737be13eba523a10",
     "semantic_hash": ""
   },
   "resources/js/pages/notifications/index.tsx": {
-    "mtime": 1792071358.768183,
-    "seen": 1792071432.0765855,
-    "ast_hash": "c73a21e2338ba9158922554f96c61bb9",
+    "mtime": 1792662933.8745239,
+    "seen": 1792719406.5502942,
+    "ast_hash": "79098823a1a5b72b02b9a90d4bab0455",
     "semantic_hash": ""
   },
   "resources/js/pages/personnel/index.tsx": {
-    "mtime": 1792328257.2686777,
-    "seen": 1792365660.8039684,
-    "ast_hash": "eff1f7bf8bfff3950498e24f2c8f505e",
+    "mtime": 1792662933.8745239,
+    "seen": 1792719406.5502954,
+    "ast_hash": "1996deba31b65f9093da572ad207a75e",
     "semantic_hash": ""
   },
   "resources/js/pages/placeholder.tsx": {
-    "mtime": 1785051848.8090155,
-    "seen": 1789390676.6393838,
-    "ast_hash": "dcc26fbbef2ce394170415060b04814c",
-    "semantic_hash": "dcc26fbbef2ce394170415060b04814c"
+    "mtime": 1792662933.8745239,
+    "seen": 1792719406.5502965,
+    "ast_hash": "694da39197d6c07195a29af232accf39",
+    "semantic_hash": ""
   },
   "resources/js/pages/profile/index.tsx": {
     "mtime": 1785221915.4956183,
@@ -1164,15 +1164,15 @@
     "semantic_hash": "2bd250c57cc6347280bdbe5f1619fb7b"
   },
   "resources/js/pages/response-tracking/index.tsx": {
-    "mtime": 1792327376.7882385,
-    "seen": 1792327483.58699,
-    "ast_hash": "d81cdbb8357db2f04e1157782630ca93",
+    "mtime": 1792662933.875935,
+    "seen": 1792719406.5504405,
+    "ast_hash": "b3248d868941fc5d1709cf6d65b6c610",
     "semantic_hash": ""
   },
   "resources/js/pages/risk-analytics/index.tsx": {
-    "mtime": 1792327282.4375546,
-    "seen": 1792327483.5869913,
-    "ast_hash": "d7a809395e56a036faeba838ab4c6807",
+    "mtime": 1792662933.8769534,
+    "seen": 1792719406.5504417,
+    "ast_hash": "5c43859f322801afe21de64b3f90fb68",
     "semantic_hash": ""
   },
   "resources/js/pages/settings/appearance.tsx": {
@@ -1308,9 +1308,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/DashboardTest.php": {
-    "mtime": 1792328306.2927575,
-    "seen": 1792365660.808929,
-    "ast_hash": "be893e5bf3fe439168b4032ca3e1c2de",
+    "mtime": 1792719343.9993498,
+    "seen": 1792719406.5538573,
+    "ast_hash": "b82d161d2a53a5637527be640ee13fab",
     "semantic_hash": ""
   },
   "tests/Feature/ExampleTest.php": {
@@ -1548,10 +1548,10 @@
     "semantic_hash": "2d1dafbc9ecfd469752dbd29e997d413"
   },
   ".github/workflows/tests.yml": {
-    "mtime": 1785042777.4381392,
-    "seen": 1789390676.6394417,
-    "ast_hash": "6b598f402144fb54c048212679f35ffe",
-    "semantic_hash": "6b598f402144fb54c048212679f35ffe"
+    "mtime": 1792662933.7330174,
+    "seen": 1792719406.5593362,
+    "ast_hash": "8b0398fb475a45903ce7c9aecc6b4697",
+    "semantic_hash": ""
   },
   "AGENTS.md": {
     "mtime": 1785042833.490893,
@@ -1614,15 +1614,15 @@
     "semantic_hash": ""
   },
   "resources/js/lib/duty-schedule.ts": {
-    "mtime": 1792328255.1790762,
-    "seen": 1792365660.7998025,
-    "ast_hash": "6e1bacbc6db4e9ca9548d3dd14181946",
+    "mtime": 1792662933.8645158,
+    "seen": 1792719406.5490997,
+    "ast_hash": "bc2cd5c0d7c253e00c5768a5ef366dac",
     "semantic_hash": ""
   },
   "resources/js/pages/duty-schedule/index.tsx": {
-    "mtime": 1792328255.596728,
-    "seen": 1792365660.802777,
-    "ast_hash": "35ae93e56d295023c099581a18d8d851",
+    "mtime": 1792662933.870523,
+    "seen": 1792719406.550168,
+    "ast_hash": "84d14c021ba283c6a5262317e4595e94",
     "semantic_hash": ""
   },
   "app/Support/DateRange.php": {
@@ -1632,9 +1632,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/FireMapTest.php": {
-    "mtime": 1792328307.1560707,
-    "seen": 1792365660.8093717,
-    "ast_hash": "7c90a07a83f53a2a9556e697d4d64877",
+    "mtime": 1792714077.4094424,
+    "seen": 1792719406.5541818,
+    "ast_hash": "102cf7195b94c3ce9bf4a7170ed8ed6f",
     "semantic_hash": ""
   },
   "tests/Unit/DateRangeTest.php": {
@@ -1728,33 +1728,33 @@
     "semantic_hash": ""
   },
   "database/seeders/BarangayContactSeeder.php": {
-    "mtime": 1790096022.6399279,
-    "seen": 1790193193.8554153,
-    "ast_hash": "b344e03bf6e714bf1b718277bf55ba00",
+    "mtime": 1792662933.7604837,
+    "seen": 1792719406.539423,
+    "ast_hash": "a03a2d1d28fab154cb1dbaa4c35b9931",
     "semantic_hash": ""
   },
   "database/seeders/IncidentReportSeeder.php": {
-    "mtime": 1792328223.1746812,
-    "seen": 1792365660.7580218,
-    "ast_hash": "91a9a81f2ddb44517b30a931d6d49942",
+    "mtime": 1792662933.7664948,
+    "seen": 1792719406.539698,
+    "ast_hash": "63469a5c473e30fe157f49e686211ce5",
     "semantic_hash": ""
   },
   "resources/js/components/barangay-contacts/contact-form-modal.tsx": {
-    "mtime": 1792327376.7873049,
-    "seen": 1792327483.574917,
-    "ast_hash": "92eaebbe46221453ce93db730217290b",
+    "mtime": 1792662933.8527527,
+    "seen": 1792719406.5412219,
+    "ast_hash": "c5bb8fbb1b46c0e35d449b0c6d650fb8",
     "semantic_hash": ""
   },
   "resources/js/components/barangay-contacts/delete-contact-dialog.tsx": {
-    "mtime": 1790127106.1321173,
-    "seen": 1790193193.857901,
-    "ast_hash": "380ab4970e4a9963bdece8c2dde56144",
+    "mtime": 1792662933.8537533,
+    "seen": 1792719406.5412228,
+    "ast_hash": "8337295f050eccc56ce3f6621c9e25e5",
     "semantic_hash": ""
   },
   "resources/js/components/incidents/accept-report-modal.tsx": {
-    "mtime": 1792327376.7873049,
-    "seen": 1792327483.575807,
-    "ast_hash": "667f97f4607bae0145305e9ba03ebe1c",
+    "mtime": 1792662933.857312,
+    "seen": 1792719406.5417945,
+    "ast_hash": "7b1f1a905a0f962cedf7f470e5c695ee",
     "semantic_hash": ""
   },
   "resources/js/components/incidents/resolve-report-modal.tsx": {
@@ -1764,15 +1764,15 @@
     "semantic_hash": ""
   },
   "resources/js/lib/status-history.ts": {
-    "mtime": 1792328256.0532298,
-    "seen": 1792365660.8002496,
-    "ast_hash": "e9a47fdf83629c198db4cedf55c3bcb3",
+    "mtime": 1792662933.865517,
+    "seen": 1792719406.5492022,
+    "ast_hash": "8464b85d74b7a069f75c6b0f98785e12",
     "semantic_hash": ""
   },
   "resources/js/pages/barangay-contacts/index.tsx": {
-    "mtime": 1792327515.6432924,
-    "seen": 1792365660.802549,
-    "ast_hash": "ceba16b6c27bc401dba453a9512a43a5",
+    "mtime": 1792662933.867523,
+    "seen": 1792719406.5501645,
+    "ast_hash": "b1ac937401d440dd69d140f4b3442195",
     "semantic_hash": ""
   },
   "tests/Feature/AnalyticsTest.php": {
@@ -1794,9 +1794,9 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/FireEducationController.php": {
-    "mtime": 1792162155.8702111,
-    "seen": 1792327483.5615675,
-    "ast_hash": "10a644237dd5e777c8bdb53a088a52c1",
+    "mtime": 1792662933.7464795,
+    "seen": 1792719406.528743,
+    "ast_hash": "342e7e367a0a35b38b6760b5f1cc0da1",
     "semantic_hash": ""
   },
   "database/factories/FireEducationContentFactory.php": {
@@ -1806,9 +1806,9 @@
     "semantic_hash": ""
   },
   "database/seeders/FireEducationContentSeeder.php": {
-    "mtime": 1792162157.9268413,
-    "seen": 1792327483.5729768,
-    "ast_hash": "e9b960194998bd0db08aafe275d8814c",
+    "mtime": 1792662933.7654932,
+    "seen": 1792719406.5396967,
+    "ast_hash": "9b6257e6cce6967c7e52054843a5689e",
     "semantic_hash": ""
   },
   "resources/js/components/fire-education/delete-fire-education-dialog.tsx": {
@@ -1836,9 +1836,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/FireEducationTest.php": {
-    "mtime": 1792162201.305988,
-    "seen": 1792327483.5911343,
-    "ast_hash": "b663d65b46c2198295125917a0dc0121",
+    "mtime": 1792662933.9327078,
+    "seen": 1792719406.5541797,
+    "ast_hash": "11725d6cb803dfaf4cdb92f37092f781",
     "semantic_hash": ""
   },
   "database/migrations/2026_09_24_000006_update_risk_level_enum_to_critical.php": {
@@ -1854,9 +1854,9 @@
     "semantic_hash": ""
   },
   "resources/js/components/incidents/ai-verification-card.tsx": {
-    "mtime": 1792327339.5719104,
-    "seen": 1792327483.5758085,
-    "ast_hash": "816e0824d30c1977a9502dce019b9019",
+    "mtime": 1792662933.8583124,
+    "seen": 1792719406.5417957,
+    "ast_hash": "8bac3d8f87fadbddd6efbaa729689e3a",
     "semantic_hash": ""
   },
   "resources/js/components/incidents/edit-details-modal.tsx": {
@@ -1998,15 +1998,15 @@
     "semantic_hash": ""
   },
   "resources/js/components/duty-schedule/duty-override-modal.tsx": {
-    "mtime": 1792365577.006161,
-    "seen": 1792365660.7693622,
-    "ast_hash": "7a3ad1d77696611243d11664712f9601",
+    "mtime": 1792662933.8550746,
+    "seen": 1792719406.5414116,
+    "ast_hash": "99763760309fe11e41bc5671e37a9569",
     "semantic_hash": ""
   },
   "resources/js/components/duty-schedule/remove-override-dialog.tsx": {
-    "mtime": 1791858255.5195148,
-    "seen": 1791859290.8968182,
-    "ast_hash": "f07337756a8881b5607d15bd0c4844b8",
+    "mtime": 1792662933.8563042,
+    "seen": 1792719406.5414133,
+    "ast_hash": "5e14c12889bd83fbe782aea32c7145ff",
     "semantic_hash": ""
   },
   "app/Support/IncidentTypeBreakdown.php": {
@@ -2163,6 +2163,378 @@
     "mtime": 1792328397.6632628,
     "seen": 1792365660.8096092,
     "ast_hash": "ca7f259d679d45c538f7aeecb74b4429",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/AnnouncementController.php": {
+    "mtime": 1792662933.7340171,
+    "seen": 1792719406.5282824,
+    "ast_hash": "3e325a765475df7a30999082d4c8c35d",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/ApiController.php": {
+    "mtime": 1792662933.735472,
+    "seen": 1792719406.5282848,
+    "ast_hash": "f083ef8819d55ea3c300eab4d890231f",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/AuthController.php": {
+    "mtime": 1792662933.7364833,
+    "seen": 1792719406.5282857,
+    "ast_hash": "284dc53d40c541decd7a7711b0a3ae4d",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/ContactController.php": {
+    "mtime": 1792662933.7374866,
+    "seen": 1792719406.528287,
+    "ast_hash": "feecb90f3affe0f62be4e26aacc5b1cf",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/DashboardController.php": {
+    "mtime": 1792662933.738484,
+    "seen": 1792719406.5282884,
+    "ast_hash": "ea576c1dc7b3a8d50b340c0d92944b9d",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/EducationController.php": {
+    "mtime": 1792662933.7394843,
+    "seen": 1792719406.5282893,
+    "ast_hash": "4430c84fe31e77e518ef7364641a4384",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/IncidentController.php": {
+    "mtime": 1792662933.7404857,
+    "seen": 1792719406.5282903,
+    "ast_hash": "cb680fc6998921a6b20d0f610fa266b1",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/MapController.php": {
+    "mtime": 1792662933.7414844,
+    "seen": 1792719406.5282912,
+    "ast_hash": "0ab09c2a17aa25e904cf5fc77be50de3",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/NotificationController.php": {
+    "mtime": 1792662933.7424848,
+    "seen": 1792719406.5282924,
+    "ast_hash": "783b7ec2883d908d8b7539e33df86af5",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/ProfileController.php": {
+    "mtime": 1792662933.7434864,
+    "seen": 1792719406.5282936,
+    "ast_hash": "4f34f2b6aba0751437b54f843b48987d",
+    "semantic_hash": ""
+  },
+  "app/Http/Controllers/Api/ReportController.php": {
+    "mtime": 1792662933.7444842,
+    "seen": 1792719406.5282948,
+    "ast_hash": "9f8779ac2f2b0a035d727eecb2d4d581",
+    "semantic_hash": ""
+  },
+  "app/Http/Middleware/EnsureMobileTokenIsValid.php": {
+    "mtime": 1792662933.7494845,
+    "seen": 1792719406.5298085,
+    "ast_hash": "562520432f34e522836bdefc6da4bddd",
+    "semantic_hash": ""
+  },
+  "app/Services/FireVerificationService.php": {
+    "mtime": 1792662933.7504811,
+    "seen": 1792719406.5327983,
+    "ast_hash": "5e46c78816909a1b5d645f183cd79a96",
+    "semantic_hash": ""
+  },
+  "app/Services/GeoBoundaryService.php": {
+    "mtime": 1792662933.7524827,
+    "seen": 1792719406.5328,
+    "ast_hash": "d5cf8afe481e7a097978ae448f2d0919",
+    "semantic_hash": ""
+  },
+  "app/Services/MobileNotificationService.php": {
+    "mtime": 1792662933.7524827,
+    "seen": 1792719406.5328014,
+    "ast_hash": "68e6a0c04871c37455954f0a4b84bdba",
+    "semantic_hash": ""
+  },
+  "fire-verification-service/main.py": {
+    "mtime": 1792662933.7694907,
+    "seen": 1792719406.5397906,
+    "ast_hash": "2815a325db9fa5b3f57b6253572d398e",
+    "semantic_hash": ""
+  },
+  "fire-verification-service/rename_dataset.py": {
+    "mtime": 1792662933.84386,
+    "seen": 1792719406.5397923,
+    "ast_hash": "3c7c2393a2ab3020bb16bb4e6bdd9a14",
+    "semantic_hash": ""
+  },
+  "fire-verification-service/train_fireverification_v2.py": {
+    "mtime": 1792662933.8448565,
+    "seen": 1792719406.5397937,
+    "ast_hash": "e7184d85b0aac3b02110e916faaa577e",
+    "semantic_hash": ""
+  },
+  "public/geo/barangay_boundaries_lian.json": {
+    "mtime": 1792662933.850742,
+    "seen": 1792719406.5399709,
+    "ast_hash": "f734afee183969a7d0b9df741ab21986",
+    "semantic_hash": ""
+  },
+  "routes/api.php": {
+    "mtime": 1792662933.8769534,
+    "seen": 1792719406.5520618,
+    "ast_hash": "093de431940c7dbb2a068724fad024bd",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Api/Phase1ReadOnlyApiTest.php": {
+    "mtime": 1792662933.9307084,
+    "seen": 1792719406.5529292,
+    "ast_hash": "45acf4725134e2b442e0f315c35277c8",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Api/Phase2AuthApiTest.php": {
+    "mtime": 1792662933.9307084,
+    "seen": 1792719406.5529315,
+    "ast_hash": "c2c57451b57c8f05214038bdb9ead6a1",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Api/Phase3MapRiskApiTest.php": {
+    "mtime": 1792662933.9317088,
+    "seen": 1792719406.5529332,
+    "ast_hash": "2891fdad579a672e48cf71595b98b758",
+    "semantic_hash": ""
+  },
+  "tests/Feature/Api/Phase4ReportsAndIncidentsApiTest.php": {
+    "mtime": 1792662933.9317088,
+    "seen": 1792719406.5529344,
+    "ast_hash": "8d8e07a7aee975d1c6a11cb592dfd6a5",
+    "semantic_hash": ""
+  },
+  "fire-verification-service/README.md": {
+    "mtime": 1792662933.768491,
+    "seen": 1792719406.559448,
+    "ast_hash": "4b45af970b41a75d2955f8205753ba14",
+    "semantic_hash": ""
+  },
+  "fire-verification-service/requirements.txt": {
+    "mtime": 1792662933.8448565,
+    "seen": 1792719406.5594497,
+    "ast_hash": "1338e96e1a89ea6cfe993a438f3b6c81",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/ZZkEVN7I4BUbA8FPWxO5u7PUjCQYjwuL4ksbaJim.jpg": {
+    "mtime": 1792662933.8799531,
+    "seen": 1792719406.5604234,
+    "ast_hash": "8876640aa7141d253d07a31c35718c51",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/barangay_map_risk.jpg": {
+    "mtime": 1792662933.880951,
+    "seen": 1792719406.5604253,
+    "ast_hash": "e5e4a40a26e1f4517faa57329df069d4",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/barangay_risk_levels.jpg": {
+    "mtime": 1792662933.880951,
+    "seen": 1792719406.5604265,
+    "ast_hash": "52e9e3ab8583559754d866e8f773d40c",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/barangay_risk_map_planning.jpg": {
+    "mtime": 1792662933.8834858,
+    "seen": 1792719406.5604339,
+    "ast_hash": "a147b4451d9000ed376a186238bef8ac",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/candle_fire_safety.jpg": {
+    "mtime": 1792662933.8854663,
+    "seen": 1792719406.5604353,
+    "ast_hash": "030112ce4f9f2e6724685e268225f4d7",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/candle_flame_safety.jpg": {
+    "mtime": 1792662933.8854663,
+    "seen": 1792719406.5604365,
+    "ast_hash": "f2dc2007e2c99ca32fc80b740a9eb770",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/candle_test.jpg": {
+    "mtime": 1792662933.886466,
+    "seen": 1792719406.5604374,
+    "ast_hash": "f2dc2007e2c99ca32fc80b740a9eb770",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/cgD7MxjYIAGObusCHtw20FojCEkNtZoTXYWUyH7f.jpg": {
+    "mtime": 1792662933.8884656,
+    "seen": 1792719406.5604386,
+    "ast_hash": "592f23d7f497cf23e6832e3343f9c775",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/christmas_lights_safety.jpg": {
+    "mtime": 1792662933.8894663,
+    "seen": 1792719406.5604396,
+    "ast_hash": "bbb7c6013bc7bb45db317124ed1b9e35",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/community_fire_brigade.jpg": {
+    "mtime": 1792662933.890465,
+    "seen": 1792719406.5604405,
+    "ast_hash": "4039b3aaa9057d3543628fabfe2233a6",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/dbUoPPtkLHpyEGJPu8MB2TEVloKMn6naWI4MJzUv.jpg": {
+    "mtime": 1792662933.8924632,
+    "seen": 1792719406.5604415,
+    "ast_hash": "a6d4515d67d35e30c7d8416e748492d2",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/elec_sockets.jpg": {
+    "mtime": 1792662933.893464,
+    "seen": 1792719406.5604424,
+    "ast_hash": "9040b2cbfc88136f51972cf2a5f6dd91",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/electrical_safety.jpg": {
+    "mtime": 1792662933.8944635,
+    "seen": 1792719406.5604432,
+    "ast_hash": "83e17830271d900930c24809d6ddea01",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/emergency_exit_clear.jpg": {
+    "mtime": 1792662933.8954635,
+    "seen": 1792719406.560444,
+    "ast_hash": "bc9a45a9cb9b6d15b54a6916c7c698b6",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/evacuation_exit.jpg": {
+    "mtime": 1792662933.896466,
+    "seen": 1792719406.560445,
+    "ast_hash": "60cfb474dd68c10d8936592a6611c790",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/evacuation_procedure.jpg": {
+    "mtime": 1792662933.8974662,
+    "seen": 1792719406.560446,
+    "ast_hash": "c18a336edf07afbb391d43b6ce30aa3a",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/extinguisher_gauge.jpg": {
+    "mtime": 1792662933.8974662,
+    "seen": 1792719406.560447,
+    "ast_hash": "ac05846e38d0e8e43603819b429c2002",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/extinguisher_training.jpg": {
+    "mtime": 1792662933.8984656,
+    "seen": 1792719406.560448,
+    "ast_hash": "5fb68c48bd7e0196f3d0d4b449d4bb80",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/fire_extinguisher_safety.jpg": {
+    "mtime": 1792662933.8994658,
+    "seen": 1792719406.5604484,
+    "ast_hash": "e3b14df98adcd9d353fb620b97dec89b",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/fire_hydrant_clear.jpg": {
+    "mtime": 1792662933.9027097,
+    "seen": 1792719406.5604496,
+    "ast_hash": "f2bfea8866c40d969c148781572f3f48",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/fire_season_safety.jpg": {
+    "mtime": 1792662933.9037075,
+    "seen": 1792719406.5604503,
+    "ast_hash": "67ec7c5a13c417701d1110922a54eb72",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/firefighter_action.jpg": {
+    "mtime": 1792662933.905712,
+    "seen": 1792719406.560451,
+    "ast_hash": "592f23d7f497cf23e6832e3343f9c775",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/frayed_electrical_wire.jpg": {
+    "mtime": 1792662933.9097085,
+    "seen": 1792719406.560452,
+    "ast_hash": "74e96b8615291d25c8bf35e981e20ed6",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/grassfire_wildfire_safety.jpg": {
+    "mtime": 1792662933.9107087,
+    "seen": 1792719406.5604532,
+    "ast_hash": "28a7440b33b89d83cfa9a196533bd64c",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/kitchen_fire_safety.jpg": {
+    "mtime": 1792662933.911708,
+    "seen": 1792719406.560454,
+    "ast_hash": "17693da6676ebc87bbe1757fc6431b02",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/kitchen_grease_fire.jpg": {
+    "mtime": 1792662933.91371,
+    "seen": 1792719406.5604548,
+    "ast_hash": "5309a27c1995c1e5e169bdf4f270ceb0",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/lingguhang_babala_kalan.jpg": {
+    "mtime": 1792662933.914708,
+    "seen": 1792719406.5604558,
+    "ast_hash": "cdf7b9a58fe39afa1d7bdb8beb055e5c",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/lingguhang_babala_kalan17.jpg": {
+    "mtime": 1792662933.9157088,
+    "seen": 1792719406.5604568,
+    "ast_hash": "8876640aa7141d253d07a31c35718c51",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/lingguhang_babala_kusina.jpg": {
+    "mtime": 1792662933.9177072,
+    "seen": 1792719406.560458,
+    "ast_hash": "bc7832362b7dd9f0d7b597aa34f94588",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/lingguhang_babala_mantika.jpg": {
+    "mtime": 1792662933.919708,
+    "seen": 1792719406.5604596,
+    "ast_hash": "a6d4515d67d35e30c7d8416e748492d2",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/lpg_tank_safety.jpg": {
+    "mtime": 1792662933.9227066,
+    "seen": 1792719406.5604608,
+    "ast_hash": "a8b07071c1681ce15411e65d2aa8ca07",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/map_pin_planning.jpg": {
+    "mtime": 1792662933.9237075,
+    "seen": 1792719406.5604618,
+    "ast_hash": "a147b4451d9000ed376a186238bef8ac",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/map_risk_assessment.jpg": {
+    "mtime": 1792662933.9247074,
+    "seen": 1792719406.560463,
+    "ast_hash": "c17a88fd6f8e97c313e16603d7fe8fcb",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/odlAqt12d7HJHquhCu4rzZjwiaZQEh75P9IFK7Kt.jpg": {
+    "mtime": 1792662933.925707,
+    "seen": 1792719406.560464,
+    "ast_hash": "8876640aa7141d253d07a31c35718c51",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/overloaded_electrical_socket.jpg": {
+    "mtime": 1792662933.925707,
+    "seen": 1792719406.5604649,
+    "ast_hash": "9040b2cbfc88136f51972cf2a5f6dd91",
+    "semantic_hash": ""
+  },
+  "storage/app/public/uploads/education/pan_fire.jpg": {
+    "mtime": 1792662933.9297068,
+    "seen": 1792719406.5604658,
+    "ast_hash": "bde117fc5aaa32aae1e73fa173f9d4d5",
     "semantic_hash": ""
   }
 }

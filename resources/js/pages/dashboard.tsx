@@ -128,9 +128,9 @@ export default function Dashboard({
                     />
                 </div>
 
-                <div className="grid gap-4 lg:grid-cols-2">
+                <div className="grid items-stretch gap-4 lg:grid-cols-3">
                     {/* Risk map */}
-                    <PortalCard className="flex flex-col">
+                    <PortalCard className="flex min-h-[420px] flex-col overflow-hidden lg:col-span-2">
                         <div
                             className="flex items-center justify-between border-b px-4 py-4"
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
@@ -145,26 +145,26 @@ export default function Dashboard({
                                 Expand <ChevronRight size={13} />
                             </Link>
                         </div>
-                        <div className="flex flex-1 flex-col gap-3 p-4">
+                        <div className="relative flex min-h-[340px] flex-1">
                             <BarangayRiskMap
                                 barangays={barangayRisk}
-                                height={300}
+                                className="h-full min-h-[340px] rounded-none"
                             />
-                            <div className="flex items-center gap-4 px-1">
+                            <div className="absolute top-3 right-3 z-[500] space-y-2 rounded-lg bg-white/90 px-3 py-2.5 shadow-md backdrop-blur-sm">
                                 {(['mild', 'moderate', 'high'] as const).map(
                                     (level) => (
                                         <div
                                             key={level}
-                                            className="flex items-center gap-1.5"
+                                            className="flex items-center gap-2"
                                         >
-                                            <div
-                                                className="size-2.5 rounded-full"
+                                            <span
+                                                className="size-2.5 shrink-0 rounded-full"
                                                 style={{
                                                     background:
                                                         RISK_CFG[level].color,
                                                 }}
                                             />
-                                            <span className="text-xs text-brand-muted">
+                                            <span className="text-xs font-medium text-brand-navy">
                                                 {RISK_CFG[level].label}
                                             </span>
                                         </div>
@@ -174,8 +174,8 @@ export default function Dashboard({
                         </div>
                     </PortalCard>
 
-                    {/* Recent incidents table */}
-                    <PortalCard className="flex flex-col">
+                    {/* Recent incidents list */}
+                    <PortalCard className="flex min-h-[420px] flex-col overflow-hidden">
                         <div
                             className="flex items-center justify-between border-b px-5 py-4"
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
@@ -190,76 +190,58 @@ export default function Dashboard({
                                 View all <ChevronRight size={13} />
                             </Link>
                         </div>
-                        <div className="flex-1 overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr style={{ background: '#FAFBFC' }}>
-                                        {[
-                                            'Barangay',
-                                            'Type',
-                                            'Status',
-                                            'Date / Time',
-                                        ].map((h) => (
-                                            <th
-                                                key={h}
-                                                className="px-4 py-2.5 text-left text-xs font-semibold tracking-wider text-brand-muted uppercase"
-                                            >
-                                                {h}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {recentIncidents.length === 0 && (
-                                        <tr>
-                                            <td
-                                                colSpan={4}
-                                                className="px-4 py-6 text-center text-xs text-brand-muted"
-                                            >
-                                                No incident records yet.
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {recentIncidents.map((inc) => (
-                                        <tr
-                                            key={inc.report_id}
-                                            onClick={() =>
-                                                router.visit(
-                                                    showIncident(inc.report_id),
-                                                )
-                                            }
-                                            className="cursor-pointer border-t transition-colors hover:bg-gray-50"
-                                            style={{
-                                                borderColor:
-                                                    'rgba(43,45,66,0.06)',
-                                            }}
-                                        >
-                                            <td className="px-4 py-3 text-xs text-brand-navy">
-                                                {inc.barangay}
-                                            </td>
-                                            <td className="px-4 py-3 text-xs text-brand-navy">
+                        <div className="flex-1 overflow-y-auto">
+                            {recentIncidents.length === 0 && (
+                                <div className="flex h-full min-h-40 items-center justify-center px-4 py-6 text-center text-xs text-brand-muted">
+                                    No incident records yet.
+                                </div>
+                            )}
+                            {recentIncidents.map((inc) => (
+                                <button
+                                    key={inc.report_id}
+                                    type="button"
+                                    onClick={() =>
+                                        router.visit(
+                                            showIncident(inc.report_id),
+                                        )
+                                    }
+                                    className="flex w-full cursor-pointer items-center gap-3 border-b px-4 py-3.5 text-left transition-colors last:border-b-0 hover:bg-gray-50"
+                                    style={{
+                                        borderColor: 'rgba(43,45,66,0.06)',
+                                    }}
+                                >
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block truncate text-sm font-bold text-brand-navy">
+                                            {inc.barangay}
+                                        </span>
+                                        <span className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-brand-muted">
+                                            <span className="truncate">
                                                 {inc.type}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <StatusBadge
-                                                    status={inc.status}
-                                                />
-                                            </td>
-                                            <td className="px-4 py-3 font-mono text-xs text-brand-muted">
+                                            </span>
+                                            <span
+                                                className="shrink-0"
+                                                aria-hidden="true"
+                                            >
+                                                &bull;
+                                            </span>
+                                            <span className="truncate font-mono">
                                                 {inc.dateTime}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <span className="shrink-0 whitespace-nowrap">
+                                        <StatusBadge status={inc.status} />
+                                    </span>
+                                </button>
+                            ))}
                         </div>
                     </PortalCard>
                 </div>
 
                 {/* Monthly trend and Incidents by Type */}
-                <div className="grid gap-4 lg:grid-cols-3">
+                <div className="grid items-stretch gap-4 lg:grid-cols-3">
                     {/* Monthly trend */}
-                    <PortalCard className="flex flex-col lg:col-span-2">
+                    <PortalCard className="flex min-h-[320px] flex-col lg:col-span-2">
                         <div
                             className="border-b px-5 py-4"
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
@@ -268,15 +250,15 @@ export default function Dashboard({
                                 Monthly Incident Trend
                             </h2>
                         </div>
-                        <div className="flex-1 p-5">
-                            <ResponsiveContainer width="100%" height={180}>
+                        <div className="min-h-[240px] flex-1 px-2 pt-4 pb-2">
+                            <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart
                                     data={monthlyTrend}
                                     margin={{
-                                        top: 8,
-                                        right: 8,
+                                        top: 4,
+                                        right: 4,
                                         bottom: 0,
-                                        left: 0,
+                                        left: -8,
                                     }}
                                 >
                                     <defs>
@@ -315,7 +297,7 @@ export default function Dashboard({
                                         tick={{ fontSize: 11, fill: '#6B7A8D' }}
                                         axisLine={false}
                                         tickLine={false}
-                                        width={28}
+                                        width={24}
                                     />
                                     <Tooltip
                                         contentStyle={{
@@ -357,7 +339,7 @@ export default function Dashboard({
                     </PortalCard>
 
                     {/* Incidents by Type */}
-                    <PortalCard className="flex flex-col">
+                    <PortalCard className="flex min-h-[320px] flex-col">
                         <div
                             className="border-b px-5 py-4"
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
@@ -366,16 +348,37 @@ export default function Dashboard({
                                 Incidents by Type
                             </h2>
                         </div>
-                        <div className="flex flex-1 flex-col justify-between p-5">
+                        <div className="flex flex-1 p-5">
                             {incidentsByType.length === 0 ? (
-                                <div className="flex h-[180px] items-center justify-center">
+                                <div className="flex min-h-[220px] flex-1 items-center justify-center">
                                     <p className="text-xs text-brand-muted">
                                         No classified incidents yet.
                                     </p>
                                 </div>
                             ) : (
-                                <>
-                                    <div className="h-[180px] w-full">
+                                <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-stretch">
+                                    <div className="space-y-2 sm:w-[46%] sm:self-start">
+                                        {incidentsByType.map((slice) => (
+                                            <div
+                                                key={slice.type}
+                                                className="flex items-center gap-2 text-xs"
+                                            >
+                                                <span
+                                                    className="size-2 shrink-0 rounded-full"
+                                                    style={{
+                                                        background: slice.color,
+                                                    }}
+                                                />
+                                                <span className="min-w-0 flex-1 truncate text-brand-navy">
+                                                    {slice.label}
+                                                </span>
+                                                <span className="shrink-0 font-mono text-xs font-semibold text-brand-muted">
+                                                    {slice.percentage}%
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="min-h-[200px] min-w-0 flex-1 sm:min-h-0">
                                         <ResponsiveContainer
                                             width="100%"
                                             height="100%"
@@ -385,8 +388,8 @@ export default function Dashboard({
                                                     data={incidentsByType}
                                                     dataKey="count"
                                                     nameKey="label"
-                                                    innerRadius={50}
-                                                    outerRadius={80}
+                                                    innerRadius="52%"
+                                                    outerRadius="84%"
                                                     paddingAngle={2}
                                                     stroke="none"
                                                 >
@@ -421,28 +424,7 @@ export default function Dashboard({
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
-                                    <div className="mt-3 space-y-1.5">
-                                        {incidentsByType.map((slice) => (
-                                            <div
-                                                key={slice.type}
-                                                className="flex items-center gap-2 text-xs"
-                                            >
-                                                <span
-                                                    className="size-2 flex-shrink-0 rounded-full"
-                                                    style={{
-                                                        background: slice.color,
-                                                    }}
-                                                />
-                                                <span className="flex-1 truncate text-brand-navy">
-                                                    {slice.label}
-                                                </span>
-                                                <span className="font-mono text-xs font-semibold text-brand-muted">
-                                                    {slice.percentage}%
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
+                                </div>
                             )}
                         </div>
                     </PortalCard>

@@ -15,6 +15,7 @@ import {
     OSM_ATTRIBUTION,
     OSM_TILE_URL,
 } from '@/lib/map-constants';
+import { cn } from '@/lib/utils';
 
 type BarangayGeoProperties = {
     adm4_name?: string;
@@ -36,10 +37,10 @@ export type BarangayRiskPoint = {
 
 export function BarangayRiskMap({
     barangays,
-    height = 260,
+    className,
 }: {
     barangays: BarangayRiskPoint[];
-    height?: number;
+    className?: string;
 }) {
     const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<
         Geometry,
@@ -78,7 +79,12 @@ export function BarangayRiskMap({
     }, [barangays]);
 
     return (
-        <div className="overflow-hidden rounded-lg" style={{ height }}>
+        <div
+            className={cn(
+                'min-h-[320px] w-full flex-1 overflow-hidden',
+                className,
+            )}
+        >
             <MapContainer
                 center={LIAN_CENTER}
                 zoom={LIAN_DEFAULT_ZOOM}

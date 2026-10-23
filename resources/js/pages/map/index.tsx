@@ -184,7 +184,7 @@ export default function FireIncidentsMap({
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [layers, setLayers] = useState({
         pins: true,
-        risk: true,
+        risk: false,
         station: true,
     });
     const [colorBy, setColorBy] = useState<ColorBy>('alarm_level');
@@ -496,7 +496,7 @@ export default function FireIncidentsMap({
 
                 {/* ── Map + Sidebar ──────────────────────────────────────── */}
                 <div
-                    className="flex gap-4"
+                    className="flex flex-row-reverse gap-4"
                     style={{ height: 'calc(100vh - 64px - 48px - 80px)' }}
                 >
                     {/* Incident sidebar */}
@@ -513,49 +513,6 @@ export default function FireIncidentsMap({
                                 <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-brand-orange">
                                     {incidents.length}
                                 </span>
-                            </div>
-
-                            {/* Grouped counts */}
-                            <div
-                                className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-4 py-2"
-                                style={{ borderColor: 'rgba(43,45,66,0.06)' }}
-                            >
-                                {Object.entries(groupedCounts).map(
-                                    ([key, count]) => {
-                                        const color =
-                                            colorBy === 'alarm_level'
-                                                ? (ALARM_LEVEL_MARKER_COLORS[
-                                                      key as AlarmLevel
-                                                  ] ?? FALLBACK_COLOR)
-                                                : (TYPE_CFG[key as IncidentType]
-                                                      ?.color ??
-                                                  FALLBACK_COLOR);
-                                        const label =
-                                            colorBy === 'alarm_level'
-                                                ? (ALARM_LEVEL_CFG[
-                                                      key as AlarmLevel
-                                                  ]?.label ?? key)
-                                                : (TYPE_CFG[key as IncidentType]
-                                                      ?.label ?? key);
-
-                                        return (
-                                            <div
-                                                key={key}
-                                                className="flex items-center gap-1"
-                                            >
-                                                <span
-                                                    className="size-1.5 rounded-full"
-                                                    style={{
-                                                        background: color,
-                                                    }}
-                                                />
-                                                <span className="text-xs text-brand-muted">
-                                                    {count} {label}
-                                                </span>
-                                            </div>
-                                        );
-                                    },
-                                )}
                             </div>
 
                             {/* Incident list */}
@@ -631,9 +588,9 @@ export default function FireIncidentsMap({
                                 className="rounded p-1.5 text-brand-muted transition-colors hover:bg-gray-100"
                             >
                                 {sidebarOpen ? (
-                                    <ChevronLeft size={16} />
-                                ) : (
                                     <ChevronRight size={16} />
+                                ) : (
+                                    <ChevronLeft size={16} />
                                 )}
                             </button>
 
@@ -721,13 +678,16 @@ export default function FireIncidentsMap({
                                                 );
                                             const dbName =
                                                 resolveDbBarangayName(rawName);
-                                            const risk = riskByBarangayName.get(dbName);
+                                            const risk =
+                                                riskByBarangayName.get(dbName);
                                             const label = risk?.risk_level
                                                 ? RISK_CFG[risk.risk_level]
                                                       .label
                                                 : 'No risk data';
                                             const displayName =
-                                                dbName || rawName || 'Unknown Barangay';
+                                                dbName ||
+                                                rawName ||
+                                                'Unknown Barangay';
                                             layer.bindPopup(
                                                 `<p class="text-sm font-semibold">${displayName}</p>` +
                                                     `<p class="text-xs text-gray-500">${label} risk</p>`,

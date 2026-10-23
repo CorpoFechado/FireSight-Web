@@ -27,6 +27,8 @@ test('authenticated bfp admin can visit the dashboard with mobile-matched kpis',
         ->has('monthlyTrend.0.incidents')
         ->missing('monthlyTrend.0.resolved')
         ->has('incidentsByType')
+        ->has('recentIncidents')
+        ->has('barangayRisk')
     );
 });
 

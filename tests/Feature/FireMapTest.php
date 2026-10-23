@@ -309,3 +309,13 @@ test('filters prop echoes the active values', function () {
             ->where('filters.alarm_level', '5th_alarm'),
     );
 });
+
+test('map page defaults to the requested layer and sidebar layout', function () {
+    $source = file_get_contents(resource_path('js/pages/map/index.tsx'));
+
+    expect($source)
+        ->toContain('risk: false,')
+        ->toContain('className="flex flex-row-reverse gap-4"')
+        ->not->toContain('{/* Grouped counts */}')
+        ->not->toContain('Object.entries(groupedCounts).map(');
+});
