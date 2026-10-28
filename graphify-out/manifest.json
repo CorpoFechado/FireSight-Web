@@ -1116,9 +1116,9 @@
     "semantic_hash": "e2323a929692ecdbbc0346287c82b555"
   },
   "resources/js/pages/dashboard.tsx": {
-    "mtime": 1792719343.4429047,
-    "seen": 1792719406.5501664,
-    "ast_hash": "1f1410dcb2ae66988c3aa576c03c44dc",
+    "mtime": 1792753249.7633789,
+    "seen": 1793178666.2322543,
+    "ast_hash": "02be4c6fd4a453d6a8de2ad5ee1d82a5",
     "semantic_hash": ""
   },
   "resources/js/pages/incidents/index.tsx": {
@@ -1308,9 +1308,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/DashboardTest.php": {
-    "mtime": 1792719343.9993498,
-    "seen": 1792719406.5538573,
-    "ast_hash": "b82d161d2a53a5637527be640ee13fab",
+    "mtime": 1792753250.3740013,
+    "seen": 1793178666.2514884,
+    "ast_hash": "b791f5d3f0c3d112fdadb1e449823bf7",
     "semantic_hash": ""
   },
   "tests/Feature/ExampleTest.php": {
@@ -2541,6 +2541,18 @@
     "mtime": 1792748166.373155,
     "seen": 1792748191.4911115,
     "ast_hash": "8eda82555ea919b0461069bb2fd18db7",
+    "semantic_hash": ""
+  },
+  "database/seeders/RealisticIncidentDataSeeder.php": {
+    "mtime": 1793179207.6176314,
+    "seen": 1793179315.0324497,
+    "ast_hash": "a72f497cf19109e90bda7f3d5aa8bfbc",
+    "semantic_hash": ""
+  },
+  "tests/Feature/RealisticIncidentDataSeederTest.php": {
+    "mtime": 1793179208.212115,
+    "seen": 1793179315.052357,
+    "ast_hash": "d9e82ae4b219b4daa8ecb861b6695060",
     "semantic_hash": ""
   }
 }
