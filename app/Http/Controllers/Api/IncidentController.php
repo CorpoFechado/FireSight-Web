@@ -392,7 +392,7 @@ class IncidentController extends ApiController
                 'report_status_history.status',
                 'report_status_history.notes',
                 'report_status_history.created_at',
-                DB::raw("CASE WHEN users.user_id IS NOT NULL THEN TRIM(users.first_name || ' ' || users.last_name) ELSE NULL END as changed_by_name"),
+                DB::raw("CASE WHEN users.user_id IS NOT NULL THEN TRIM(CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, ''))) ELSE NULL END as changed_by_name"),
             ])
             ->get();
 
