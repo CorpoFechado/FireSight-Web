@@ -51,7 +51,7 @@ class AuthController extends ApiController
         }
 
         if ($user->status === User::STATUS_INACTIVE) {
-            return $this->sendError('This account has been deactivated. Please contact BFP Lian.', 403);
+            return $this->sendError($user->suspensionMessage(), 403);
         }
 
         $token = bin2hex(random_bytes(32));

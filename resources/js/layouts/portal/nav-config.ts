@@ -12,6 +12,7 @@ import {
     Navigation,
     Phone,
     User,
+    UserRound,
     Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -26,6 +27,7 @@ import {
     map as fireMap,
     notifications,
     personnel,
+    residents,
     response,
 } from '@/routes';
 import { index as incidents } from '@/routes/incidents';
@@ -62,6 +64,12 @@ export const PORTAL_NAV: PortalNavItem[] = [
         title: 'Personnel Accounts',
         href: personnel(),
         icon: Users,
+        roles: ['bfp_admin'],
+    },
+    {
+        title: 'Resident Accounts',
+        href: residents(),
+        icon: UserRound,
         roles: ['bfp_admin'],
     },
     {

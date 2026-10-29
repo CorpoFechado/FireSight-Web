@@ -61,12 +61,34 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the user is a resident.
+     */
+    public function resident(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_RESIDENT,
+        ]);
+    }
+
+    /**
      * Indicate that the account is suspended.
      */
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
             'status' => User::STATUS_INACTIVE,
+        ]);
+    }
+
+    /**
+     * Indicate that the resident account is suspended.
+     */
+    public function suspended(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => User::STATUS_INACTIVE,
+            'suspended_at' => now(),
+            'suspension_reason' => 'Suspended by a BFP administrator.',
         ]);
     }
 

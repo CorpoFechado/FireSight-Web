@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
             'unreadNotificationCount' => fn () => $request->user()?->appNotifications()->where('is_read', false)->count() ?? 0,
             'flash' => [
                 'toast' => $request->session()->get('toast'),
+                'residentTemporaryPassword' => $request->session()->get('residentTemporaryPassword'),
             ],
         ];
     }

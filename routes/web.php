@@ -11,6 +11,7 @@ use App\Http\Controllers\IncidentActionController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\RiskAnalyticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -84,6 +85,13 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         Route::post('personnel', [PersonnelController::class, 'store'])->name('personnel.store');
         Route::patch('personnel/{user}', [PersonnelController::class, 'update'])->name('personnel.update');
         Route::delete('personnel/{user}', [PersonnelController::class, 'destroy'])->name('personnel.destroy');
+
+        Route::get('residents', [ResidentController::class, 'index'])->name('residents');
+        Route::get('residents/{user}', [ResidentController::class, 'show'])->name('residents.show');
+        Route::patch('residents/{user}', [ResidentController::class, 'update'])->name('residents.update');
+        Route::post('residents/{user}/reset-password', [ResidentController::class, 'resetPassword'])->name('residents.resetPassword');
+        Route::post('residents/{user}/suspend', [ResidentController::class, 'suspend'])->name('residents.suspend');
+        Route::post('residents/{user}/reactivate', [ResidentController::class, 'reactivate'])->name('residents.reactivate');
 
         Route::get('barangay-contacts', [BarangayContactController::class, 'index'])->name('barangayContacts');
         Route::post('barangay-contacts', [BarangayContactController::class, 'store'])->name('barangayContacts.store');

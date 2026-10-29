@@ -35,6 +35,10 @@ use Laravel\Passkeys\Passkeys;
  * @property bool $is_verified
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property Carbon|null $password_changed_at
+ * @property Carbon|null $details_updated_at
+ * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reason
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -42,7 +46,7 @@ use Laravel\Passkeys\Passkeys;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['role', 'status', 'first_name', 'middle_name', 'last_name', 'suffix', 'name', 'email', 'contact_number', 'username', 'password', 'google_id', 'profile_image', 'is_verified'])]
+#[Fillable(['role', 'status', 'first_name', 'middle_name', 'last_name', 'suffix', 'name', 'email', 'contact_number', 'username', 'password', 'password_changed_at', 'details_updated_at', 'suspended_at', 'suspension_reason', 'google_id', 'profile_image', 'is_verified'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -77,8 +81,20 @@ class User extends Authenticatable implements PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_changed_at' => 'datetime',
+            'details_updated_at' => 'datetime',
+            'suspended_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if ($user->exists && $user->isDirty('password') && ! $user->isDirty('password_changed_at')) {
+                $user->password_changed_at = now();
+            }
+        });
     }
 
     /**
@@ -130,6 +146,15 @@ class User extends Authenticatable implements PasskeyUser
         return $this->status === self::STATUS_ACTIVE;
     }
 
+    public function suspensionMessage(): string
+    {
+        $message = 'This account has been suspended. Please contact BFP Lian.';
+
+        return $this->suspension_reason
+            ? "{$message} Reason: {$this->suspension_reason}"
+            : $message;
+    }
+
     public function personnelDetails(): HasOne
     {
         return $this->hasOne(BfpPersonnelDetails::class, 'user_id', 'user_id');
@@ -171,5 +196,11 @@ class User extends Authenticatable implements PasskeyUser
     public function residentAddress(): HasMany
     {
         return $this->hasMany(ResidentAddress::class, 'user_id', 'user_id');
+    }
+
+    public function homeAddress(): HasOne
+    {
+        return $this->hasOne(ResidentAddress::class, 'user_id', 'user_id')
+            ->latestOfMany('address_id');
     }
 }

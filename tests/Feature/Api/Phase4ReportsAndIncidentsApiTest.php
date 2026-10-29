@@ -329,6 +329,7 @@ test('profile endpoints support view, update, photo upload, and photo deletion',
             'contact_number' => '09198765432',
             'house_no_street' => '456 New St',
             'barangay_id' => 2,
+            'password' => 'new-mobile-password',
         ]);
 
     $resUpdate->assertStatus(200)
@@ -336,6 +337,8 @@ test('profile endpoints support view, update, photo upload, and photo deletion',
         ->assertJsonPath('contact_number', '09198765432')
         ->assertJsonPath('address.barangay_id', 2)
         ->assertJsonPath('address.barangay_name', 'Barangay 2 (Poblacion)');
+
+    expect($user->refresh()->password_changed_at)->not->toBeNull();
 
     // 3. Upload Profile Photo
     $photo = UploadedFile::fake()->image('profile.jpg');

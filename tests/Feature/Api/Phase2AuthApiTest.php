@@ -119,7 +119,7 @@ test('login fails with wrong password returning generic 401', function (): void 
         ->assertJson(['message' => 'Incorrect credentials. Please check your email or mobile number.']);
 });
 
-test('login fails for deactivated user returning 403', function (): void {
+test('login fails for suspended user returning 403', function (): void {
     User::create([
         'role' => User::ROLE_RESIDENT,
         'status' => User::STATUS_INACTIVE,
@@ -135,7 +135,7 @@ test('login fails for deactivated user returning 403', function (): void {
     ]);
 
     $response->assertStatus(403)
-        ->assertJson(['message' => 'This account has been deactivated. Please contact BFP Lian.']);
+        ->assertJson(['message' => 'This account has been suspended. Please contact BFP Lian.']);
 });
 
 test('register creates user address and token returning 201', function (): void {
@@ -298,7 +298,8 @@ test('reset password updates user password and revokes all auth tokens', functio
         ->assertJson(['message' => 'Your password has been reset successfully. Please sign in with your new password.']);
 
     $user->refresh();
-    expect(Hash::check('brandnewpassword123', $user->password))->toBeTrue();
+    expect(Hash::check('brandnewpassword123', $user->password))->toBeTrue()
+        ->and($user->password_changed_at)->not->toBeNull();
 
     // Reset token deleted
     $this->assertDatabaseMissing('password_reset_tokens', ['token' => $token]);

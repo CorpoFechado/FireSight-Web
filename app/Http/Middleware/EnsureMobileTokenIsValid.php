@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\AuthToken;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,8 +39,8 @@ class EnsureMobileTokenIsValid
 
         $user = $authToken->user;
 
-        if ($user->status === 'inactive') {
-            return response()->json(['message' => 'This account has been deactivated. Please contact BFP Lian.'], 403);
+        if ($user->status === User::STATUS_INACTIVE) {
+            return response()->json(['message' => $user->suspensionMessage()], 403);
         }
 
         $request->setUserResolver(fn () => $user);
