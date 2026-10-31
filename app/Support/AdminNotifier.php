@@ -9,19 +9,10 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
- * Builds and fans out staff-facing notifications to every active BFP admin.
- *
- * Every public method accepts an optional `$at` timestamp so seeders can
- * backfill notifications using the original event times.
+ * Builds and fans out staff-facing notifications for fire incident activity.
  */
 class AdminNotifier
 {
-    /** Minimum AI confidence for a fire/smoke detection to be flagged as critical. */
-    public const CRITICAL_AI_CONFIDENCE = 0.9;
-
-    /** @var list<string> */
-    public const CRITICAL_AI_LABELS = ['fire', 'smoke'];
-
     /** Reports within this radius of an active report are flagged as possible duplicates. */
     public const DUPLICATE_RADIUS_METERS = 300;
 
@@ -38,37 +29,19 @@ class AdminNotifier
     ];
 
     /**
-     * A new community report came in. High-confidence AI detections are sent
-     * as a single critical alert instead of a regular "new report" notice.
+     * A new community report came in. Notifies active BFP admins.
+     * (BFP personnel and resident confirmation are notified directly by the mobile submission endpoint).
      */
     public function reportSubmitted(CommunityReport $report, ?CarbonInterface $at = null): void
     {
-        if ($this->isCriticalAiDetection($report->ai_fire_label, $report->ai_fire_confidence)) {
-            $this->criticalAiDetection($report, $at);
-
-            return;
-        }
-
-        $this->send(
+        $this->sendToRoles(
             'New Community Report',
             "Report #{$report->report_id} from {$this->reporterName($report)}{$this->locationSuffix($report)} is awaiting verification.",
             'incident_alert',
+            [User::ROLE_BFP_ADMIN],
             null,
             $at,
-        );
-    }
-
-    public function criticalAiDetection(CommunityReport $report, ?CarbonInterface $at = null): void
-    {
-        $confidence = (int) round(((float) $report->ai_fire_confidence) * 100);
-        $label = $report->ai_fire_label === 'smoke' ? 'smoke' : 'fire';
-
-        $this->send(
-            'Critical: AI-Detected Fire',
-            "AI detected {$label} with {$confidence}% confidence on Report #{$report->report_id}{$this->locationSuffix($report)}. Prioritize verification.",
-            'incident_alert',
-            null,
-            $at,
+            (int) $report->report_id,
         );
     }
 
@@ -86,46 +59,61 @@ class AdminNotifier
             ->implode(', ');
         $noun = $nearbyReports->count() === 1 ? 'Report' : 'Reports';
 
-        $this->send(
+        $this->sendToRoles(
             'Possible Duplicate Report',
             "Report #{$report->report_id} was submitted near active {$noun} {$reportList}. Review and link them if they describe the same incident.",
             'incident_alert',
+            [User::ROLE_BFP_ADMIN],
             null,
             $at,
+            (int) $report->report_id,
         );
     }
 
+    /**
+     * Handles status changes triggered anywhere in the system.
+     * - If triggered by Admin (Web Portal) or System/Seeder:
+     *   Notifies other Admins, active BFP Personnel, and the Resident reporter.
+     * - If triggered by Personnel (Mobile App):
+     *   Notifies active Admins (Mobile API notifies other personnel and resident).
+     */
     public function statusChanged(CommunityReport $report, string $status, ?User $actor, ?CarbonInterface $at = null): void
     {
         $label = self::STATUS_LABELS[$status] ?? ucfirst($status);
         $title = $status === CommunityReport::STATUS_INVALID ? 'Report Marked Invalid' : "Report {$label}";
+        $staffMessage = "{$this->actorName($actor)} marked Report #{$report->report_id}{$this->locationSuffix($report)} as {$label}.";
+        $reportId = (int) $report->report_id;
+        $actorId = $actor?->getKey();
 
-        $this->send(
+        // 1. Notify BFP Admins (excluding the actor if they are an admin)
+        $this->sendToRoles(
             $title,
-            "{$this->actorName($actor)} marked Report #{$report->report_id}{$this->locationSuffix($report)} as {$label}.",
+            $staffMessage,
             'status_update',
-            $actor?->getKey(),
+            [User::ROLE_BFP_ADMIN],
+            $actorId,
             $at,
+            $reportId,
         );
-    }
 
-    public function incidentDetailsUpdated(CommunityReport $report, ?User $actor, ?CarbonInterface $at = null): void
-    {
-        $this->send(
-            'Incident Details Updated',
-            "{$this->actorName($actor)} updated the incident assessment for Report #{$report->report_id}{$this->locationSuffix($report)}.",
-            'system',
-            $actor?->getKey(),
-            $at,
-        );
-    }
+        // 2. If action originated from Web Admin or System, fan out to Personnel and Resident
+        $isPersonnelActor = $actor && $actor->role === User::ROLE_BFP_PERSONNEL;
 
-    public function isCriticalAiDetection(?string $label, ?float $confidence): bool
-    {
-        return $label !== null
-            && $confidence !== null
-            && in_array($label, self::CRITICAL_AI_LABELS, true)
-            && $confidence >= self::CRITICAL_AI_CONFIDENCE;
+        if (! $isPersonnelActor) {
+            // Notify active BFP Personnel on mobile
+            $this->sendToRoles(
+                $title,
+                $staffMessage,
+                'status_update',
+                [User::ROLE_BFP_PERSONNEL],
+                $actorId,
+                $at,
+                $reportId,
+            );
+
+            // Notify Resident Submitter
+            $this->notifyResidentStatus($report, $status, $at);
+        }
     }
 
     /**
@@ -167,10 +155,49 @@ class AdminNotifier
             ->values();
     }
 
-    private function send(string $title, string $message, string $type, ?int $exceptUserId, ?CarbonInterface $at): void
+    /**
+     * Sends notification to the resident who submitted the report.
+     */
+    private function notifyResidentStatus(CommunityReport $report, string $status, ?CarbonInterface $at = null): void
     {
+        if (! $report->user_id) {
+            return;
+        }
+
+        $messages = [
+            'accepted' => "Your fire report (#{$report->report_id}) has been accepted by BFP personnel.",
+            'dispatched' => "BFP personnel have been dispatched for your fire report (#{$report->report_id}).",
+            'resolved' => "Your fire report (#{$report->report_id}) has been marked as resolved by BFP personnel.",
+            'invalid' => "Your fire report (#{$report->report_id}) has been marked as false or invalid by BFP personnel.",
+        ];
+
+        $message = $messages[$status] ?? "The status of your fire report (#{$report->report_id}) has been updated to: {$status}.";
+
+        Notification::create([
+            'user_id' => $report->user_id,
+            'report_id' => (int) $report->report_id,
+            'title' => 'Report Status Updated',
+            'message' => $message,
+            'notification_type' => 'status_update',
+            'is_read' => false,
+            'created_at' => $at ?? now(),
+        ]);
+    }
+
+    /**
+     * @param  list<string>  $roles
+     */
+    private function sendToRoles(
+        string $title,
+        string $message,
+        string $type,
+        array $roles,
+        ?int $exceptUserId,
+        ?CarbonInterface $at,
+        ?int $reportId = null
+    ): void {
         $recipientIds = User::query()
-            ->where('role', User::ROLE_BFP_ADMIN)
+            ->whereIn('role', $roles)
             ->where('status', User::STATUS_ACTIVE)
             ->when($exceptUserId !== null, fn ($query) => $query->whereKeyNot($exceptUserId))
             ->pluck('user_id');
@@ -183,6 +210,7 @@ class AdminNotifier
 
         Notification::insert($recipientIds->map(fn (int $id) => [
             'user_id' => $id,
+            'report_id' => $reportId,
             'title' => $title,
             'message' => $message,
             'notification_type' => $type,

@@ -44,10 +44,10 @@ export function PortalTopbar({
                 <Bell size={18} className="text-brand-muted" />
                 {unreadCount > 0 && (
                     <span
-                        className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-brand-orange text-white"
+                        className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-orange px-1 text-white"
                         style={{ fontSize: 9, fontWeight: 700 }}
                     >
-                        {unreadCount}
+                        {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
             </Link>

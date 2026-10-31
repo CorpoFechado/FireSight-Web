@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
-use App\Models\Notification;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,8 +44,6 @@ class AnnouncementController extends Controller
 
         $announcement = $request->user()->announcements()->create($data);
 
-        $this->notifyStaff($announcement, $request->user()->getKey());
-
         return back()->with('toast', [
             'type' => 'success',
             'message' => "\"{$announcement->title}\" was published.",
@@ -75,30 +71,6 @@ class AnnouncementController extends Controller
             'type' => 'success',
             'message' => "\"{$title}\" was deleted.",
         ]);
-    }
-
-    private function notifyStaff(Announcement $announcement, int $publisherId): void
-    {
-        $recipientIds = User::query()
-            ->whereIn('role', [User::ROLE_BFP_ADMIN, User::ROLE_BFP_PERSONNEL])
-            ->where('status', User::STATUS_ACTIVE)
-            ->whereKeyNot($publisherId)
-            ->pluck('user_id');
-
-        if ($recipientIds->isEmpty()) {
-            return;
-        }
-
-        $now = now();
-
-        Notification::insert($recipientIds->map(fn (int $id) => [
-            'user_id' => $id,
-            'title' => 'New Announcement Published',
-            'message' => "\"{$announcement->title}\" has been posted.",
-            'notification_type' => 'reminder',
-            'is_read' => false,
-            'created_at' => $now,
-        ])->all());
     }
 
     /**

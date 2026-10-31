@@ -44,7 +44,13 @@ class ProfileController extends ApiController
         if ($request->filled('password')) {
             $password = (string) $request->input('password');
             if (strlen($password) < 8) {
-                return $this->sendError('Password must be at least 8 characters.', 422);
+                return $this->sendError('New password must be at least 8 characters.', 422);
+            }
+
+            if ($request->filled('current_password')) {
+                if (! Hash::check((string) $request->input('current_password'), $user->password)) {
+                    return $this->sendError('The current password you entered is incorrect.', 422);
+                }
             }
         }
 
@@ -176,5 +182,29 @@ class ProfileController extends ApiController
         $user->save();
 
         return $this->sendSuccess($this->formatUserWithAddress($user->fresh()));
+    }
+
+    /**
+     * Request account deletion (30-day grace period).
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->role !== User::ROLE_RESIDENT) {
+            return $this->sendError('Official personnel accounts cannot be self-deleted.', 403);
+        }
+
+        $user->status = User::STATUS_INACTIVE;
+        $user->suspended_at = now();
+        $user->suspension_reason = 'Resident requested account deletion (30-day grace period)';
+        $user->save();
+
+        // Invalidate active mobile tokens
+        DB::table('auth_token')->where('user_id', $user->user_id)->delete();
+
+        return $this->sendSuccess([
+            'message' => 'Your account deletion has been scheduled. Your account will be permanently removed in 30 days.',
+        ]);
     }
 }

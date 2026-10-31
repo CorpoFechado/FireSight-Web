@@ -88,10 +88,10 @@ export function PortalSidebar({
                                 <Icon size={17} />
                                 {isNotif && unreadCount > 0 && (
                                     <span
-                                        className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-brand-orange text-white"
+                                        className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-orange px-1 text-white"
                                         style={{ fontSize: 9, fontWeight: 700 }}
                                     >
-                                        {unreadCount}
+                                        {unreadCount > 99 ? '99+' : unreadCount}
                                     </span>
                                 )}
                             </span>

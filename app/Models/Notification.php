@@ -13,11 +13,12 @@ class Notification extends Model
 
     public const UPDATED_AT = null;
 
-    protected $fillable = ['user_id', 'title', 'message', 'notification_type', 'is_read'];
+    protected $fillable = ['user_id', 'report_id', 'title', 'message', 'notification_type', 'is_read'];
 
     protected function casts(): array
     {
         return [
+            'report_id' => 'integer',
             'is_read' => 'boolean',
             'created_at' => 'datetime',
         ];
@@ -26,5 +27,10 @@ class Notification extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function report(): BelongsTo
+    {
+        return $this->belongsTo(CommunityReport::class, 'report_id', 'report_id');
     }
 }

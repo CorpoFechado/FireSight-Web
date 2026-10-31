@@ -51,7 +51,21 @@ class AuthController extends ApiController
         }
 
         if ($user->status === User::STATUS_INACTIVE) {
-            return $this->sendError($user->suspensionMessage(), 403);
+            // Check if this was a resident self-requested deletion within the 30-day grace period
+            $isGracePeriod = $user->role === User::ROLE_RESIDENT
+                && $user->suspended_at
+                && $user->suspended_at->greaterThanOrEqualTo(now()->subDays(30))
+                && str_contains($user->suspension_reason ?? '', 'deletion');
+
+            if ($isGracePeriod) {
+                // Cancel scheduled deletion and reactivate account
+                $user->status = User::STATUS_ACTIVE;
+                $user->suspended_at = null;
+                $user->suspension_reason = null;
+                $user->save();
+            } else {
+                return $this->sendError($user->suspensionMessage(), 403);
+            }
         }
 
         $token = bin2hex(random_bytes(32));

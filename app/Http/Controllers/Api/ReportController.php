@@ -126,7 +126,7 @@ class ReportController extends ApiController
             ]);
 
             // Notify resident and active BFP personnel
-            $this->notificationService->notifyResidentReportSubmitted($user->user_id);
+            $this->notificationService->notifyResidentReportSubmitted($user->user_id, $report->report_id);
             $this->notificationService->notifyPersonnelOfNewReport($report->report_id, $locationName !== '' ? $locationName : null);
 
             DB::commit();

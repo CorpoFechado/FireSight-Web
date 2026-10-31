@@ -22,10 +22,12 @@ class NotificationController extends ApiController
             ->limit(50)
             ->get();
 
-        // Extract any linked report IDs (e.g. from "#123" in message)
+        // Collect report IDs directly from the report_id column or fallback to regex
         $reportIds = [];
         foreach ($notifications as $n) {
-            if (preg_match('/#(\d+)/', (string) $n->message, $matches)) {
+            if ($n->report_id) {
+                $reportIds[] = (int) $n->report_id;
+            } elseif (preg_match('/#(\d+)/', (string) $n->message.' '.(string) $n->title, $matches)) {
                 $reportIds[] = (int) $matches[1];
             }
         }
@@ -36,18 +38,36 @@ class NotificationController extends ApiController
                 ->keyBy('report_id')
             : collect();
 
-        $result = $notifications->map(function ($n) use ($reports) {
-            $reportId = null;
+        // For resident notifications that don't have report_id or "#123" (legacy), map to user's reports
+        $residentReports = $user->role === 'resident'
+            ? CommunityReport::where('user_id', $user->user_id)->orderByDesc('created_at')->get(['report_id', 'created_at'])
+            : collect();
+
+        $result = $notifications->map(function ($n) use ($reports, $residentReports) {
+            $reportId = $n->report_id ? (int) $n->report_id : null;
             $lat = null;
             $lng = null;
 
-            if (preg_match('/#(\d+)/', (string) $n->message, $matches)) {
+            if ($reportId && $reports->has($reportId)) {
+                $report = $reports->get($reportId);
+                $lat = $report->latitude !== null ? (float) $report->latitude : null;
+                $lng = $report->longitude !== null ? (float) $report->longitude : null;
+            } elseif (preg_match('/#(\d+)/', (string) $n->message.' '.(string) $n->title, $matches)) {
                 $matchedId = (int) $matches[1];
+                $reportId = $matchedId;
                 if ($reports->has($matchedId)) {
                     $report = $reports->get($matchedId);
-                    $reportId = (int) $report->report_id;
                     $lat = $report->latitude !== null ? (float) $report->latitude : null;
                     $lng = $report->longitude !== null ? (float) $report->longitude : null;
+                }
+            } elseif ($residentReports->isNotEmpty() && in_array($n->notification_type, ['incident_alert', 'status_update'])) {
+                // Find closest report created on or before this notification
+                $closestReport = $residentReports->first(function ($r) use ($n) {
+                    return $r->created_at <= $n->created_at;
+                }) ?? $residentReports->first();
+
+                if ($closestReport) {
+                    $reportId = (int) $closestReport->report_id;
                 }
             }
 

@@ -46,7 +46,10 @@ class IncidentController extends ApiController
             ->leftJoin('barangay', function ($join) {
                 $join->on('barangay.barangay_id', '=', DB::raw('COALESCE(incident_record.barangay_id, community_report.barangay_id)'));
             })
-            ->where('community_report.report_id', $reportId)
+            ->where(function ($query) use ($reportId) {
+                $query->where('community_report.report_id', $reportId)
+                    ->orWhere('incident_record.incident_id', $reportId);
+            })
             ->select([
                 'community_report.*',
                 'incident_record.incident_type',
@@ -220,7 +223,7 @@ class IncidentController extends ApiController
                 'created_at' => now(),
             ]);
 
-            $this->notificationService->notifyReportStatusChange($reportId, CommunityReport::STATUS_ACCEPTED);
+            $this->notificationService->notifyReportStatusChange($reportId, CommunityReport::STATUS_ACCEPTED, $user->user_id);
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -290,7 +293,7 @@ class IncidentController extends ApiController
                 'created_at' => now(),
             ]);
 
-            $this->notificationService->notifyReportStatusChange($reportId, $status);
+            $this->notificationService->notifyReportStatusChange($reportId, $status, $user->user_id);
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -450,7 +453,7 @@ class IncidentController extends ApiController
                 'created_at' => now(),
             ]);
 
-            $this->notificationService->notifyReportStatusChange($reportId, CommunityReport::STATUS_INVALID);
+            $this->notificationService->notifyReportStatusChange($reportId, CommunityReport::STATUS_INVALID, $user->user_id);
 
             DB::commit();
         } catch (\Throwable $e) {

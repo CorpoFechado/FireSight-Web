@@ -6,9 +6,7 @@ use App\Enums\AlarmLevel;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
-use App\Models\Notification;
 use App\Models\ReportStatusHistory;
-use App\Support\AdminNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,8 +44,6 @@ class IncidentActionController extends Controller
             );
         });
 
-        $this->notifyReporter($report, 'Your fire incident report has been accepted by BFP Lian personnel.');
-
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'Report accepted.',
@@ -70,8 +66,6 @@ class IncidentActionController extends Controller
                 'Report investigated and marked as invalid / false alarm by BFP personnel.'
             );
         });
-
-        $this->notifyReporter($report, 'Your fire incident report could not be verified and has been marked as invalid.');
 
         return back()->with('toast', [
             'type' => 'success',
@@ -103,8 +97,6 @@ class IncidentActionController extends Controller
                 'Fire response units dispatched to the reported location.'
             );
         });
-
-        $this->notifyReporter($report, 'Fire responders have been dispatched to the location you reported.');
 
         return back()->with('toast', [
             'type' => 'success',
@@ -140,8 +132,6 @@ class IncidentActionController extends Controller
             );
         });
 
-        $this->notifyReporter($report, 'The fire incident you reported has been marked as resolved.');
-
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'Report marked as resolved.',
@@ -152,7 +142,7 @@ class IncidentActionController extends Controller
      * Updates assessment details for a resolved incident record.
      * Open to any BFP staff / admin.
      */
-    public function updateDetails(Request $request, CommunityReport $report, AdminNotifier $adminNotifier): RedirectResponse
+    public function updateDetails(Request $request, CommunityReport $report): RedirectResponse
     {
         $this->assertStatus($report, [CommunityReport::STATUS_RESOLVED], 'update details for');
 
@@ -196,8 +186,6 @@ class IncidentActionController extends Controller
             );
         });
 
-        $adminNotifier->incidentDetailsUpdated($report, $request->user());
-
         return back()->with('toast', [
             'type' => 'success',
             'message' => 'Incident assessment details updated successfully.',
@@ -216,16 +204,6 @@ class IncidentActionController extends Controller
             'notes' => $notes,
             'changed_by' => auth()->user()?->getKey(),
             'created_at' => now(),
-        ]);
-    }
-
-    private function notifyReporter(CommunityReport $report, string $message): void
-    {
-        Notification::create([
-            'user_id' => $report->user_id,
-            'title' => 'Report Status Update',
-            'message' => $message,
-            'notification_type' => 'status_update',
         ]);
     }
 

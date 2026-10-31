@@ -113,11 +113,13 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/profile', [ProfileController::class, 'show'])->name('api.v1.profile.show');
         Route::match(['put', 'post'], '/profile', [ProfileController::class, 'update'])->name('api.v1.profile.update');
         Route::post('/profile/photo', [ProfileController::class, 'uploadPhoto'])->name('api.v1.profile.photo');
+        Route::match(['post', 'delete'], '/profile/delete-account', [ProfileController::class, 'deleteAccount'])->name('api.v1.profile.delete_account');
 
         // Profile Compatibility Aliases
         Route::get('/profile/get.php', [ProfileController::class, 'show']);
         Route::match(['put', 'post'], '/profile/update.php', [ProfileController::class, 'update']);
         Route::post('/profile/upload_photo.php', [ProfileController::class, 'uploadPhoto']);
+        Route::match(['post', 'delete'], '/profile/delete_account.php', [ProfileController::class, 'deleteAccount']);
 
         // ── 9. Notifications Endpoints ───────────────────────────────────
         Route::get('/notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
@@ -181,6 +183,7 @@ Route::middleware('auth.mobile')->group(function (): void {
     Route::get('/profile/get.php', [ProfileController::class, 'show']);
     Route::match(['put', 'post'], '/profile/update.php', [ProfileController::class, 'update']);
     Route::post('/profile/upload_photo.php', [ProfileController::class, 'uploadPhoto']);
+    Route::match(['post', 'delete'], '/profile/delete_account.php', [ProfileController::class, 'deleteAccount']);
 
     // Notifications legacy routes
     Route::get('/notifications/list.php', [NotificationController::class, 'index']);
