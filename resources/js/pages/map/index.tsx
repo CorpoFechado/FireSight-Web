@@ -1,6 +1,5 @@
 import 'leaflet/dist/leaflet.css';
-import { router } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
+import { Link, router, useRemember } from '@inertiajs/react';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import L from 'leaflet';
 import {
@@ -18,6 +17,7 @@ import {
     Marker,
     Popup,
     TileLayer,
+    useMapEvents,
 } from 'react-leaflet';
 import { PortalCard } from '@/components/portal/portal-card';
 import { AlarmLevelBadge } from '@/components/portal/status-badge';
@@ -88,6 +88,11 @@ type Filters = {
 
 type ColorBy = 'alarm_level' | 'type';
 
+type MapView = {
+    center: [number, number];
+    zoom: number;
+};
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PERIOD_OPTIONS: { label: string; value: Period }[] = [
@@ -129,6 +134,21 @@ const stationIcon = L.divIcon({
 });
 
 const FALLBACK_COLOR = '#6B7A8D';
+
+function RememberMapView({ onChange }: { onChange: (view: MapView) => void }) {
+    useMapEvents({
+        moveend: (event) => {
+            const center = event.target.getCenter();
+
+            onChange({
+                center: [center.lat, center.lng],
+                zoom: event.target.getZoom(),
+            });
+        },
+    });
+
+    return null;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -181,14 +201,33 @@ export default function FireIncidentsMap({
     periodLabel: string;
     filters: Filters;
 }) {
-    const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [layers, setLayers] = useState({
-        pins: true,
-        risk: false,
-        station: true,
-    });
-    const [colorBy, setColorBy] = useState<ColorBy>('alarm_level');
-    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [sidebarOpen, setSidebarOpen] = useRemember(
+        true,
+        'FireIncidentsMap.sidebarOpen',
+    );
+    const [layers, setLayers] = useRemember(
+        {
+            pins: true,
+            risk: false,
+            station: true,
+        },
+        'FireIncidentsMap.layers',
+    );
+    const [colorBy, setColorBy] = useRemember<ColorBy>(
+        'alarm_level',
+        'FireIncidentsMap.colorBy',
+    );
+    const [selectedId, setSelectedId] = useRemember<number | null>(
+        null,
+        'FireIncidentsMap.selectedId',
+    );
+    const [mapView, setMapView] = useRemember<MapView>(
+        {
+            center: LIAN_CENTER,
+            zoom: LIAN_DEFAULT_ZOOM,
+        },
+        'FireIncidentsMap.view',
+    );
     const [barangayGeo, setBarangayGeo] = useState<FeatureCollection<
         Geometry,
         BarangayGeoProperties
@@ -201,6 +240,12 @@ export default function FireIncidentsMap({
     )
         ? selectedId
         : null;
+
+    useEffect(() => {
+        if (activeSelectedId !== null) {
+            incidentMarkerRefs.current.get(activeSelectedId)?.openPopup();
+        }
+    }, [activeSelectedId]);
 
     // Load barangay GeoJSON
     useEffect(() => {
@@ -639,10 +684,11 @@ export default function FireIncidentsMap({
                         <div className="relative flex-1">
                             <MapContainer
                                 ref={mapRef}
-                                center={LIAN_CENTER}
-                                zoom={LIAN_DEFAULT_ZOOM}
+                                center={mapView.center}
+                                zoom={mapView.zoom}
                                 style={{ height: '100%', width: '100%' }}
                             >
+                                <RememberMapView onChange={setMapView} />
                                 <TileLayer
                                     url={OSM_TILE_URL}
                                     attribution={OSM_ATTRIBUTION}
@@ -792,6 +838,11 @@ export default function FireIncidentsMap({
                                                     <Link
                                                         href={showIncident(
                                                             inc.report_id,
+                                                            {
+                                                                query: {
+                                                                    from: 'map',
+                                                                },
+                                                            },
                                                         )}
                                                         className="text-xs font-semibold text-blue-600 underline"
                                                     >

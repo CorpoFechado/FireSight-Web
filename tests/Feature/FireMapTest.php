@@ -319,3 +319,18 @@ test('map page defaults to the requested layer and sidebar layout', function () 
         ->not->toContain('{/* Grouped counts */}')
         ->not->toContain('Object.entries(groupedCounts).map(');
 });
+
+test('map report links preserve map-only return navigation and remembered state', function () {
+    $mapSource = file_get_contents(resource_path('js/pages/map/index.tsx'));
+    $showSource = file_get_contents(resource_path('js/pages/incidents/show.tsx'));
+
+    expect($mapSource)
+        ->toContain("from: 'map'")
+        ->toContain('useRemember')
+        ->toContain('FireIncidentsMap.view')
+        ->and($showSource)
+        ->toContain("navigationSource === 'map'")
+        ->toContain('window.history.back()')
+        ->toContain('Back to Fire Incidents Map')
+        ->toContain('Back to Incident Reports');
+});

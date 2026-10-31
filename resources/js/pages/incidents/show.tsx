@@ -112,13 +112,13 @@ function ReportPhoto({
 
     if (failed) {
         return (
-            <div
-                className="flex h-36 flex-col items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50/50 p-2 text-center"
-            >
+            <div className="flex h-36 flex-col items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50/50 p-2 text-center">
                 <Camera size={18} className="text-brand-red" />
                 <p className="text-xs text-brand-red">Image unavailable</p>
                 {label && (
-                    <span className="text-[10px] text-brand-muted">{label}</span>
+                    <span className="text-[10px] text-brand-muted">
+                        {label}
+                    </span>
                 )}
             </div>
         );
@@ -199,12 +199,14 @@ export default function IncidentShow({
     report,
     linkedReports,
     statusHistory = [],
+    navigationSource,
 }: {
     report: ReportDetail;
     linkedReports: LinkedReport[];
     barangays: Barangay[];
     suggestedBarangayId: number | null;
     statusHistory?: StatusHistoryEntry[];
+    navigationSource: 'incidents' | 'map';
 }) {
     const [editOpen, setEditOpen] = useState(false);
     const assessmentValues = {
@@ -243,12 +245,22 @@ export default function IncidentShow({
             subtitle={`${report.type ?? 'Unclassified'} · ${report.barangay ?? 'Barangay not yet assigned'}`}
         >
             <div className="space-y-4">
-                <Link
-                    href={incidentsIndex()}
-                    className="flex w-fit items-center gap-1.5 text-xs font-semibold text-brand-blue"
-                >
-                    <ArrowLeft size={13} /> Back to Incident Reports
-                </Link>
+                {navigationSource === 'map' ? (
+                    <button
+                        type="button"
+                        onClick={() => window.history.back()}
+                        className="flex w-fit items-center gap-1.5 text-xs font-semibold text-brand-blue"
+                    >
+                        <ArrowLeft size={13} /> Back to Fire Incidents Map
+                    </button>
+                ) : (
+                    <Link
+                        href={incidentsIndex()}
+                        className="flex w-fit items-center gap-1.5 text-xs font-semibold text-brand-blue"
+                    >
+                        <ArrowLeft size={13} /> Back to Incident Reports
+                    </Link>
+                )}
 
                 <PortalCard>
                     <div
@@ -529,7 +541,8 @@ export default function IncidentShow({
                                     </p>
                                     <span className="text-[11px] text-brand-muted">
                                         {(report.report_image ? 1 : 0) +
-                                            (report.evidence_photos?.length ?? 0)}{' '}
+                                            (report.evidence_photos?.length ??
+                                                0)}{' '}
                                         total
                                     </span>
                                 </div>

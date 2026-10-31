@@ -70,7 +70,7 @@ class IncidentController extends Controller
         ]);
     }
 
-    public function show(CommunityReport $report): Response
+    public function show(Request $request, CommunityReport $report): Response
     {
         $report->load([
             'barangay.contacts',
@@ -160,6 +160,7 @@ class IncidentController extends Controller
             'suggestedBarangayId' => $report->status === CommunityReport::STATUS_PENDING
                 ? $this->suggestBarangayId($report)
                 : null,
+            'navigationSource' => $request->string('from')->value() === 'map' ? 'map' : 'incidents',
         ]);
     }
 

@@ -262,6 +262,40 @@ test('incidents show renders with actual statusHistory from database including p
         );
 });
 
+test('incidents show only identifies map navigation when explicitly requested', function () {
+    $report = CommunityReport::create([
+        'user_id' => $this->resident->getKey(),
+        'reporter_name' => 'Map Reporter',
+        'contact_number' => '09123456789',
+        'description' => 'Resolved fire shown on the incidents map',
+        'latitude' => 13.95,
+        'longitude' => 120.65,
+        'status' => CommunityReport::STATUS_RESOLVED,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get(route('incidents.show', ['report' => $report, 'from' => 'map']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('incidents/show')
+            ->where('navigationSource', 'map')
+        );
+
+    $this->get(route('incidents.show', $report))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('incidents/show')
+            ->where('navigationSource', 'incidents')
+        );
+
+    $this->get(route('incidents.show', ['report' => $report, 'from' => 'dashboard']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('incidents/show')
+            ->where('navigationSource', 'incidents')
+        );
+});
+
 test('incidents index and show serialize mobile app ai verification results', function () {
     $verifiedAt = now()->subMinutes(15)->format('Y-m-d H:i');
 
