@@ -327,9 +327,24 @@ class IncidentController extends ApiController
             return $this->sendError('Report not found.', 404);
         }
 
+        $previousStatus = $report->status;
+
         if ($status === CommunityReport::STATUS_DISPATCHED) {
-            if (empty($trucks) || ! is_array($trucks) || empty($personnelIds) || ! is_array($personnelIds)) {
-                return $this->sendError('Please select responding crew and fire apparatus for dispatch.', 422);
+            $isReinforcement = ($previousStatus === CommunityReport::STATUS_DISPATCHED);
+
+            if ($isReinforcement) {
+                // For reinforcement / subsequent dispatch, require at least one truck OR at least one officer
+                $hasTrucks = is_array($trucks) && count(array_filter($trucks, fn ($t) => trim((string) $t) !== '')) > 0;
+                $hasPersonnel = is_array($personnelIds) && count($personnelIds) > 0;
+
+                if (! $hasTrucks && ! $hasPersonnel) {
+                    return $this->sendError('Please select at least one fire truck or responding officer for reinforcement.', 422);
+                }
+            } else {
+                // For initial dispatch, require both responding crew and fire apparatus
+                if (empty($trucks) || ! is_array($trucks) || empty($personnelIds) || ! is_array($personnelIds)) {
+                    return $this->sendError('Please select responding crew and fire apparatus for dispatch.', 422);
+                }
             }
         }
 
@@ -338,7 +353,7 @@ class IncidentController extends ApiController
             $report->status = $status;
             $report->save();
 
-            // When advancing to dispatched, record the apparatus and personnel in dedicated relational tables
+            // When advancing to dispatched (or deploying additional units while dispatched), record the apparatus and personnel in dedicated relational tables
             if ($status === CommunityReport::STATUS_DISPATCHED && (! empty($trucks) || ! empty($personnelIds))) {
                 $dispatch = IncidentDispatch::create([
                     'report_id' => $reportId,
@@ -378,9 +393,24 @@ class IncidentController extends ApiController
                 }
 
                 if (empty($notes)) {
-                    $trucksPart = ! empty($truckNames) ? implode(', ', $truckNames) : 'fire response units';
-                    $crewPart = ! empty($officerTitles) ? ' with crew: '.implode(', ', $officerTitles) : '';
-                    $notes = "Dispatched {$trucksPart}{$crewPart}.";
+                    $hasTrucks = ! empty($truckNames);
+                    $hasCrew = ! empty($officerTitles);
+
+                    if ($previousStatus === CommunityReport::STATUS_DISPATCHED) {
+                        if ($hasTrucks && $hasCrew) {
+                            $notes = 'Deployed additional units: '.implode(', ', $truckNames).' with crew: '.implode(', ', $officerTitles).'.';
+                        } elseif ($hasTrucks) {
+                            $notes = 'Deployed additional apparatus: '.implode(', ', $truckNames).'.';
+                        } elseif ($hasCrew) {
+                            $notes = 'Deployed additional crew: '.implode(', ', $officerTitles).'.';
+                        } else {
+                            $notes = 'Deployed additional response units.';
+                        }
+                    } else {
+                        $trucksPart = $hasTrucks ? implode(', ', $truckNames) : 'fire response units';
+                        $crewPart = $hasCrew ? ' with crew: '.implode(', ', $officerTitles) : '';
+                        $notes = "Dispatched {$trucksPart}{$crewPart}.";
+                    }
                 }
             }
 
