@@ -157,17 +157,28 @@ class IncidentActionController extends Controller
             ])],
             'alarm_level' => ['required', Rule::enum(AlarmLevel::class)],
             'cause_of_fire' => ['nullable', 'string', 'max:150'],
+            'injuries' => ['nullable', 'integer', 'min:0'],
+            'fatalities' => ['nullable', 'integer', 'min:0'],
             'casualties' => ['nullable', 'integer', 'min:0'],
+            'establishment_name' => ['nullable', 'string', 'max:200'],
+            'owner_name' => ['nullable', 'string', 'max:150'],
+            'occupant_name' => ['nullable', 'string', 'max:150'],
+            'time_fire_started' => ['nullable', 'date'],
+            'time_fire_out' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
 
+        $injuries = isset($data['injuries']) ? (int) $data['injuries'] : 0;
+        $fatalities = isset($data['fatalities']) ? (int) $data['fatalities'] : 0;
+        $casualties = isset($data['casualties']) ? (int) $data['casualties'] : ($injuries + $fatalities);
+
         $record = IncidentRecord::firstOrNew(['report_id' => $report->report_id]);
 
-        DB::transaction(function () use ($record, $report, $data) {
+        DB::transaction(function () use ($record, $report, $data, $injuries, $fatalities, $casualties) {
             if (! $record->exists) {
                 $record->fill([
                     'barangay_id' => $report->barangay_id,
-                    'incident_datetime' => now(),
+                    'incident_datetime' => $data['time_fire_started'] ?? now(),
                 ]);
             }
 
@@ -175,7 +186,14 @@ class IncidentActionController extends Controller
                 'incident_type' => $data['incident_type'],
                 'alarm_level' => $data['alarm_level'],
                 'cause_of_fire' => $data['cause_of_fire'] ?? null,
-                'casualties' => $data['casualties'] ?? 0,
+                'injuries' => $injuries,
+                'fatalities' => $fatalities,
+                'casualties' => $casualties,
+                'establishment_name' => $data['establishment_name'] ?? null,
+                'owner_name' => $data['owner_name'] ?? null,
+                'occupant_name' => $data['occupant_name'] ?? null,
+                'time_fire_started' => $data['time_fire_started'] ?? null,
+                'time_fire_out' => $data['time_fire_out'] ?? null,
                 'notes' => $data['notes'] ?? null,
             ])->save();
 

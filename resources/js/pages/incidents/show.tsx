@@ -58,6 +58,13 @@ type ReportDetail = {
     raw_alarm_level: string | null;
     cause_of_fire: string | null;
     casualties: number | null;
+    injuries?: number | null;
+    fatalities?: number | null;
+    establishment_name?: string | null;
+    owner_name?: string | null;
+    occupant_name?: string | null;
+    time_fire_started?: string | null;
+    time_fire_out?: string | null;
     notes: string | null;
     ai_fire_label: string | null;
     ai_fire_confidence: number | null;
@@ -195,6 +202,13 @@ function ReportPhoto({
 }
 type Barangay = { barangay_id: number; barangay_name: string };
 
+function formatTimeOnly(dt?: string | null): string {
+    if (!dt) return 'Unspecified';
+    const d = new Date(dt.replace(' ', 'T'));
+    if (isNaN(d.getTime())) return dt;
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
 export default function IncidentShow({
     report,
     linkedReports,
@@ -213,7 +227,13 @@ export default function IncidentShow({
         incident_type: report.raw_incident_type,
         alarm_level: report.raw_alarm_level,
         cause_of_fire: report.cause_of_fire,
-        casualties: report.casualties,
+        injuries: report.injuries ?? 0,
+        fatalities: report.fatalities ?? 0,
+        establishment_name: report.establishment_name,
+        owner_name: report.owner_name,
+        occupant_name: report.occupant_name,
+        time_fire_started: report.time_fire_started ?? report.dateTime,
+        time_fire_out: report.time_fire_out,
         notes: report.notes,
     };
     const timeline =
@@ -236,7 +256,10 @@ export default function IncidentShow({
         report.raw_alarm_level ||
         report.cause_of_fire ||
         report.notes ||
-        report.casualties !== null,
+        (report.injuries !== null && report.injuries !== undefined && report.injuries > 0) ||
+        (report.fatalities !== null && report.fatalities !== undefined && report.fatalities > 0) ||
+        report.establishment_name ||
+        report.owner_name,
     );
 
     return (
@@ -670,72 +693,69 @@ export default function IncidentShow({
                             </div>
 
                             <div className="space-y-4">
-                                <div className="grid gap-4 md:grid-cols-3">
-                                    {report.cause_of_fire && (
-                                        <div
-                                            className={`flex flex-col justify-between rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-4 ${
-                                                report.casualties !== null
-                                                    ? 'md:col-span-2'
-                                                    : 'md:col-span-3'
-                                            }`}
-                                        >
-                                            <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                                Cause of Fire
-                                            </p>
-                                            <p className="my-2 text-base font-bold text-brand-navy sm:text-lg">
-                                                {report.cause_of_fire}
-                                            </p>
-                                            <p className="text-xs text-brand-muted">
-                                                Identified cause determined by
-                                                responding BFP investigation
-                                                team
-                                            </p>
-                                        </div>
-                                    )}
+                                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Establishment
+                                        </p>
+                                        <p className="mt-1 font-semibold text-brand-navy">
+                                            {report.establishment_name || 'None'}
+                                        </p>
+                                    </div>
 
-                                    {report.casualties !== null && (
-                                        <div
-                                            className={`flex flex-col justify-between rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-4 ${
-                                                !report.cause_of_fire
-                                                    ? 'md:col-span-3'
-                                                    : 'md:col-span-1'
-                                            }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                                    Casualties
-                                                </p>
-                                                <span
-                                                    className={`size-2 rounded-full ${
-                                                        report.casualties > 0
-                                                            ? 'animate-pulse bg-brand-red'
-                                                            : 'bg-brand-green'
-                                                    }`}
-                                                />
-                                            </div>
-                                            <div className="my-2 flex items-baseline gap-2">
-                                                <span
-                                                    className={`font-mono text-3xl font-extrabold ${
-                                                        report.casualties > 0
-                                                            ? 'text-brand-red'
-                                                            : 'text-brand-navy'
-                                                    }`}
-                                                >
-                                                    {report.casualties}
-                                                </span>
-                                                <span className="text-xs font-medium text-brand-muted">
-                                                    {report.casualties === 1
-                                                        ? 'person'
-                                                        : 'persons'}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-brand-muted">
-                                                {report.casualties > 0
-                                                    ? 'Casualties recorded on scene'
-                                                    : 'Zero casualties recorded'}
-                                            </p>
-                                        </div>
-                                    )}
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Owner / Occupant
+                                        </p>
+                                        <p className="mt-1 font-semibold text-brand-navy">
+                                            {[report.owner_name, report.occupant_name].filter(Boolean).join(' · ') || 'Unspecified'}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Time Fire Started
+                                        </p>
+                                        <p className="mt-1 font-mono text-sm font-bold text-brand-navy">
+                                            {formatTimeOnly(report.time_fire_started ?? report.dateTime)}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Time Fire Out
+                                        </p>
+                                        <p className="mt-1 font-mono text-sm font-bold text-brand-navy">
+                                            {formatTimeOnly(report.time_fire_out)}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Cause of Fire
+                                        </p>
+                                        <p className="mt-1 text-base font-bold text-brand-navy">
+                                            {report.cause_of_fire || 'Not yet determined'}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Injuries
+                                        </p>
+                                        <p className="mt-1 font-mono text-2xl font-bold text-brand-navy">
+                                            {report.injuries ?? 0}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Fatalities
+                                        </p>
+                                        <p className={`mt-1 font-mono text-2xl font-bold ${(report.fatalities ?? 0) > 0 ? 'text-brand-red' : 'text-brand-navy'}`}>
+                                            {report.fatalities ?? 0}
+                                        </p>
+                                    </div>
                                 </div>
 
                                 {report.notes && (

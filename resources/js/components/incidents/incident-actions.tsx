@@ -15,7 +15,13 @@ export function IncidentActions({
         incident_type: string | null;
         alarm_level: string | null;
         cause_of_fire: string | null;
-        casualties: number | null;
+        injuries?: number | null;
+        fatalities?: number | null;
+        establishment_name?: string | null;
+        owner_name?: string | null;
+        occupant_name?: string | null;
+        time_fire_started?: string | null;
+        time_fire_out?: string | null;
         notes: string | null;
     };
 }) {
@@ -26,8 +32,13 @@ export function IncidentActions({
         assessmentValues?.alarm_level ||
         assessmentValues?.cause_of_fire ||
         assessmentValues?.notes ||
-        (assessmentValues?.casualties !== null &&
-            assessmentValues?.casualties !== undefined),
+        (assessmentValues?.injuries !== null &&
+            assessmentValues?.injuries !== undefined) ||
+        (assessmentValues?.fatalities !== null &&
+            assessmentValues?.fatalities !== undefined) ||
+        assessmentValues?.establishment_name ||
+        assessmentValues?.owner_name ||
+        assessmentValues?.occupant_name,
     );
 
     if (status === 'invalid') {

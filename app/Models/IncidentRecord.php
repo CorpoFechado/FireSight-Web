@@ -18,12 +18,18 @@ class IncidentRecord extends Model
     protected $fillable = [
         'report_id', 'barangay_id', 'incident_datetime', 'incident_type',
         'alarm_level', 'cause_of_fire', 'casualties', 'notes',
+        'establishment_name', 'owner_name', 'occupant_name',
+        'time_fire_started', 'time_fire_out', 'injuries', 'fatalities',
     ];
 
     protected function casts(): array
     {
         return [
             'incident_datetime' => 'datetime',
+            'time_fire_started' => 'datetime',
+            'time_fire_out' => 'datetime',
+            'injuries' => 'integer',
+            'fatalities' => 'integer',
             'alarm_level' => AlarmLevel::class,
         ];
     }

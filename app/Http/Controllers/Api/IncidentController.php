@@ -60,6 +60,13 @@ class IncidentController extends ApiController
                 'incident_record.incident_datetime',
                 'incident_record.cause_of_fire',
                 'incident_record.casualties',
+                'incident_record.injuries',
+                'incident_record.fatalities',
+                'incident_record.establishment_name',
+                'incident_record.owner_name',
+                'incident_record.occupant_name',
+                'incident_record.time_fire_started',
+                'incident_record.time_fire_out',
                 'incident_record.notes',
                 DB::raw('COALESCE(incident_record.barangay_id, community_report.barangay_id) as barangay_id'),
                 'barangay.barangay_name',
@@ -70,7 +77,23 @@ class IncidentController extends ApiController
             return null;
         }
 
-        return $this->formatIncidentRow($row->toArray());
+        $incidentArray = $row->toArray();
+
+        // If time_fire_out is not explicitly stored yet, smart-default to resolution history timestamp
+        if (empty($incidentArray['time_fire_out'])) {
+            $resolvedHistory = DB::table('report_status_history')
+                ->where('report_id', $row->report_id)
+                ->where('status', 'resolved')
+                ->orderBy('created_at', 'desc')
+                ->first();
+            if ($resolvedHistory && ! empty($resolvedHistory->created_at)) {
+                $incidentArray['time_fire_out'] = $resolvedHistory->created_at;
+            } elseif ($row->status === 'resolved') {
+                $incidentArray['time_fire_out'] = now()->format('Y-m-d H:i:s');
+            }
+        }
+
+        return $this->formatIncidentRow($incidentArray);
     }
 
     /**
@@ -106,6 +129,13 @@ class IncidentController extends ApiController
                 'incident_record.incident_datetime',
                 'incident_record.cause_of_fire',
                 'incident_record.casualties',
+                'incident_record.injuries',
+                'incident_record.fatalities',
+                'incident_record.establishment_name',
+                'incident_record.owner_name',
+                'incident_record.occupant_name',
+                'incident_record.time_fire_started',
+                'incident_record.time_fire_out',
                 'incident_record.notes',
                 'barangay.barangay_name',
             ]);
@@ -341,7 +371,7 @@ class IncidentController extends ApiController
                             'dispatch_id' => $dispatch->dispatch_id,
                             'user_id' => $pUser->user_id,
                         ]);
-                        $rank = $pUser->personnelDetails?->rank ?? '';
+                        $rank = self::abbreviateRank($pUser->personnelDetails?->rank);
                         $fullName = trim($pUser->first_name.' '.$pUser->last_name);
                         $officerTitles[] = trim($rank.' '.$fullName);
                     }
@@ -431,24 +461,52 @@ class IncidentController extends ApiController
             $alarmLevel = null;
         }
 
+        $injuries = $request->filled('injuries') ? (int) $request->input('injuries') : 0;
+        $fatalities = $request->filled('fatalities') ? (int) $request->input('fatalities') : 0;
+        $casualties = $request->filled('casualties') ? (int) $request->input('casualties') : ($injuries + $fatalities);
+
+        $establishmentName = $request->filled('establishment_name') ? trim((string) $request->input('establishment_name')) : null;
+        $ownerName = $request->filled('owner_name') ? trim((string) $request->input('owner_name')) : null;
+        $occupantName = $request->filled('occupant_name') ? trim((string) $request->input('occupant_name')) : null;
+        $timeFireStarted = $request->filled('time_fire_started') ? $request->input('time_fire_started') : null;
+        $timeFireOut = $request->filled('time_fire_out') ? $request->input('time_fire_out') : null;
+
         $incident = IncidentRecord::where('report_id', $reportId)->first();
 
         if ($incident) {
             $incident->incident_type = $incidentType;
             $incident->alarm_level = $alarmLevel;
             $incident->cause_of_fire = $request->input('cause_of_fire');
-            $incident->casualties = $request->filled('casualties') ? (int) $request->input('casualties') : 0;
+            $incident->casualties = $casualties;
+            $incident->injuries = $injuries;
+            $incident->fatalities = $fatalities;
+            $incident->establishment_name = $establishmentName;
+            $incident->owner_name = $ownerName;
+            $incident->occupant_name = $occupantName;
+            if ($timeFireStarted) {
+                $incident->time_fire_started = $timeFireStarted;
+            }
+            if ($timeFireOut) {
+                $incident->time_fire_out = $timeFireOut;
+            }
             $incident->notes = $request->input('notes');
             $incident->save();
         } else {
             IncidentRecord::create([
                 'report_id' => $reportId,
                 'barangay_id' => $report->barangay_id ?? 1,
-                'incident_datetime' => $report->created_at,
+                'incident_datetime' => $timeFireStarted ?? $report->created_at,
                 'incident_type' => $incidentType,
                 'alarm_level' => $alarmLevel,
                 'cause_of_fire' => $request->input('cause_of_fire'),
-                'casualties' => $request->filled('casualties') ? (int) $request->input('casualties') : 0,
+                'casualties' => $casualties,
+                'injuries' => $injuries,
+                'fatalities' => $fatalities,
+                'establishment_name' => $establishmentName,
+                'owner_name' => $ownerName,
+                'occupant_name' => $occupantName,
+                'time_fire_started' => $timeFireStarted ?? $report->created_at,
+                'time_fire_out' => $timeFireOut,
                 'notes' => $request->input('notes'),
             ]);
         }

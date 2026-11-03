@@ -165,7 +165,19 @@ class ApiController extends Controller
 
         $accuracy = isset($row['location_accuracy_m']) ? $row['location_accuracy_m'] : ($row->location_accuracy_m ?? null);
         $confidence = isset($row['ai_fire_confidence']) ? $row['ai_fire_confidence'] : ($row->ai_fire_confidence ?? null);
-        $casualties = isset($row['casualties']) ? $row['casualties'] : ($row->casualties ?? null);
+        $injuries = isset($row['injuries']) ? $row['injuries'] : ($row->injuries ?? null);
+        $fatalities = isset($row['fatalities']) ? $row['fatalities'] : ($row->fatalities ?? null);
+        $casualties = isset($row['casualties']) ? $row['casualties'] : ($row->casualties ?? (($injuries ?? 0) + ($fatalities ?? 0)));
+
+        $timeFireStarted = $row['time_fire_started'] ?? ($row->time_fire_started ?? null);
+        if ($timeFireStarted instanceof \DateTimeInterface) {
+            $timeFireStarted = $timeFireStarted->format('Y-m-d H:i:s');
+        }
+
+        $timeFireOut = $row['time_fire_out'] ?? ($row->time_fire_out ?? null);
+        if ($timeFireOut instanceof \DateTimeInterface) {
+            $timeFireOut = $timeFireOut->format('Y-m-d H:i:s');
+        }
 
         return [
             'report_id' => (int) ($row['report_id'] ?? $row->report_id ?? 0),
@@ -188,6 +200,13 @@ class ApiController extends Controller
             'data_time' => $incidentDatetime ?? $createdAt,
             'cause_of_fire' => $row['cause_of_fire'] ?? $row->cause_of_fire ?? null,
             'casualties' => $casualties !== null ? (int) $casualties : null,
+            'injuries' => $injuries !== null ? (int) $injuries : 0,
+            'fatalities' => $fatalities !== null ? (int) $fatalities : 0,
+            'establishment_name' => $row['establishment_name'] ?? $row->establishment_name ?? null,
+            'owner_name' => $row['owner_name'] ?? $row->owner_name ?? null,
+            'occupant_name' => $row['occupant_name'] ?? $row->occupant_name ?? null,
+            'time_fire_started' => $timeFireStarted ?? $createdAt,
+            'time_fire_out' => $timeFireOut,
             'notes' => $row['notes'] ?? $row->notes ?? null,
         ];
     }
