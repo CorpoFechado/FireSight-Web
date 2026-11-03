@@ -400,7 +400,8 @@ class IncidentController extends ApiController
                         if ($hasTrucks && $hasCrew) {
                             $notes = 'Deployed additional units: '.implode(', ', $truckNames).' with crew: '.implode(', ', $officerTitles).'.';
                         } elseif ($hasTrucks) {
-                            $notes = 'Deployed additional apparatus: '.implode(', ', $truckNames).'.';
+                            $truckLabel = count($truckNames) === 1 ? 'truck' : 'trucks';
+                            $notes = "Deployed additional {$truckLabel}: ".implode(', ', $truckNames).'.';
                         } elseif ($hasCrew) {
                             $notes = 'Deployed additional crew: '.implode(', ', $officerTitles).'.';
                         } else {
