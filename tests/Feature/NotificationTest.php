@@ -21,14 +21,14 @@ test('notifications are grouped into today, recent, and earlier', function () {
         'user_id' => $user->getKey(),
         'title' => 'Today item',
         'message' => 'This happened today.',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
     ]);
 
     $recent = Notification::create([
         'user_id' => $user->getKey(),
         'title' => 'Recent item',
         'message' => 'This happened a few days ago.',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
     ]);
     $recent->forceFill(['created_at' => now()->subDays(3)])->saveQuietly();
 
@@ -36,7 +36,7 @@ test('notifications are grouped into today, recent, and earlier', function () {
         'user_id' => $user->getKey(),
         'title' => 'Earlier item',
         'message' => 'This happened a while ago.',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
     ]);
     $earlier->forceFill(['created_at' => now()->subDays(30)])->saveQuietly();
 
@@ -58,7 +58,7 @@ test('a user can mark a single notification as read', function () {
         'user_id' => $user->getKey(),
         'title' => 'Test',
         'message' => 'Test message.',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
     ]);
 
     $response = $this->patch(route('notifications.read', $notification));
@@ -79,7 +79,7 @@ test('a user cannot mark another user\'s notification as read', function () {
         'user_id' => $owner->getKey(),
         'title' => 'Not yours',
         'message' => 'Test message.',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
     ]);
 
     $response = $this->patch(route('notifications.read', $notification));

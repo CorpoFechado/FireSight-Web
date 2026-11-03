@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\CommunityReport;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\ExpoPushService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
@@ -13,6 +14,10 @@ use Illuminate\Support\Collection;
  */
 class AdminNotifier
 {
+    public function __construct(
+        protected ExpoPushService $pushService,
+    ) {}
+
     /** Reports within this radius of an active report are flagged as possible duplicates. */
     public const DUPLICATE_RADIUS_METERS = 300;
 
@@ -182,6 +187,13 @@ class AdminNotifier
             'is_read' => false,
             'created_at' => $at ?? now(),
         ]);
+
+        $this->pushService->sendToUsers(
+            $report->user_id,
+            'Report Status Updated',
+            $message,
+            ['report_id' => (int) $report->report_id, 'type' => 'status_update']
+        );
     }
 
     /**
@@ -217,6 +229,22 @@ class AdminNotifier
             'is_read' => false,
             'created_at' => $createdAt,
         ])->all());
+
+        // Push alert to mobile users (e.g. BFP Personnel)
+        $mobileRecipientIds = User::query()
+            ->whereIn('user_id', $recipientIds)
+            ->whereIn('role', [User::ROLE_BFP_PERSONNEL, User::ROLE_RESIDENT])
+            ->pluck('user_id')
+            ->all();
+
+        if (! empty($mobileRecipientIds)) {
+            $this->pushService->sendToUsers(
+                $mobileRecipientIds,
+                $title,
+                $message,
+                ['report_id' => $reportId, 'type' => $type]
+            );
+        }
     }
 
     private function reporterName(CommunityReport $report): string

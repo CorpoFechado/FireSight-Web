@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\BarangayContact;
 use App\Models\CommunityReport;
+use App\Models\IncidentDispatch;
+use App\Models\IncidentDispatchPersonnel;
+use App\Models\IncidentDispatchTruck;
 use App\Models\IncidentRecord;
 use App\Models\ReportEvidence;
 use App\Models\ReportStatusHistory;
@@ -180,6 +183,33 @@ class IncidentController extends ApiController
         }
         $incident['barangay_contacts'] = $contacts;
 
+        // Fetch dispatches with deployed fire trucks and crew personnel
+        $dispatches = IncidentDispatch::with(['trucks', 'personnel.user.personnelDetails'])
+            ->where('report_id', $reportId)
+            ->orderBy('dispatched_at', 'desc')
+            ->get()
+            ->map(function ($d) {
+                return [
+                    'dispatch_id' => $d->dispatch_id,
+                    'dispatched_at' => $d->dispatched_at?->format('Y-m-d H:i:s'),
+                    'trucks' => $d->trucks->pluck('truck_name')->all(),
+                    'personnel' => $d->personnel->map(function ($p) {
+                        $user = $p->user;
+                        $rank = self::abbreviateRank($user?->personnelDetails?->rank);
+                        $name = trim(($user?->first_name ?? '').' '.($user?->last_name ?? ''));
+
+                        return [
+                            'user_id' => $p->user_id,
+                            'name' => $name,
+                            'rank' => $rank,
+                            'full_title' => trim($rank.' '.$name),
+                        ];
+                    })->all(),
+                ];
+            })
+            ->all();
+        $incident['dispatches'] = $dispatches;
+
         return $this->sendSuccess($incident);
     }
 
@@ -250,6 +280,8 @@ class IncidentController extends ApiController
         $reportId = (int) ($id ?? $request->input('report_id', 0));
         $status = (string) $request->input('status', '');
         $notes = $request->input('notes');
+        $trucks = $request->input('trucks', []);
+        $personnelIds = $request->input('personnel_ids', []);
 
         if ($reportId <= 0 || empty($status)) {
             return $this->sendError('Missing report_id or status.', 400);
@@ -265,10 +297,62 @@ class IncidentController extends ApiController
             return $this->sendError('Report not found.', 404);
         }
 
+        if ($status === CommunityReport::STATUS_DISPATCHED) {
+            if (empty($trucks) || ! is_array($trucks) || empty($personnelIds) || ! is_array($personnelIds)) {
+                return $this->sendError('Please select responding crew and fire apparatus for dispatch.', 422);
+            }
+        }
+
         DB::beginTransaction();
         try {
             $report->status = $status;
             $report->save();
+
+            // When advancing to dispatched, record the apparatus and personnel in dedicated relational tables
+            if ($status === CommunityReport::STATUS_DISPATCHED && (! empty($trucks) || ! empty($personnelIds))) {
+                $dispatch = IncidentDispatch::create([
+                    'report_id' => $reportId,
+                    'dispatched_by' => $user->user_id,
+                    'dispatched_at' => now(),
+                ]);
+
+                $truckNames = [];
+                if (is_array($trucks)) {
+                    foreach ($trucks as $truckName) {
+                        $cleaned = trim((string) $truckName);
+                        if ($cleaned !== '') {
+                            IncidentDispatchTruck::create([
+                                'dispatch_id' => $dispatch->dispatch_id,
+                                'truck_name' => $cleaned,
+                            ]);
+                            $truckNames[] = $cleaned;
+                        }
+                    }
+                }
+
+                $officerTitles = [];
+                if (is_array($personnelIds) && ! empty($personnelIds)) {
+                    $selectedUsers = User::with('personnelDetails')
+                        ->whereIn('user_id', $personnelIds)
+                        ->get();
+
+                    foreach ($selectedUsers as $pUser) {
+                        IncidentDispatchPersonnel::create([
+                            'dispatch_id' => $dispatch->dispatch_id,
+                            'user_id' => $pUser->user_id,
+                        ]);
+                        $rank = $pUser->personnelDetails?->rank ?? '';
+                        $fullName = trim($pUser->first_name.' '.$pUser->last_name);
+                        $officerTitles[] = trim($rank.' '.$fullName);
+                    }
+                }
+
+                if (empty($notes)) {
+                    $trucksPart = ! empty($truckNames) ? implode(', ', $truckNames) : 'fire response units';
+                    $crewPart = ! empty($officerTitles) ? ' with crew: '.implode(', ', $officerTitles) : '';
+                    $notes = "Dispatched {$trucksPart}{$crewPart}.";
+                }
+            }
 
             if ($status === CommunityReport::STATUS_RESOLVED) {
                 $incident = IncidentRecord::where('report_id', $reportId)->first();
@@ -648,5 +732,71 @@ class IncidentController extends ApiController
 
             return $this->sendError('Database error: '.$e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Get all users with the bfp_personnel role for emergency crew dispatch picker.
+     */
+    public function personnel(Request $request): JsonResponse
+    {
+        if ($deny = $this->authorizeBfp($request)) {
+            return $deny;
+        }
+
+        $personnel = User::with('personnelDetails')
+            ->where('role', User::ROLE_BFP_PERSONNEL)
+            ->get()
+            ->map(function ($u) {
+                $rank = self::abbreviateRank($u->personnelDetails?->rank);
+                $name = trim($u->first_name.' '.$u->last_name);
+
+                return [
+                    'user_id' => $u->user_id,
+                    'name' => $name,
+                    'rank' => $rank,
+                    'full_title' => trim($rank.' '.$name),
+                    'station_assigned' => $u->personnelDetails?->station_assigned ?? 'BFP Lian Fire Station',
+                ];
+            })
+            ->sortBy('name')
+            ->values()
+            ->all();
+
+        return $this->sendSuccess(['personnel' => $personnel]);
+    }
+
+    /**
+     * Normalize full rank strings into standard BFP uniformed service abbreviations.
+     */
+    public static function abbreviateRank(?string $rank): string
+    {
+        if (! $rank) {
+            return 'FO';
+        }
+
+        $clean = trim($rank);
+        $map = [
+            'Senior Fire Officer 4' => 'SFO4',
+            'Senior Fire Officer 3' => 'SFO3',
+            'Senior Fire Officer 2' => 'SFO2',
+            'Senior Fire Officer 1' => 'SFO1',
+            'Fire Officer 3' => 'FO3',
+            'Fire Officer 2' => 'FO2',
+            'Fire Officer 1' => 'FO1',
+            'Fire Officer' => 'FO',
+            'Fire Inspector' => 'FINSP',
+            'Senior Fire Inspector' => 'FSINSP',
+            'Chief Fire Inspector' => 'FCINSP',
+            'Inspector' => 'INSP',
+            'Senior Inspector' => 'SINSP',
+            'Chief Inspector' => 'CINSP',
+            'Superintendent' => 'SUPT',
+            'Senior Superintendent' => 'SSUPT',
+            'Chief Superintendent' => 'CSUPT',
+            'Director' => 'DIR',
+            'Non-Uniformed Personnel' => 'NUP',
+        ];
+
+        return $map[$clean] ?? $clean;
     }
 }

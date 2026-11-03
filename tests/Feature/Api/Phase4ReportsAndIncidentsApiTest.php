@@ -124,7 +124,7 @@ test('resident can submit a report with photo and dispatches notifications', fun
     $this->assertDatabaseHas('notification', [
         'user_id' => $resident->user_id,
         'title' => 'Report Submitted',
-        'notification_type' => 'incident_alert',
+        'notification_type' => 'status_update',
     ]);
 
     // Verify BFP personnel received alert notification
@@ -212,7 +212,7 @@ test('bfp operations workflow: verify, advance status, update details, mark inva
     $this->assertDatabaseHas('notification', [
         'user_id' => $resident->user_id,
         'title' => 'Report Status Updated',
-        'message' => 'Your fire report has been accepted by BFP personnel.',
+        'message' => "Your fire report (#{$report->report_id}) has been accepted by BFP personnel.",
     ]);
 
     // 3. BFP advances status to dispatched then resolved

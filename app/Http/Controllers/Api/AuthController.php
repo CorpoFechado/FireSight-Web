@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Mail\PasswordResetOtpMail;
 use App\Models\AuthToken;
 use App\Models\Barangay;
 use App\Models\ResidentAddress;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends ApiController
 {
@@ -198,6 +200,10 @@ class AuthController extends ApiController
      * Request a password reset token.
      * Matches firesight-api/auth/forgot_password.php.
      */
+    /**
+     * Request a 6-digit OTP code to reset password.
+     * Enforces role security: BFP Personnel accounts must be reset via Station Admin.
+     */
     public function forgotPassword(Request $request): JsonResponse
     {
         $email = strtolower(trim((string) $request->input('email', '')));
@@ -211,33 +217,90 @@ class AuthController extends ApiController
         }
 
         $user = User::where('email', $email)->first();
-        if ($user) {
-            $token = bin2hex(random_bytes(32));
-            DB::table('password_reset_tokens')->where('email', $email)->delete();
-            DB::table('password_reset_tokens')->insert([
-                'email' => $email,
-                'token' => $token,
-                'created_at' => now(),
-            ]);
 
-            Log::info("PASSWORD RESET TOKEN for {$email}: {$token}");
+        // Security Guard: Prevent public self-service resets for official responder accounts
+        if ($user && in_array($user->role, [User::ROLE_BFP_PERSONNEL, User::ROLE_BFP_ADMIN], true)) {
+            return $this->sendError(
+                'BFP Personnel accounts are managed by your Fire Station Administrator. Please coordinate with your Station Commander for credential resets.',
+                403
+            );
         }
 
-        return $this->sendSuccess(['message' => 'If an account exists for that email, password reset instructions have been sent.']);
+        if (! $user) {
+            return $this->sendError('No registered account was found with that email address.', 404);
+        }
+
+        // Generate secure 6-digit numerical OTP code
+        $otp = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+        DB::table('password_reset_tokens')->insert([
+            'email' => $email,
+            'token' => $otp,
+            'created_at' => now(),
+        ]);
+
+        Log::info("FIRESIGHT 6-DIGIT RESET OTP for {$email}: {$otp}");
+
+        try {
+            Mail::to($email)->send(new PasswordResetOtpMail($otp, $user->first_name));
+        } catch (\Throwable $e) {
+            Log::error("[ForgotPassword] Failed sending OTP email to {$email}: ".$e->getMessage());
+        }
+
+        $data = [
+            'message' => 'If an account exists for that email, password reset instructions have been sent.',
+            'email' => $email,
+        ];
+
+        // Return dev_otp in non-production environments to allow instant testing
+        if (app()->environment('local', 'testing') || config('app.debug')) {
+            $data['dev_otp'] = $otp;
+        }
+
+        return $this->sendSuccess($data);
     }
 
     /**
-     * Reset password using a valid reset token.
-     * Matches firesight-api/auth/reset_password.php.
+     * Verify the 6-digit OTP code before proceeding to password change.
+     */
+    public function verifyOtp(Request $request): JsonResponse
+    {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $otp = trim((string) $request->input('otp', ''));
+
+        if (empty($email) || empty($otp)) {
+            return $this->sendError('Email and 6-digit verification code are required.', 422);
+        }
+
+        $resetRow = DB::table('password_reset_tokens')
+            ->where('email', $email)
+            ->where('token', $otp)
+            ->where('created_at', '>=', now()->subMinutes(15))
+            ->first();
+
+        if (! $resetRow) {
+            return $this->sendError('Invalid or expired verification code. Please check your code or request a new one.', 400);
+        }
+
+        return $this->sendSuccess([
+            'valid' => true,
+            'message' => 'Verification code confirmed. You may now enter your new password.',
+        ]);
+    }
+
+    /**
+     * Reset password using the verified 6-digit OTP.
      */
     public function resetPassword(Request $request): JsonResponse
     {
-        $token = trim((string) $request->input('token', ''));
+        $email = strtolower(trim((string) $request->input('email', '')));
+        $otp = trim((string) ($request->input('otp') ?? $request->input('token') ?? ''));
         $newPassword = (string) $request->input('new_password', '');
 
         $missing = [];
-        if (empty($token)) {
-            $missing[] = 'token';
+        if (empty($otp)) {
+            $missing[] = 'otp';
         }
         if (empty($newPassword)) {
             $missing[] = 'new_password';
@@ -251,13 +314,18 @@ class AuthController extends ApiController
             return $this->sendError('Password must be at least 8 characters.', 422);
         }
 
-        $resetRow = DB::table('password_reset_tokens')
-            ->where('token', $token)
-            ->where('created_at', '>=', now()->subMinutes(60))
-            ->first();
+        $query = DB::table('password_reset_tokens')
+            ->where('token', $otp)
+            ->where('created_at', '>=', now()->subMinutes(15));
+
+        if (! empty($email)) {
+            $query->where('email', $email);
+        }
+
+        $resetRow = $query->first();
 
         if (! $resetRow) {
-            return $this->sendError('This reset link is invalid or has expired. Please request a new one.', 400);
+            return $this->sendError('This verification code is invalid or has expired. Please request a new one.', 400);
         }
 
         $user = User::where('email', $resetRow->email)->first();

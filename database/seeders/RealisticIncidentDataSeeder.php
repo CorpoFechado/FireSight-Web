@@ -178,7 +178,7 @@ class RealisticIncidentDataSeeder extends Seeder
                     $barangay = $residentBarangay ?? $barangay;
                 }
 
-                $hasIncident = $status === 'resolved';
+                $hasIncident = $status === 'resolved' || in_array($status, ['accepted', 'dispatched'], true);
                 $incidentType = $hasIncident ? $this->incidentTypeFor($incidentIndex) : $this->incidentTypeFor($globalIndex);
                 $scenario = $this->scenarioFor($incidentType, $globalIndex);
                 $alarmLevel = $hasIncident ? $this->alarmLevelFor($incidentIndex) : '1st_alarm';
@@ -289,11 +289,13 @@ class RealisticIncidentDataSeeder extends Seeder
             return (($globalIndex * 37) % $historicalTotal) < 36 ? 'invalid' : 'resolved';
         }
 
-        return match (true) {
-            $monthlyIndex < 19 => 'resolved',
-            $monthlyIndex < 35 => 'pending',
-            $monthlyIndex < 51 => 'accepted',
-            default => 'dispatched',
+        // Current month: Keep active fires realistic (1 pending, 1 accepted, 1 dispatched, 2 false alarms/invalid, rest resolved)
+        return match ($monthlyIndex) {
+            0 => 'pending',
+            1 => 'accepted',
+            2 => 'dispatched',
+            3, 4 => 'invalid',
+            default => 'resolved',
         };
     }
 
@@ -305,26 +307,25 @@ class RealisticIncidentDataSeeder extends Seeder
         ?int $activeIndex,
     ): CarbonInterface {
         if ($activeIndex !== null) {
-            $createdAt = $now->copy()
-                ->subDays($activeIndex % 8)
-                ->setTime(self::REPORTING_HOURS[($activeIndex * 7) % count(self::REPORTING_HOURS)], ($activeIndex * 13) % 60);
-
-            return $createdAt->greaterThan($now->copy()->subMinutes(30))
-                ? $now->copy()->subMinutes(45 + ($activeIndex % 60))
-                : $createdAt;
+            return match ($activeIndex) {
+                0 => $now->copy()->subMinutes(22), // Pending: just reported 22 mins ago today
+                1 => $now->copy()->subMinutes(58), // Accepted: reported ~1 hr ago today
+                2 => $now->copy()->subHours(1)->subMinutes(35), // Dispatched: units responding today
+                default => $now->copy()->subHours(2 + ($activeIndex % 4)),
+            };
         }
 
-        if ($monthsAgo === 0 && $monthlyIndex === 0) {
-            return $now->copy()->subHours(8);
+        if ($monthsAgo === 0 && $monthlyIndex === 3) {
+            return $now->copy()->subDays(1)->setTime(10, 15);
         }
 
-        if ($monthsAgo === 0 && $monthlyIndex === 1) {
-            return $now->copy()->subDay()->setTime(14, 20);
+        if ($monthsAgo === 0 && $monthlyIndex === 4) {
+            return $now->copy()->subDays(2)->setTime(16, 40);
         }
 
         $maximumDay = $monthsAgo === 1
             ? min($monthStart->daysInMonth, $now->day)
-            : ($monthsAgo === 0 ? max(1, $now->day - 9) : $monthStart->daysInMonth);
+            : ($monthsAgo === 0 ? max(1, $now->day - 1) : $monthStart->daysInMonth);
         $day = 1 + (($monthlyIndex * 7 + $monthsAgo * 3) % $maximumDay);
 
         return $monthStart->copy()->setDay($day)->setTime(

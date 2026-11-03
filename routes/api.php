@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/login', [AuthController::class, 'login'])->name('api.v1.auth.login');
         Route::post('/register', [AuthController::class, 'register'])->name('api.v1.auth.register');
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('api.v1.auth.forgot_password');
+        Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('api.v1.auth.verify_otp');
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('api.v1.auth.reset_password');
         Route::post('/google-login', [AuthController::class, 'googleLogin'])->name('api.v1.auth.google_login');
 
@@ -39,6 +40,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/login.php', [AuthController::class, 'login']);
         Route::post('/register.php', [AuthController::class, 'register']);
         Route::post('/forgot_password.php', [AuthController::class, 'forgotPassword']);
+        Route::post('/verify_otp.php', [AuthController::class, 'verifyOtp']);
         Route::post('/reset_password.php', [AuthController::class, 'resetPassword']);
         Route::post('/google_login.php', [AuthController::class, 'googleLogin']);
         Route::post('/logout.php', [AuthController::class, 'logout'])->middleware('auth.mobile');
@@ -89,6 +91,7 @@ Route::prefix('v1')->group(function (): void {
 
         // ── 7. Incidents Endpoints (BFP Operations) ───────────────────────
         Route::get('/incidents', [IncidentController::class, 'index'])->name('api.v1.incidents.index');
+        Route::get('/incidents/personnel', [IncidentController::class, 'personnel'])->name('api.v1.incidents.personnel');
         Route::get('/incidents/{id}', [IncidentController::class, 'show'])->whereNumber('id')->name('api.v1.incidents.show');
         Route::post('/incidents/{id}/verify', [IncidentController::class, 'verify'])->whereNumber('id')->name('api.v1.incidents.verify');
         Route::post('/incidents/{id}/status', [IncidentController::class, 'updateStatus'])->whereNumber('id')->name('api.v1.incidents.status');
@@ -100,6 +103,7 @@ Route::prefix('v1')->group(function (): void {
 
         // Incidents Compatibility Aliases
         Route::get('/incidents/list.php', [IncidentController::class, 'index']);
+        Route::get('/incidents/personnel.php', [IncidentController::class, 'personnel']);
         Route::get('/incidents/detail.php', [IncidentController::class, 'show']);
         Route::post('/incidents/verify.php', [IncidentController::class, 'verify']);
         Route::post('/incidents/update_status.php', [IncidentController::class, 'updateStatus']);
@@ -124,10 +128,14 @@ Route::prefix('v1')->group(function (): void {
         // ── 9. Notifications Endpoints ───────────────────────────────────
         Route::get('/notifications', [NotificationController::class, 'index'])->name('api.v1.notifications.index');
         Route::post('/notifications/mark-read', [NotificationController::class, 'markRead'])->name('api.v1.notifications.mark_read');
+        Route::post('/notifications/device-token', [NotificationController::class, 'registerDeviceToken'])->name('api.v1.notifications.device_token');
+        Route::post('/profile/device-token', [NotificationController::class, 'registerDeviceToken'])->name('api.v1.profile.device_token');
 
         // Notifications Compatibility Aliases
         Route::get('/notifications/list.php', [NotificationController::class, 'index']);
         Route::post('/notifications/mark_read.php', [NotificationController::class, 'markRead']);
+        Route::post('/notifications/device_token.php', [NotificationController::class, 'registerDeviceToken']);
+        Route::post('/profile/device_token.php', [NotificationController::class, 'registerDeviceToken']);
 
         // ── 10. Dashboard Analytics ──────────────────────────────────────
         Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('api.v1.dashboard.analytics');
@@ -143,11 +151,19 @@ Route::prefix('v1')->group(function (): void {
 
 // Root-level legacy compatibility routes for direct /api/*.php requests
 Route::prefix('auth')->group(function (): void {
+    Route::post('/login', [AuthController::class, 'login']);
     Route::post('/login.php', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
     Route::post('/register.php', [AuthController::class, 'register']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/forgot_password.php', [AuthController::class, 'forgotPassword']);
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/verify_otp.php', [AuthController::class, 'verifyOtp']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/reset_password.php', [AuthController::class, 'resetPassword']);
+    Route::post('/google-login', [AuthController::class, 'googleLogin']);
     Route::post('/google_login.php', [AuthController::class, 'googleLogin']);
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth.mobile');
     Route::post('/logout.php', [AuthController::class, 'logout'])->middleware('auth.mobile');
 });
 
@@ -169,6 +185,8 @@ Route::middleware('auth.mobile')->group(function (): void {
     Route::get('/reports/status_history.php', [ReportController::class, 'statusHistory']);
 
     // Incidents legacy routes
+    Route::get('/incidents/personnel', [IncidentController::class, 'personnel']);
+    Route::get('/incidents/personnel.php', [IncidentController::class, 'personnel']);
     Route::get('/incidents/list.php', [IncidentController::class, 'index']);
     Route::get('/incidents/detail.php', [IncidentController::class, 'show']);
     Route::post('/incidents/verify.php', [IncidentController::class, 'verify']);

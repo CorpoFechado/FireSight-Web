@@ -6,6 +6,7 @@ use App\Models\CommunityReport;
 use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class NotificationController extends ApiController
 {
@@ -116,5 +117,33 @@ class NotificationController extends ApiController
         }
 
         return $this->sendError('Missing required field(s): notification_id', 422);
+    }
+
+    /**
+     * Register or update the Expo Push Token for the current device session.
+     */
+    public function registerDeviceToken(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'push_token' => 'required|string|max:255',
+        ]);
+
+        $bearerToken = $request->bearerToken();
+        $user = $request->user();
+
+        // Disassociate this push token from any previous/other sessions to avoid leaks
+        DB::table('auth_token')
+            ->where('push_token', $validated['push_token'])
+            ->where('token', '!=', $bearerToken)
+            ->update(['push_token' => null]);
+
+        if ($bearerToken) {
+            DB::table('auth_token')
+                ->where('token', $bearerToken)
+                ->where('user_id', $user->user_id)
+                ->update(['push_token' => $validated['push_token']]);
+        }
+
+        return $this->sendSuccess(['message' => 'Device token registered successfully.']);
     }
 }

@@ -11,6 +11,7 @@ class MobileNotificationService
 {
     public function __construct(
         protected GeoBoundaryService $geoService,
+        protected ExpoPushService $pushService,
     ) {}
 
     /**
@@ -55,6 +56,14 @@ class MobileNotificationService
                 'notification_type' => 'status_update',
                 'is_read' => false,
             ]);
+
+            // Push alert to resident's device
+            $this->pushService->sendToUsers(
+                $report->user_id,
+                'Report Status Updated',
+                $residentMessage,
+                ['report_id' => $reportId, 'type' => 'status_update']
+            );
         }
 
         // 2. Notify other active BFP Personnel on mobile
@@ -85,6 +94,14 @@ class MobileNotificationService
                 'is_read' => false,
                 'created_at' => now(),
             ])->all());
+
+            // Push alert to other active personnel on mobile
+            $this->pushService->sendToUsers(
+                $personnelIds->all(),
+                $personnelTitle,
+                $personnelMessage,
+                ['report_id' => $reportId, 'type' => 'status_update']
+            );
         }
     }
 
@@ -102,9 +119,17 @@ class MobileNotificationService
             'report_id' => $reportId,
             'title' => 'Report Submitted',
             'message' => $message,
-            'notification_type' => 'incident_alert',
+            'notification_type' => 'status_update',
             'is_read' => false,
         ]);
+
+        // Push confirmation to submitter's device
+        $this->pushService->sendToUsers(
+            $userId,
+            'Report Submitted',
+            $message,
+            ['report_id' => $reportId, 'type' => 'report_submitted']
+        );
     }
 
     /**
@@ -193,5 +218,15 @@ class MobileNotificationService
                 'is_read' => false,
             ]);
         }
+
+        // Push high-priority emergency alert to active BFP Personnel status bars
+        $this->pushService->sendToUsers(
+            $personnelIds->all(),
+            $title,
+            $message,
+            ['report_id' => $reportId, 'type' => 'new_report'],
+            priority: 'high',
+            channelId: 'firesight-emergency-alerts-v5'
+        );
     }
 }

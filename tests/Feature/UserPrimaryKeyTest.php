@@ -9,7 +9,7 @@ test('users authenticate and resolve relationships with the user_id primary key'
         'user_id' => $user->getKey(),
         'title' => 'Primary key check',
         'message' => 'Relationship keys resolve correctly.',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
     ]);
 
     $response = $this->post(route('login.store'), [

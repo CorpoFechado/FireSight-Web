@@ -332,3 +332,98 @@ test('legacy .php endpoints work for backwards compatibility', function (): void
     $response->assertStatus(200)
         ->assertJsonPath('user.first_name', 'Legacy');
 });
+
+test('forgot password blocks BFP personnel from public self-service reset returning 403', function (): void {
+    User::create([
+        'role' => User::ROLE_BFP_PERSONNEL,
+        'status' => User::STATUS_ACTIVE,
+        'first_name' => 'BFP',
+        'last_name' => 'Officer',
+        'email' => 'officer@bfp.lian',
+        'password' => Hash::make('password123'),
+    ]);
+
+    $response = $this->postJson('/api/v1/auth/forgot-password', [
+        'email' => 'officer@bfp.lian',
+    ]);
+
+    $response->assertStatus(403)
+        ->assertJsonFragment([
+            'message' => 'BFP Personnel accounts are managed by your Fire Station Administrator. Please coordinate with your Station Commander for credential resets.',
+        ]);
+});
+
+test('verify otp validates 6 digit code and allows reset', function (): void {
+    $user = User::create([
+        'role' => User::ROLE_RESIDENT,
+        'status' => User::STATUS_ACTIVE,
+        'first_name' => 'OTP',
+        'last_name' => 'User',
+        'email' => 'otpuser@example.com',
+        'password' => Hash::make('oldpassword123'),
+    ]);
+
+    $forgotRes = $this->postJson('/api/v1/auth/forgot-password', [
+        'email' => 'otpuser@example.com',
+    ]);
+    $forgotRes->assertStatus(200);
+
+    $otp = $forgotRes->json('dev_otp');
+    expect($otp)->toHaveLength(6);
+
+    // Verify OTP endpoint
+    $verifyRes = $this->postJson('/api/v1/auth/verify-otp', [
+        'email' => 'otpuser@example.com',
+        'otp' => $otp,
+    ]);
+    $verifyRes->assertStatus(200)->assertJsonPath('valid', true);
+
+    // Reset password endpoint using OTP
+    $resetRes = $this->postJson('/api/v1/auth/reset-password', [
+        'email' => 'otpuser@example.com',
+        'otp' => $otp,
+        'new_password' => 'brandnewotp123',
+    ]);
+    $resetRes->assertStatus(200);
+
+    $user->refresh();
+    expect(Hash::check('brandnewotp123', $user->password))->toBeTrue();
+});
+
+test('legacy .php endpoints support full OTP forgot password flow', function (): void {
+    $user = User::create([
+        'role' => User::ROLE_RESIDENT,
+        'status' => User::STATUS_ACTIVE,
+        'first_name' => 'LegacyOTP',
+        'last_name' => 'User',
+        'email' => 'legacyotp@example.com',
+        'password' => Hash::make('initialpass123'),
+    ]);
+
+    // 1. Request OTP via /api/auth/forgot_password.php
+    $forgotRes = $this->postJson('/api/auth/forgot_password.php', [
+        'email' => 'legacyotp@example.com',
+    ]);
+    $forgotRes->assertStatus(200);
+
+    $otp = $forgotRes->json('dev_otp');
+    expect($otp)->toHaveLength(6);
+
+    // 2. Verify OTP via /api/auth/verify_otp.php
+    $verifyRes = $this->postJson('/api/auth/verify_otp.php', [
+        'email' => 'legacyotp@example.com',
+        'otp' => $otp,
+    ]);
+    $verifyRes->assertStatus(200)->assertJsonPath('valid', true);
+
+    // 3. Reset password via /api/auth/reset_password.php
+    $resetRes = $this->postJson('/api/auth/reset_password.php', [
+        'email' => 'legacyotp@example.com',
+        'otp' => $otp,
+        'new_password' => 'newlegacypass456',
+    ]);
+    $resetRes->assertStatus(200);
+
+    $user->refresh();
+    expect(Hash::check('newlegacypass456', $user->password))->toBeTrue();
+});

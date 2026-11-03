@@ -54,7 +54,7 @@ it('bfp personnel only sees their own notifications', function () {
         'user_id' => $personnel->getKey(),
         'title' => 'My Notif',
         'message' => 'For me',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
         'is_read' => false,
     ]);
 
@@ -62,7 +62,7 @@ it('bfp personnel only sees their own notifications', function () {
         'user_id' => $other->getKey(),
         'title' => 'Other Notif',
         'message' => 'Not mine',
-        'notification_type' => 'system',
+        'notification_type' => 'status_update',
         'is_read' => false,
     ]);
 

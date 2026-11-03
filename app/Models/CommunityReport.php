@@ -77,6 +77,11 @@ class CommunityReport extends Model
         return $this->hasMany(ReportStatusHistory::class, 'report_id');
     }
 
+    public function dispatches(): HasMany
+    {
+        return $this->hasMany(IncidentDispatch::class, 'report_id', 'report_id');
+    }
+
     /**
      * Other community reports linked to this one via `report_link`
      * (e.g. duplicate reports of the same incident).
