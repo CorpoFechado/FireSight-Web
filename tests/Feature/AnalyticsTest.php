@@ -36,6 +36,9 @@ test('bfp admin can view analytics with barangays with most incidents', function
             ->has('monthlyTrend.0.incidents')
             ->missing('monthlyTrend.0.resolved')
             ->has('incidentsByAlarmLevel')
+            ->where('incidentsByAlarmLevel.0.level', 'verification')
+            ->where('incidentsByAlarmLevel.0.label', 'Verification')
+            ->where('incidentsByAlarmLevel.0.color', '#A9B8D0')
             ->has('filters')
             ->has('periodLabel')
     );

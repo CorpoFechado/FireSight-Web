@@ -1,6 +1,22 @@
 {
-  "generated_at": "2026-11-03T22:34:41.262948+00:00",
+  "generated_at": "2026-11-04T01:24:16.159526+00:00",
   "nodes": {
+    "app_http_controllers_analyticscontroller_analyticscontroller": {
+      "code_fingerprint": "740590cb2d38f102ceb493747a82abf5e12f07542841d14610e5a195550fcdfe",
+      "label": "AnalyticsController",
+      "last": "2026-11-03T22:35:40.277438+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-03T22:35:40.277438+00:00",
+          "outcome": "useful",
+          "q": "Find all Fire Alarm level definitions and consumers, and identify missing BFP Running Card System levels before adding them."
+        }
+      ],
+      "score": 0.997298488,
+      "source_file": "app/Http/Controllers/AnalyticsController.php",
+      "status": "tentative",
+      "uses": 1
+    },
     "app_models_announcement_announcement": {
       "code_fingerprint": "b86d59962e9348b560c0a264280c7e11bc31dbf8f733ae9e26f66a90fcd8b2a2",
       "label": "Announcement",
@@ -12,7 +28,7 @@
           "q": "Remove the read_minutes column from fire_education_content and announcement_type from announcement, then fix the frontend."
         }
       ],
-      "score": 0.654916393,
+      "score": 0.653136821,
       "source_file": "app/Models/Announcement.php",
       "status": "tentative",
       "uses": 1
@@ -28,7 +44,7 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.632835255,
+      "score": 0.631115683,
       "source_file": "resources/js/components/aurora-background.tsx",
       "status": "tentative",
       "uses": 1
@@ -44,7 +60,7 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.632835255,
+      "score": 0.631115683,
       "source_file": "resources/js/components/ui/button.tsx",
       "status": "tentative",
       "uses": 1
@@ -65,10 +81,26 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 1.265237404,
+      "score": 1.261799436,
       "source_file": "resources/js/layouts/portal-layout.tsx",
       "status": "preferred",
       "uses": 2
+    },
+    "resources_js_lib_fire_status_alarm_level_cfg": {
+      "code_fingerprint": "d035e292e1dab4f3e5017dea8e1b1c9aaa2442e48cc8cf8acac60a85cecdfcbf",
+      "label": "ALARM_LEVEL_CFG",
+      "last": "2026-11-03T22:35:40.277438+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-03T22:35:40.277438+00:00",
+          "outcome": "useful",
+          "q": "Find all Fire Alarm level definitions and consumers, and identify missing BFP Running Card System levels before adding them."
+        }
+      ],
+      "score": 0.997298488,
+      "source_file": "resources/js/lib/fire-status.ts",
+      "status": "tentative",
+      "uses": 1
     },
     "resources_js_pages_announcements_index": {
       "code_fingerprint": "d41fc79746633f6f3f832bc28d7cb7c5d138d8d02801eafddf5756385b228815",
@@ -81,7 +113,7 @@
           "q": "Remove the read_minutes column from fire_education_content and announcement_type from announcement, then fix the frontend."
         }
       ],
-      "score": 0.654916393,
+      "score": 0.653136821,
       "source_file": "resources/js/pages/announcements/index.tsx",
       "status": "tentative",
       "uses": 1
@@ -97,7 +129,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.632402148,
+      "score": 0.630683753,
       "source_file": "resources/js/pages/auth/login.tsx",
       "status": "tentative",
       "uses": 1
@@ -113,7 +145,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.632402148,
+      "score": 0.630683753,
       "source_file": "resources/js/pages/auth/login.tsx",
       "status": "tentative",
       "uses": 1
@@ -129,7 +161,7 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.632835255,
+      "score": 0.631115683,
       "source_file": "resources/js/pages/dashboard.tsx",
       "status": "tentative",
       "uses": 1
@@ -145,7 +177,7 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.632835255,
+      "score": 0.631115683,
       "source_file": "resources/js/pages/dashboard.tsx",
       "status": "tentative",
       "uses": 1
@@ -161,7 +193,7 @@
           "q": "Remove the read_minutes column from fire_education_content and announcement_type from announcement, then fix the frontend."
         }
       ],
-      "score": 0.654916393,
+      "score": 0.653136821,
       "source_file": "resources/js/pages/fire-education/index.tsx",
       "status": "tentative",
       "uses": 1
@@ -177,7 +209,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.632402148,
+      "score": 0.630683753,
       "source_file": "resources/js/pages/notifications/index.tsx",
       "status": "tentative",
       "uses": 1
@@ -193,7 +225,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.632402148,
+      "score": 0.630683753,
       "source_file": "resources/js/pages/personnel/index.tsx",
       "status": "tentative",
       "uses": 1
@@ -209,7 +241,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.632402148,
+      "score": 0.630683753,
       "source_file": "resources/js/pages/risk-analytics/index.tsx",
       "status": "tentative",
       "uses": 1
@@ -230,7 +262,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 1.265237404,
+      "score": 1.261799436,
       "source_file": "resources/js/pages/welcome.tsx",
       "status": "preferred",
       "uses": 2
@@ -251,7 +283,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 1.265237404,
+      "score": 1.261799436,
       "source_file": "resources/js/pages/welcome.tsx",
       "status": "preferred",
       "uses": 2

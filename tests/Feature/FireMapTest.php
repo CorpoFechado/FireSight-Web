@@ -167,14 +167,15 @@ test('alarm_level filter returns only matching alarm level', function () {
 
     Date::setTestNow(Carbon::create(2026, 6, 1));
 
-    makeResolved(['created_at' => now()], ['alarm_level' => '5th_alarm']);
+    makeResolved(['created_at' => now()], ['alarm_level' => 'verification']);
     makeResolved(['created_at' => now()], ['alarm_level' => '1st_alarm']);
 
-    $this->get(route('map', ['alarm_level' => '5th_alarm']))
+    $this->get(route('map', ['alarm_level' => 'verification']))
         ->assertInertia(
             fn ($page) => $page
                 ->has('incidents', 1)
-                ->where('incidents.0.alarm_level', '5th_alarm'),
+                ->where('incidents.0.alarm_level', 'verification')
+                ->where('filters.alarm_level', 'verification'),
         );
 
     Date::setTestNow();

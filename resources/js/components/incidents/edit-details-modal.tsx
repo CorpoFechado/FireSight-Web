@@ -17,6 +17,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { ALARM_LEVEL_CFG } from '@/lib/fire-status';
+import type { AlarmLevel } from '@/lib/fire-status';
 import { updateDetails } from '@/routes/incidents';
 
 const INCIDENT_TYPES = [
@@ -65,7 +66,7 @@ export function EditDetailsModal({
     onOpenChange: (open: boolean) => void;
     initialValues: {
         incident_type: string | null;
-        alarm_level: string | null;
+        alarm_level: AlarmLevel | null;
         cause_of_fire: string | null;
         injuries?: number | null;
         fatalities?: number | null;

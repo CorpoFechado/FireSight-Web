@@ -73,6 +73,10 @@
     --color-brand-muted: #6b7a8d;
 
     /* BFP Running Card System alarm levels (18 January 2024) */
+    --color-alarm-verification: #a9b8d0;
+    --color-alarm-verification-badge: #eef2f8;
+    --color-alarm-verification-badge-foreground: #4a5a75;
+    --color-alarm-verification-stroke: #4a5a75;
     --color-alarm-1st: #4fa3e0;
     --color-alarm-1st-foreground: #ffffff;
     --color-alarm-2nd: #4caf50;

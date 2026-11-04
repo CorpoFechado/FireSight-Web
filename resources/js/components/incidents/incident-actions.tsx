@@ -1,6 +1,6 @@
 import { CheckCircle, Edit, Smartphone } from 'lucide-react';
 import { useState } from 'react';
-import type { ReportStatus } from '@/lib/fire-status';
+import type { AlarmLevel, ReportStatus } from '@/lib/fire-status';
 import { EditDetailsModal } from './edit-details-modal';
 import { ResolveReportModal } from './resolve-report-modal';
 
@@ -13,7 +13,7 @@ export function IncidentActions({
     status: ReportStatus;
     assessmentValues?: {
         incident_type: string | null;
-        alarm_level: string | null;
+        alarm_level: AlarmLevel | null;
         cause_of_fire: string | null;
         injuries?: number | null;
         fatalities?: number | null;

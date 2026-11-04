@@ -172,12 +172,12 @@ test('adding incident details accepts valid alarm levels and rejects invalid or 
     $this->actingAs($this->staff)
         ->patch(route('incidents.updateDetails', $report1), [
             'incident_type' => 'residential_fire',
-            'alarm_level' => '5th_alarm',
+            'alarm_level' => 'verification',
         ])
         ->assertRedirect();
 
     $record1 = IncidentRecord::where('report_id', $report1->report_id)->first();
-    expect($record1->alarm_level->value)->toBe('5th_alarm');
+    expect($record1->alarm_level->value)->toBe('verification');
 
     $report2 = CommunityReport::create([
         'user_id' => $this->resident->getKey(),

@@ -3,6 +3,7 @@
 use App\Models\AuthToken;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
+use App\Models\IncidentRecord;
 use App\Models\Notification;
 use App\Models\ReportStatusHistory;
 use App\Models\ResidentAddress;
@@ -307,6 +308,49 @@ test('bfp operations workflow: verify, advance status, update details, mark inva
         ->assertJsonPath('status', 'accepted')
         ->assertJsonPath('incident_type', 'commercial_fire')
         ->assertJsonPath('barangay_id', 2);
+});
+
+test('api incident endpoints save verification alarm level', function (): void {
+    [$resident] = createTestResident();
+    [, $bfpToken] = createTestBfpPersonnel();
+
+    $report = CommunityReport::create([
+        'user_id' => $resident->user_id,
+        'reporter_name' => 'Verification Reporter',
+        'contact_number' => '09171234567',
+        'description' => 'Incident undergoing verification',
+        'latitude' => 14.0392,
+        'longitude' => 120.6389,
+        'barangay_id' => 1,
+        'status' => CommunityReport::STATUS_RESOLVED,
+    ]);
+
+    IncidentRecord::create([
+        'report_id' => $report->report_id,
+        'barangay_id' => 1,
+        'incident_datetime' => now(),
+    ]);
+
+    $this->withHeader('Authorization', 'Bearer '.$bfpToken)
+        ->putJson('/api/v1/incidents/'.$report->report_id.'/details', [
+            'incident_type' => 'residential_fire',
+            'alarm_level' => 'verification',
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('alarm_level', 'verification');
+
+    $this->withHeader('Authorization', 'Bearer '.$bfpToken)
+        ->postJson('/api/v1/incidents/manual', [
+            'barangay_id' => 2,
+            'latitude' => 14.0405,
+            'longitude' => 120.6401,
+            'description' => 'Walk-in report under verification',
+            'incident_type' => 'commercial_fire',
+            'alarm_level' => 'verification',
+            'incident_datetime' => now()->toIso8601String(),
+        ])
+        ->assertCreated()
+        ->assertJsonPath('alarm_level', 'verification');
 });
 
 test('profile endpoints support view, update, photo upload, and photo deletion', function (): void {

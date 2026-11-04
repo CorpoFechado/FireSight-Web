@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AlarmLevel;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BarangayContactController;
@@ -45,7 +46,7 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
             'reference' => 'INC-2026-0036',
             'type' => 'Other (Open Burning)',
             'barangay' => 'Prenza',
-            'alarm_level' => '1st Alarm',
+            'alarm_level' => AlarmLevel::Verification->value,
             'reporter' => 'Juan Corpuz',
             'latitude' => 13.99796296,
             'longitude' => 120.65501697,

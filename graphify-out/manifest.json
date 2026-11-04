@@ -60,9 +60,9 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/FireMapController.php": {
-    "mtime": 1791427449.9237847,
-    "seen": 1791429651.769657,
-    "ast_hash": "dd5f95d64c651146a7d908725c495f43",
+    "mtime": 1793755579.3862982,
+    "seen": 1793756134.3220284,
+    "ast_hash": "92e892c1c16d56caa1ea6c975bf71c36",
     "semantic_hash": ""
   },
   "app/Http/Controllers/IncidentActionController.php": {
@@ -612,9 +612,9 @@
     "semantic_hash": "ad277bd7f2e57ccad43e9077fc25e082"
   },
   "resources/js/components/incidents/incident-actions.tsx": {
-    "mtime": 1793686134.6072302,
-    "seen": 1793696435.1383429,
-    "ast_hash": "43969bfbf56d5613c6ae0f032b4a2308",
+    "mtime": 1793755893.6301775,
+    "seen": 1793756134.3402293,
+    "ast_hash": "42a61e7eb4964b4468b636c38d73a7e7",
     "semantic_hash": ""
   },
   "resources/js/components/input-error.tsx": {
@@ -1038,9 +1038,9 @@
     "semantic_hash": ""
   },
   "resources/js/lib/fire-status.ts": {
-    "mtime": 1793746084.0495362,
-    "seen": 1793753721.6714537,
-    "ast_hash": "32535ad951b56c65a2cc99fa53e80811",
+    "mtime": 1793755581.939261,
+    "seen": 1793756134.3483922,
+    "ast_hash": "8f84933f8763e38774e196cc004364b3",
     "semantic_hash": ""
   },
   "resources/js/lib/map-constants.ts": {
@@ -1128,15 +1128,15 @@
     "semantic_hash": ""
   },
   "resources/js/pages/incidents/show.tsx": {
-    "mtime": 1793753735.3796415,
-    "seen": 1793753794.7995577,
-    "ast_hash": "34f5d93824b33fa47c46378930116f94",
+    "mtime": 1793755962.1019883,
+    "seen": 1793756134.350216,
+    "ast_hash": "dd2ec6f8761f3babcdc01acb6ff45ea4",
     "semantic_hash": ""
   },
   "resources/js/pages/map/index.tsx": {
-    "mtime": 1793746162.3275821,
-    "seen": 1793753721.6741893,
-    "ast_hash": "c5d1bb40ddd4d5df8035d2afaa8e75d1",
+    "mtime": 1793755582.901972,
+    "seen": 1793756134.3502176,
+    "ast_hash": "e22edde82ca8af0e457471704ae63e93",
     "semantic_hash": ""
   },
   "resources/js/pages/notifications/index.tsx": {
@@ -1254,9 +1254,9 @@
     "semantic_hash": "eb08d515cde3d3c778d7ce69893d2831"
   },
   "routes/web.php": {
-    "mtime": 1793276501.5443823,
-    "seen": 1793277014.7063606,
-    "ast_hash": "6ecf22119abeeda6a43bb5ba5379cd80",
+    "mtime": 1793755892.8365757,
+    "seen": 1793756134.352231,
+    "ast_hash": "7233cb123703d04e0030699615a7d652",
     "semantic_hash": ""
   },
   "tests/Feature/AnnouncementTest.php": {
@@ -1632,9 +1632,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/FireMapTest.php": {
-    "mtime": 1793366123.0286913,
-    "seen": 1793696435.1960523,
-    "ast_hash": "0a383f9727f635719217b9976936495b",
+    "mtime": 1793755622.049705,
+    "seen": 1793756134.3541553,
+    "ast_hash": "a0b3324335cdbd41dccfb2d0811d5dc4",
     "semantic_hash": ""
   },
   "tests/Unit/DateRangeTest.php": {
@@ -1776,15 +1776,15 @@
     "semantic_hash": ""
   },
   "tests/Feature/AnalyticsTest.php": {
-    "mtime": 1792328305.8803883,
-    "seen": 1792365660.8078115,
-    "ast_hash": "b80b199e8e31aab282b4d8cf6ec8d499",
+    "mtime": 1793755621.2187197,
+    "seen": 1793756134.3523326,
+    "ast_hash": "20ce25457f37c3a3240400842204fcdb",
     "semantic_hash": ""
   },
   "tests/Feature/IncidentWorkflowTest.php": {
-    "mtime": 1793753768.9231308,
-    "seen": 1793753794.8040059,
-    "ast_hash": "d06bdc4b20a43093054d602bd0679179",
+    "mtime": 1793755619.605881,
+    "seen": 1793756134.3542502,
+    "ast_hash": "ea3737672a7791ec993e213b259db856",
     "semantic_hash": ""
   },
   "tests/Feature/RiskAnalyticsTest.php": {
@@ -1860,9 +1860,9 @@
     "semantic_hash": ""
   },
   "resources/js/components/incidents/edit-details-modal.tsx": {
-    "mtime": 1793746162.441585,
-    "seen": 1793753721.6578834,
-    "ast_hash": "9f8c74b5997b7050b6bca9a6316d043b",
+    "mtime": 1793755894.4865298,
+    "seen": 1793756134.340228,
+    "ast_hash": "7ed49532768de2894db5d39fb84bb1d0",
     "semantic_hash": ""
   },
   "tests/Feature/NotificationControllerTest.php": {
@@ -1896,9 +1896,9 @@
     "semantic_hash": ""
   },
   "app/Enums/AlarmLevel.php": {
-    "mtime": 1793746003.7525551,
-    "seen": 1793753721.6128075,
-    "ast_hash": "9d8d3d99a9f55210273c10baf892b3ee",
+    "mtime": 1793755577.9337964,
+    "seen": 1793756134.3196623,
+    "ast_hash": "c676ccf285abcaff8808122ac35cf165",
     "semantic_hash": ""
   },
   "database/migrations/2026_10_08_000001_replace_severity_level_with_alarm_level_in_incident_record.php": {
@@ -1908,9 +1908,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/AlarmLevelMigrationTest.php": {
-    "mtime": 1793746121.8247657,
-    "seen": 1793753721.6777837,
-    "ast_hash": "8469ddd642f4c7a3eb6fb67c38a2f416",
+    "mtime": 1793755922.2060492,
+    "seen": 1793756134.352331,
+    "ast_hash": "232e9c3bdfa54cfb236f7647233cd5d1",
     "semantic_hash": ""
   },
   "app/Enums/RiskLevel.php": {
@@ -2202,9 +2202,9 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/Api/IncidentController.php": {
-    "mtime": 1793686134.4572332,
-    "seen": 1793696435.105763,
-    "ast_hash": "ec39d971255fa9fca1a1f4467bfeadee",
+    "mtime": 1793755580.1996653,
+    "seen": 1793756134.3209283,
+    "ast_hash": "896f1d9eacf3843f80051b400e851332",
     "semantic_hash": ""
   },
   "app/Http/Controllers/Api/MapController.php": {
@@ -2304,9 +2304,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/Api/Phase4ReportsAndIncidentsApiTest.php": {
-    "mtime": 1793686134.6232274,
-    "seen": 1793696435.193851,
-    "ast_hash": "35392ba929a50f23926039844dd9ced8",
+    "mtime": 1793755856.2018456,
+    "seen": 1793756134.3527083,
+    "ast_hash": "66ed41760fbabcd9f201569262a6f0fb",
     "semantic_hash": ""
   },
   "fire-verification-service/README.md": {
@@ -2655,6 +2655,18 @@
     "mtime": 1793745340.2778385,
     "seen": 1793753721.689618,
     "ast_hash": "d9d13d2112a2468445a81310c0d48821",
+    "semantic_hash": ""
+  },
+  "database/migrations/2026_11_04_092454_add_verification_to_alarm_level_enums.php": {
+    "mtime": 1793755705.9917839,
+    "seen": 1793756134.3353539,
+    "ast_hash": "d73c393c43645919efe04e3ccc2722cd",
+    "semantic_hash": ""
+  },
+  "graphify-out/memory/query_20261104_013521_3fc69e4b_where_are_firesight_alarm_levels_ordered__validate.md": {
+    "mtime": 1793756121.0723464,
+    "seen": 1793756134.359454,
+    "ast_hash": "5bd34432ddd93648f1560a101d92895d",
     "semantic_hash": ""
   }
 }

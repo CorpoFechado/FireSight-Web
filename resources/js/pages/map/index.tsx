@@ -163,6 +163,14 @@ function markerColor(inc: MapIncident, colorBy: ColorBy): string {
         : FALLBACK_COLOR;
 }
 
+function markerStrokeColor(inc: MapIncident, colorBy: ColorBy): string {
+    if (colorBy === 'alarm_level' && inc.alarm_level) {
+        return ALARM_LEVEL_CFG[inc.alarm_level]?.strokeColor ?? '#fff';
+    }
+
+    return '#fff';
+}
+
 function buildResultSummary(
     incidents: MapIncident[],
     filters: Filters,
@@ -781,7 +789,10 @@ export default function FireIncidentsMap({
                                                     : 8
                                             }
                                             pathOptions={{
-                                                color: '#fff',
+                                                color: markerStrokeColor(
+                                                    inc,
+                                                    colorBy,
+                                                ),
                                                 weight:
                                                     activeSelectedId ===
                                                     inc.report_id

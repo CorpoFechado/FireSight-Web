@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AlarmLevel;
 use App\Models\CommunityReport;
 use App\Support\BarangayRiskSnapshot;
 use App\Support\DateRange;
@@ -32,23 +33,6 @@ class FireMapController extends Controller
         'others',
     ];
 
-    /** @var list<string> */
-    private const VALID_ALARM_LEVELS = [
-        '1st_alarm',
-        '2nd_alarm',
-        '3rd_alarm',
-        '4th_alarm',
-        '5th_alarm',
-        'task_force_alpha',
-        'task_force_bravo',
-        'task_force_charlie',
-        'task_force_delta',
-        'task_force_echo',
-        'task_force_hotel',
-        'task_force_india',
-        'general_alarm',
-    ];
-
     public function index(Request $request): Response
     {
         $now = Date::now();
@@ -72,7 +56,7 @@ class FireMapController extends Controller
         }
 
         $alarmLevel = $request->string('alarm_level')->trim()->value();
-        if (! in_array($alarmLevel, self::VALID_ALARM_LEVELS, true)) {
+        if (! in_array($alarmLevel, AlarmLevel::values(), true)) {
             $alarmLevel = 'all';
         }
 

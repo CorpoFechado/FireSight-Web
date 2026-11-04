@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\AlarmLevel;
 use App\Models\BarangayContact;
 use App\Models\CommunityReport;
 use App\Models\IncidentDispatch;
@@ -482,13 +483,7 @@ class IncidentController extends ApiController
         }
 
         $alarmLevel = $request->input('alarm_level');
-        $validAlarmLevels = [
-            '1st_alarm', '2nd_alarm', '3rd_alarm', '4th_alarm', '5th_alarm',
-            'task_force_alpha', 'task_force_bravo', 'task_force_charlie',
-            'task_force_delta', 'task_force_echo', 'task_force_hotel',
-            'task_force_india', 'general_alarm',
-        ];
-        if ($alarmLevel && ! in_array($alarmLevel, $validAlarmLevels, true)) {
+        if ($alarmLevel && ! in_array($alarmLevel, AlarmLevel::values(), true)) {
             $alarmLevel = null;
         }
 
@@ -725,13 +720,7 @@ class IncidentController extends ApiController
         }
 
         $alarmLevel = $request->input('alarm_level');
-        $validAlarmLevels = [
-            '1st_alarm', '2nd_alarm', '3rd_alarm', '4th_alarm', '5th_alarm',
-            'task_force_alpha', 'task_force_bravo', 'task_force_charlie',
-            'task_force_delta', 'task_force_echo', 'task_force_hotel',
-            'task_force_india', 'general_alarm',
-        ];
-        if ($alarmLevel && ! in_array($alarmLevel, $validAlarmLevels, true)) {
+        if ($alarmLevel && ! in_array($alarmLevel, AlarmLevel::values(), true)) {
             $alarmLevel = null;
         }
 

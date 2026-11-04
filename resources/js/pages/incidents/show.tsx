@@ -55,7 +55,7 @@ type ReportDetail = {
     device_latitude: number | null;
     device_longitude: number | null;
     raw_incident_type: string | null;
-    raw_alarm_level: string | null;
+    raw_alarm_level: AlarmLevel | null;
     cause_of_fire: string | null;
     casualties: number | null;
     injuries?: number | null;
@@ -232,14 +232,14 @@ type Barangay = { barangay_id: number; barangay_name: string };
 
 function formatTimeOnly(dt?: string | null): string {
     if (!dt) {
-return 'Unspecified';
-}
+        return 'Unspecified';
+    }
 
     const d = new Date(dt.replace(' ', 'T'));
 
     if (isNaN(d.getTime())) {
-return dt;
-}
+        return dt;
+    }
 
     return d.toLocaleTimeString('en-US', {
         hour: 'numeric',
