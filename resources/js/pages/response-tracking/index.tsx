@@ -10,7 +10,9 @@ import {
     TileLayer,
 } from 'react-leaflet';
 import { PortalCard } from '@/components/portal/portal-card';
+import { AlarmLevelBadge } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
+import type { AlarmLevel } from '@/lib/fire-status';
 import {
     LIAN_CENTER,
     OSM_ATTRIBUTION,
@@ -21,7 +23,7 @@ type Incident = {
     reference: string;
     type: string;
     barangay: string;
-    alarm_level: string;
+    alarm_level: AlarmLevel | null;
     reporter: string;
     latitude: number;
     longitude: number;
@@ -191,7 +193,6 @@ export default function ResponseTracking({
                                 [
                                     ['Type', incident.type],
                                     ['Barangay', incident.barangay],
-                                    ['Alarm Level', incident.alarm_level],
                                     ['Reporter', incident.reporter],
                                 ] as const
                             ).map(([label, value]) => (
@@ -207,6 +208,18 @@ export default function ResponseTracking({
                                     </dd>
                                 </div>
                             ))}
+                            {incident.alarm_level && (
+                                <div className="flex items-center justify-between">
+                                    <dt className="text-brand-muted">
+                                        Alarm Level
+                                    </dt>
+                                    <dd>
+                                        <AlarmLevelBadge
+                                            alarmLevel={incident.alarm_level}
+                                        />
+                                    </dd>
+                                </div>
+                            )}
                         </dl>
                     </PortalCard>
 

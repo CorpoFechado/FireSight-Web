@@ -15,6 +15,7 @@ import type {
     PersonnelStatus,
     FireEducationCategory,
 } from '@/lib/fire-status';
+import { cn } from '@/lib/utils';
 
 export function StatusBadge({ status }: { status: ReportStatus }) {
     const cfg = STATUS_CFG[status];
@@ -46,8 +47,11 @@ export function AlarmLevelBadge({ alarmLevel }: { alarmLevel: AlarmLevel }) {
 
     return (
         <span
-            className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
-            style={{ background: cfg.bg, color: cfg.text }}
+            className={cn(
+                'inline-flex items-center rounded-full border border-black/10 px-2.5 py-1 text-xs font-semibold dark:border-white/25',
+                cfg.backgroundClass,
+                cfg.textClass,
+            )}
         >
             {cfg.label}
         </span>

@@ -20,23 +20,6 @@ class AnalyticsController extends Controller
     /** @var array<string, string> */
     public const TYPE_COLORS = IncidentTypeBreakdown::TYPE_COLORS;
 
-    /** @var array<string, string> */
-    public const ALARM_LEVEL_COLORS = [
-        '1st_alarm' => '#34D399',
-        '2nd_alarm' => '#10B981',
-        '3rd_alarm' => '#FBBF24',
-        '4th_alarm' => '#F59E0B',
-        '5th_alarm' => '#F97316',
-        'task_force_alpha' => '#EA580C',
-        'task_force_bravo' => '#EF4444',
-        'task_force_charlie' => '#DC2626',
-        'task_force_delta' => '#B91C1C',
-        'task_force_echo' => '#991B1B',
-        'task_force_hotel' => '#BE123C',
-        'task_force_india' => '#9F1239',
-        'general_alarm' => '#881337',
-    ];
-
     public function index(Request $request): Response
     {
         $now = Date::now();
@@ -121,7 +104,7 @@ class AnalyticsController extends Controller
                 'level' => $level->value,
                 'label' => $level->label(),
                 'count' => (int) ($counts[$level->value] ?? 0),
-                'color' => self::ALARM_LEVEL_COLORS[$level->value] ?? '#6B7A8D',
+                'color' => $level->color(),
             ])
             ->all();
     }

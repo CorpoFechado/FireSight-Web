@@ -72,6 +72,34 @@
     --color-brand-bg: #f8f9fa;
     --color-brand-muted: #6b7a8d;
 
+    /* BFP Running Card System alarm levels (18 January 2024) */
+    --color-alarm-1st: #4fa3e0;
+    --color-alarm-1st-foreground: #ffffff;
+    --color-alarm-2nd: #4caf50;
+    --color-alarm-2nd-foreground: #ffffff;
+    --color-alarm-3rd: #f2c94c;
+    --color-alarm-3rd-foreground: #1f2937;
+    --color-alarm-4th: #f2811d;
+    --color-alarm-4th-foreground: #ffffff;
+    --color-alarm-5th: #e02424;
+    --color-alarm-5th-foreground: #ffffff;
+    --color-alarm-tf-alpha: #6c6fd9;
+    --color-alarm-tf-alpha-foreground: #ffffff;
+    --color-alarm-tf-bravo: #2f5fb3;
+    --color-alarm-tf-bravo-foreground: #ffffff;
+    --color-alarm-tf-charlie: #b0182e;
+    --color-alarm-tf-charlie-foreground: #ffffff;
+    --color-alarm-tf-delta: #8c6d2c;
+    --color-alarm-tf-delta-foreground: #ffffff;
+    --color-alarm-tf-echo: #8c6d2c;
+    --color-alarm-tf-echo-foreground: #ffffff;
+    --color-alarm-tf-hotel: #8c6d2c;
+    --color-alarm-tf-hotel-foreground: #ffffff;
+    --color-alarm-tf-india: #8c6d2c;
+    --color-alarm-tf-india-foreground: #ffffff;
+    --color-alarm-general: #1e2a5e;
+    --color-alarm-general-foreground: #ffffff;
+
     /* FireSight public landing page */
     --color-firesight-navy: #0b1b3f;
     --color-firesight-navy-mid: #0f2552;

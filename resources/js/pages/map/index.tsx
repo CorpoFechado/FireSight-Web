@@ -29,7 +29,6 @@ import {
 } from '@/lib/barangay-geo';
 import {
     ALARM_LEVEL_CFG,
-    ALARM_LEVEL_MARKER_COLORS,
     RISK_CFG,
     TYPE_CFG,
     riskMapPolygonStyle,
@@ -155,7 +154,7 @@ function RememberMapView({ onChange }: { onChange: (view: MapView) => void }) {
 function markerColor(inc: MapIncident, colorBy: ColorBy): string {
     if (colorBy === 'alarm_level') {
         return inc.alarm_level
-            ? (ALARM_LEVEL_MARKER_COLORS[inc.alarm_level] ?? FALLBACK_COLOR)
+            ? (ALARM_LEVEL_CFG[inc.alarm_level]?.color ?? FALLBACK_COLOR)
             : FALLBACK_COLOR;
     }
 
@@ -301,7 +300,7 @@ export default function FireIncidentsMap({
                 .map((s) => ({
                     key: s,
                     label: ALARM_LEVEL_CFG[s].label,
-                    color: ALARM_LEVEL_MARKER_COLORS[s],
+                    color: ALARM_LEVEL_CFG[s].color,
                 }));
         }
 
@@ -815,10 +814,10 @@ export default function FireIncidentsMap({
                                                             Alarm Level:{' '}
                                                             <span
                                                                 style={{
-                                                                    color: ALARM_LEVEL_MARKER_COLORS[
+                                                                    color: ALARM_LEVEL_CFG[
                                                                         inc
                                                                             .alarm_level
-                                                                    ],
+                                                                    ].color,
                                                                 }}
                                                             >
                                                                 {ALARM_LEVEL_CFG[

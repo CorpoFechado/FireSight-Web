@@ -6,28 +6,30 @@ use App\Models\IncidentRecord;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-test('alarm level enum has all 13 canonical levels in order and correct labels', function () {
+test('alarm level enum has all 13 canonical levels in order with official colors', function () {
     $expected = [
-        '1st_alarm' => '1st Alarm',
-        '2nd_alarm' => '2nd Alarm',
-        '3rd_alarm' => '3rd Alarm',
-        '4th_alarm' => '4th Alarm',
-        '5th_alarm' => '5th Alarm',
-        'task_force_alpha' => 'Task Force Alpha',
-        'task_force_bravo' => 'Task Force Bravo',
-        'task_force_charlie' => 'Task Force Charlie',
-        'task_force_delta' => 'Task Force Delta',
-        'task_force_echo' => 'Task Force Echo',
-        'task_force_hotel' => 'Task Force Hotel',
-        'task_force_india' => 'Task Force India',
-        'general_alarm' => 'General Alarm',
+        '1st_alarm' => ['1st Alarm', '#4FA3E0', '#FFFFFF'],
+        '2nd_alarm' => ['2nd Alarm', '#4CAF50', '#FFFFFF'],
+        '3rd_alarm' => ['3rd Alarm', '#F2C94C', '#1F2937'],
+        '4th_alarm' => ['4th Alarm', '#F2811D', '#FFFFFF'],
+        '5th_alarm' => ['5th Alarm', '#E02424', '#FFFFFF'],
+        'task_force_alpha' => ['Task Force Alpha', '#6C6FD9', '#FFFFFF'],
+        'task_force_bravo' => ['Task Force Bravo', '#2F5FB3', '#FFFFFF'],
+        'task_force_charlie' => ['Task Force Charlie', '#B0182E', '#FFFFFF'],
+        'task_force_delta' => ['Task Force Delta', '#8C6D2C', '#FFFFFF'],
+        'task_force_echo' => ['Task Force Echo', '#8C6D2C', '#FFFFFF'],
+        'task_force_hotel' => ['Task Force Hotel', '#8C6D2C', '#FFFFFF'],
+        'task_force_india' => ['Task Force India', '#8C6D2C', '#FFFFFF'],
+        'general_alarm' => ['General Alarm', '#1E2A5E', '#FFFFFF'],
     ];
 
     expect(AlarmLevel::values())->toBe(array_keys($expected));
 
-    foreach ($expected as $val => $label) {
-        $case = AlarmLevel::from($val);
-        expect($case->label())->toBe($label);
+    foreach ($expected as $value => [$label, $color, $textColor]) {
+        $case = AlarmLevel::from($value);
+        expect($case->label())->toBe($label)
+            ->and($case->color())->toBe($color)
+            ->and($case->textColor())->toBe($textColor);
     }
 });
 

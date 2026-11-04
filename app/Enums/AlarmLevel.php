@@ -37,6 +37,33 @@ enum AlarmLevel: string
         };
     }
 
+    public function color(): string
+    {
+        return match ($this) {
+            self::FirstAlarm => '#4FA3E0',
+            self::SecondAlarm => '#4CAF50',
+            self::ThirdAlarm => '#F2C94C',
+            self::FourthAlarm => '#F2811D',
+            self::FifthAlarm => '#E02424',
+            self::TaskForceAlpha => '#6C6FD9',
+            self::TaskForceBravo => '#2F5FB3',
+            self::TaskForceCharlie => '#B0182E',
+            self::TaskForceDelta,
+            self::TaskForceEcho,
+            self::TaskForceHotel,
+            self::TaskForceIndia => '#8C6D2C',
+            self::GeneralAlarm => '#1E2A5E',
+        };
+    }
+
+    public function textColor(): string
+    {
+        return match ($this) {
+            self::ThirdAlarm => '#1F2937',
+            default => '#FFFFFF',
+        };
+    }
+
     /**
      * @return list<string>
      */

@@ -16,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { ALARM_LEVEL_CFG } from '@/lib/fire-status';
 import { updateDetails } from '@/routes/incidents';
 
 const INCIDENT_TYPES = [
@@ -27,21 +28,10 @@ const INCIDENT_TYPES = [
     { value: 'others', label: 'Others' },
 ];
 
-const ALARM_LEVELS = [
-    { value: '1st_alarm', label: '1st Alarm' },
-    { value: '2nd_alarm', label: '2nd Alarm' },
-    { value: '3rd_alarm', label: '3rd Alarm' },
-    { value: '4th_alarm', label: '4th Alarm' },
-    { value: '5th_alarm', label: '5th Alarm' },
-    { value: 'task_force_alpha', label: 'Task Force Alpha' },
-    { value: 'task_force_bravo', label: 'Task Force Bravo' },
-    { value: 'task_force_charlie', label: 'Task Force Charlie' },
-    { value: 'task_force_delta', label: 'Task Force Delta' },
-    { value: 'task_force_echo', label: 'Task Force Echo' },
-    { value: 'task_force_hotel', label: 'Task Force Hotel' },
-    { value: 'task_force_india', label: 'Task Force India' },
-    { value: 'general_alarm', label: 'General Alarm' },
-];
+const ALARM_LEVELS = Object.entries(ALARM_LEVEL_CFG).map(([value, config]) => ({
+    value,
+    label: config.label,
+}));
 
 function extractTime(dt?: string | null): string {
     if (!dt) return '';
@@ -49,9 +39,14 @@ function extractTime(dt?: string | null): string {
     return match ? `${match[1]}:${match[2]}` : '';
 }
 
-function combineWithBaseDate(baseDateStr?: string | null, timeStr?: string): string {
+function combineWithBaseDate(
+    baseDateStr?: string | null,
+    timeStr?: string,
+): string {
     if (!timeStr) return '';
-    const base = baseDateStr ? new Date(baseDateStr.replace(' ', 'T')) : new Date();
+    const base = baseDateStr
+        ? new Date(baseDateStr.replace(' ', 'T'))
+        : new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
     const y = base.getFullYear();
     const m = pad(base.getMonth() + 1);
@@ -82,16 +77,24 @@ export function EditDetailsModal({
         notes: string | null;
     };
 }) {
-    const [startTime, setStartTime] = useState(() => extractTime(initialValues.time_fire_started));
-    const [outTime, setOutTime] = useState(() => extractTime(initialValues.time_fire_out));
+    const [startTime, setStartTime] = useState(() =>
+        extractTime(initialValues.time_fire_started),
+    );
+    const [outTime, setOutTime] = useState(() =>
+        extractTime(initialValues.time_fire_out),
+    );
 
     const hasExistingDetails = Boolean(
         initialValues.incident_type ||
         initialValues.alarm_level ||
         initialValues.cause_of_fire ||
         initialValues.notes ||
-        (initialValues.injuries !== null && initialValues.injuries !== undefined && initialValues.injuries > 0) ||
-        (initialValues.fatalities !== null && initialValues.fatalities !== undefined && initialValues.fatalities > 0),
+        (initialValues.injuries !== null &&
+            initialValues.injuries !== undefined &&
+            initialValues.injuries > 0) ||
+        (initialValues.fatalities !== null &&
+            initialValues.fatalities !== undefined &&
+            initialValues.fatalities > 0),
     );
 
     const { data, setData, patch, processing, errors, clearErrors } = useForm({
@@ -104,11 +107,13 @@ export function EditDetailsModal({
         alarm_level: initialValues.alarm_level ?? '',
         cause_of_fire: initialValues.cause_of_fire ?? '',
         injuries:
-            initialValues.injuries !== null && initialValues.injuries !== undefined
+            initialValues.injuries !== null &&
+            initialValues.injuries !== undefined
                 ? initialValues.injuries.toString()
                 : '0',
         fatalities:
-            initialValues.fatalities !== null && initialValues.fatalities !== undefined
+            initialValues.fatalities !== null &&
+            initialValues.fatalities !== undefined
                 ? initialValues.fatalities.toString()
                 : '0',
         notes: initialValues.notes ?? '',
@@ -128,11 +133,13 @@ export function EditDetailsModal({
                 alarm_level: initialValues.alarm_level ?? '',
                 cause_of_fire: initialValues.cause_of_fire ?? '',
                 injuries:
-                    initialValues.injuries !== null && initialValues.injuries !== undefined
+                    initialValues.injuries !== null &&
+                    initialValues.injuries !== undefined
                         ? initialValues.injuries.toString()
                         : '0',
                 fatalities:
-                    initialValues.fatalities !== null && initialValues.fatalities !== undefined
+                    initialValues.fatalities !== null &&
+                    initialValues.fatalities !== undefined
                         ? initialValues.fatalities.toString()
                         : '0',
                 notes: initialValues.notes ?? '',
@@ -164,26 +171,32 @@ export function EditDetailsModal({
             <DialogContent className="max-h-[90vh] overflow-y-auto bg-white text-brand-navy sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle className="text-brand-navy">
-                        {hasExistingDetails ? 'Edit' : 'Add'} Incident Assessment Details
+                        {hasExistingDetails ? 'Edit' : 'Add'} Incident
+                        Assessment Details
                     </DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={submit} className="space-y-3.5">
                     <p className="text-xs text-brand-muted">
-                        Update official BFP investigation findings, occupancy details, and casualty counts.
+                        Update official BFP investigation findings, occupancy
+                        details, and casualty counts.
                     </p>
 
                     <div className="space-y-1.5">
                         <Label>Establishment Name</Label>
                         <input
                             value={data.establishment_name}
-                            onChange={(e) => setData('establishment_name', e.target.value)}
+                            onChange={(e) =>
+                                setData('establishment_name', e.target.value)
+                            }
                             placeholder="Complete name of the establishment"
                             className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                             style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                         />
                         {errors.establishment_name && (
-                            <p className="text-xs text-brand-red">{errors.establishment_name}</p>
+                            <p className="text-xs text-brand-red">
+                                {errors.establishment_name}
+                            </p>
                         )}
                     </div>
 
@@ -192,13 +205,17 @@ export function EditDetailsModal({
                             <Label>Owner</Label>
                             <input
                                 value={data.owner_name}
-                                onChange={(e) => setData('owner_name', e.target.value)}
+                                onChange={(e) =>
+                                    setData('owner_name', e.target.value)
+                                }
                                 placeholder="Structure or property owner"
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.owner_name && (
-                                <p className="text-xs text-brand-red">{errors.owner_name}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.owner_name}
+                                </p>
                             )}
                         </div>
 
@@ -206,13 +223,17 @@ export function EditDetailsModal({
                             <Label>Occupant</Label>
                             <input
                                 value={data.occupant_name}
-                                onChange={(e) => setData('occupant_name', e.target.value)}
+                                onChange={(e) =>
+                                    setData('occupant_name', e.target.value)
+                                }
                                 placeholder="Tenant or resident occupant"
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.occupant_name && (
-                                <p className="text-xs text-brand-red">{errors.occupant_name}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.occupant_name}
+                                </p>
                             )}
                         </div>
                     </div>
@@ -225,13 +246,21 @@ export function EditDetailsModal({
                                 value={startTime}
                                 onChange={(e) => {
                                     setStartTime(e.target.value);
-                                    setData('time_fire_started', combineWithBaseDate(initialValues.time_fire_started, e.target.value));
+                                    setData(
+                                        'time_fire_started',
+                                        combineWithBaseDate(
+                                            initialValues.time_fire_started,
+                                            e.target.value,
+                                        ),
+                                    );
                                 }}
-                                className="h-9 w-full rounded-md border px-3 text-sm outline-none bg-white"
+                                className="h-9 w-full rounded-md border bg-white px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.time_fire_started && (
-                                <p className="text-xs text-brand-red">{errors.time_fire_started}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.time_fire_started}
+                                </p>
                             )}
                         </div>
 
@@ -242,13 +271,22 @@ export function EditDetailsModal({
                                 value={outTime}
                                 onChange={(e) => {
                                     setOutTime(e.target.value);
-                                    setData('time_fire_out', combineWithBaseDate(initialValues.time_fire_out || initialValues.time_fire_started, e.target.value));
+                                    setData(
+                                        'time_fire_out',
+                                        combineWithBaseDate(
+                                            initialValues.time_fire_out ||
+                                                initialValues.time_fire_started,
+                                            e.target.value,
+                                        ),
+                                    );
                                 }}
-                                className="h-9 w-full rounded-md border px-3 text-sm outline-none bg-white"
+                                className="h-9 w-full rounded-md border bg-white px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.time_fire_out && (
-                                <p className="text-xs text-brand-red">{errors.time_fire_out}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.time_fire_out}
+                                </p>
                             )}
                         </div>
                     </div>
@@ -258,21 +296,28 @@ export function EditDetailsModal({
                             <Label>Incident Type</Label>
                             <Select
                                 value={data.incident_type}
-                                onValueChange={(v) => setData('incident_type', v)}
+                                onValueChange={(v) =>
+                                    setData('incident_type', v)
+                                }
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-white text-brand-navy">
                                     {INCIDENT_TYPES.map((t) => (
-                                        <SelectItem key={t.value} value={t.value}>
+                                        <SelectItem
+                                            key={t.value}
+                                            value={t.value}
+                                        >
                                             {t.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             {errors.incident_type && (
-                                <p className="text-xs text-brand-red">{errors.incident_type}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.incident_type}
+                                </p>
                             )}
                         </div>
 
@@ -287,14 +332,19 @@ export function EditDetailsModal({
                                 </SelectTrigger>
                                 <SelectContent className="bg-white text-brand-navy">
                                     {ALARM_LEVELS.map((a) => (
-                                        <SelectItem key={a.value} value={a.value}>
+                                        <SelectItem
+                                            key={a.value}
+                                            value={a.value}
+                                        >
                                             {a.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             {errors.alarm_level && (
-                                <p className="text-xs text-brand-red">{errors.alarm_level}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.alarm_level}
+                                </p>
                             )}
                         </div>
                     </div>
@@ -303,13 +353,17 @@ export function EditDetailsModal({
                         <Label>Cause of Fire (optional)</Label>
                         <input
                             value={data.cause_of_fire}
-                            onChange={(e) => setData('cause_of_fire', e.target.value)}
+                            onChange={(e) =>
+                                setData('cause_of_fire', e.target.value)
+                            }
                             placeholder="e.g. Electrical short circuit"
                             className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                             style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                         />
                         {errors.cause_of_fire && (
-                            <p className="text-xs text-brand-red">{errors.cause_of_fire}</p>
+                            <p className="text-xs text-brand-red">
+                                {errors.cause_of_fire}
+                            </p>
                         )}
                     </div>
 
@@ -320,12 +374,16 @@ export function EditDetailsModal({
                                 type="number"
                                 min={0}
                                 value={data.injuries}
-                                onChange={(e) => setData('injuries', e.target.value)}
+                                onChange={(e) =>
+                                    setData('injuries', e.target.value)
+                                }
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.injuries && (
-                                <p className="text-xs text-brand-red">{errors.injuries}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.injuries}
+                                </p>
                             )}
                         </div>
 
@@ -335,12 +393,16 @@ export function EditDetailsModal({
                                 type="number"
                                 min={0}
                                 value={data.fatalities}
-                                onChange={(e) => setData('fatalities', e.target.value)}
+                                onChange={(e) =>
+                                    setData('fatalities', e.target.value)
+                                }
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
                             {errors.fatalities && (
-                                <p className="text-xs text-brand-red">{errors.fatalities}</p>
+                                <p className="text-xs text-brand-red">
+                                    {errors.fatalities}
+                                </p>
                             )}
                         </div>
                     </div>
@@ -356,7 +418,9 @@ export function EditDetailsModal({
                             style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                         />
                         {errors.notes && (
-                            <p className="text-xs text-brand-red">{errors.notes}</p>
+                            <p className="text-xs text-brand-red">
+                                {errors.notes}
+                            </p>
                         )}
                     </div>
 

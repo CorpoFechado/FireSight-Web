@@ -26,6 +26,12 @@ export type PersonnelRole = 'bfp_admin' | 'bfp_personnel';
 export type PersonnelStatus = 'active' | 'inactive';
 
 type BadgeCfg = { bg: string; text: string; border?: string; label: string };
+type AlarmLevelCfg = {
+    backgroundClass: string;
+    textClass: string;
+    color: string;
+    label: string;
+};
 
 export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
     pending: {
@@ -60,48 +66,85 @@ export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
     },
 };
 
-export const ALARM_LEVEL_CFG: Record<AlarmLevel, BadgeCfg> = {
-    '1st_alarm': { bg: '#D1FAE5', text: '#065F46', label: '1st Alarm' },
-    '2nd_alarm': { bg: '#D1FAE5', text: '#047857', label: '2nd Alarm' },
-    '3rd_alarm': { bg: '#FEF3C7', text: '#92400E', label: '3rd Alarm' },
-    '4th_alarm': { bg: '#FEF3C7', text: '#B45309', label: '4th Alarm' },
-    '5th_alarm': { bg: '#FFEDD5', text: '#C2410C', label: '5th Alarm' },
+export const ALARM_LEVEL_CFG: Record<AlarmLevel, AlarmLevelCfg> = {
+    '1st_alarm': {
+        backgroundClass: 'bg-alarm-1st',
+        textClass: 'text-alarm-1st-foreground',
+        color: 'var(--color-alarm-1st)',
+        label: '1st Alarm',
+    },
+    '2nd_alarm': {
+        backgroundClass: 'bg-alarm-2nd',
+        textClass: 'text-alarm-2nd-foreground',
+        color: 'var(--color-alarm-2nd)',
+        label: '2nd Alarm',
+    },
+    '3rd_alarm': {
+        backgroundClass: 'bg-alarm-3rd',
+        textClass: 'text-alarm-3rd-foreground',
+        color: 'var(--color-alarm-3rd)',
+        label: '3rd Alarm',
+    },
+    '4th_alarm': {
+        backgroundClass: 'bg-alarm-4th',
+        textClass: 'text-alarm-4th-foreground',
+        color: 'var(--color-alarm-4th)',
+        label: '4th Alarm',
+    },
+    '5th_alarm': {
+        backgroundClass: 'bg-alarm-5th',
+        textClass: 'text-alarm-5th-foreground',
+        color: 'var(--color-alarm-5th)',
+        label: '5th Alarm',
+    },
     task_force_alpha: {
-        bg: '#FFEDD5',
-        text: '#9A3412',
+        backgroundClass: 'bg-alarm-tf-alpha',
+        textClass: 'text-alarm-tf-alpha-foreground',
+        color: 'var(--color-alarm-tf-alpha)',
         label: 'Task Force Alpha',
     },
     task_force_bravo: {
-        bg: '#FEE2E2',
-        text: '#B91C1C',
+        backgroundClass: 'bg-alarm-tf-bravo',
+        textClass: 'text-alarm-tf-bravo-foreground',
+        color: 'var(--color-alarm-tf-bravo)',
         label: 'Task Force Bravo',
     },
     task_force_charlie: {
-        bg: '#FEE2E2',
-        text: '#991B1B',
+        backgroundClass: 'bg-alarm-tf-charlie',
+        textClass: 'text-alarm-tf-charlie-foreground',
+        color: 'var(--color-alarm-tf-charlie)',
         label: 'Task Force Charlie',
     },
     task_force_delta: {
-        bg: '#FEE2E2',
-        text: '#7F1D1D',
+        backgroundClass: 'bg-alarm-tf-delta',
+        textClass: 'text-alarm-tf-delta-foreground',
+        color: 'var(--color-alarm-tf-delta)',
         label: 'Task Force Delta',
     },
     task_force_echo: {
-        bg: '#FFE4E6',
-        text: '#881337',
+        backgroundClass: 'bg-alarm-tf-echo',
+        textClass: 'text-alarm-tf-echo-foreground',
+        color: 'var(--color-alarm-tf-echo)',
         label: 'Task Force Echo',
     },
     task_force_hotel: {
-        bg: '#FFE4E6',
-        text: '#881337',
+        backgroundClass: 'bg-alarm-tf-hotel',
+        textClass: 'text-alarm-tf-hotel-foreground',
+        color: 'var(--color-alarm-tf-hotel)',
         label: 'Task Force Hotel',
     },
     task_force_india: {
-        bg: '#FFE4E6',
-        text: '#4C0519',
+        backgroundClass: 'bg-alarm-tf-india',
+        textClass: 'text-alarm-tf-india-foreground',
+        color: 'var(--color-alarm-tf-india)',
         label: 'Task Force India',
     },
-    general_alarm: { bg: '#FFE4E6', text: '#4C0519', label: 'General Alarm' },
+    general_alarm: {
+        backgroundClass: 'bg-alarm-general',
+        textClass: 'text-alarm-general-foreground',
+        color: 'var(--color-alarm-general)',
+        label: 'General Alarm',
+    },
 };
 
 export const RISK_CFG: Record<RiskLevel, BadgeCfg & { color: string }> = {
@@ -164,26 +207,6 @@ export const TYPE_CFG: Record<IncidentType, TypeCfg> = {
     storage_fire: { label: 'Storage Fire', color: '#2A9D8F' },
     rubbish_fire: { label: 'Rubbish Fire', color: '#48B6A3' },
     others: { label: 'Others', color: '#76CEBF' },
-};
-
-/**
- * Map marker fill colors for alarm levels — matches Analytics'
- * ALARM_LEVEL_COLORS constants so pins and charts use identical hues.
- */
-export const ALARM_LEVEL_MARKER_COLORS: Record<AlarmLevel, string> = {
-    '1st_alarm': '#34D399',
-    '2nd_alarm': '#10B981',
-    '3rd_alarm': '#FBBF24',
-    '4th_alarm': '#F59E0B',
-    '5th_alarm': '#F97316',
-    task_force_alpha: '#EA580C',
-    task_force_bravo: '#EF4444',
-    task_force_charlie: '#DC2626',
-    task_force_delta: '#B91C1C',
-    task_force_echo: '#991B1B',
-    task_force_hotel: '#BE123C',
-    task_force_india: '#9F1239',
-    general_alarm: '#881337',
 };
 
 /** Marker/legend color for a risk level — used by Leaflet map components. */
