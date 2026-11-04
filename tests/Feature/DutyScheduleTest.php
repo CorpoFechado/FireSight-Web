@@ -2,6 +2,7 @@
 
 use App\Enums\DutyGroup;
 use App\Models\BfpPersonnelDetails;
+use App\Models\CommunityReport;
 use App\Models\DutyOverride;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -272,4 +273,32 @@ test('destroyOverride removes it', function () {
     $this->assertDatabaseMissing('duty_overrides', [
         'override_id' => $override->override_id,
     ]);
+});
+
+test('roster identifies latest active dispatch and excludes resolved incidents', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $active = User::factory()->bfpPersonnel()->create();
+    $resolved = User::factory()->bfpPersonnel()->create();
+    $resident = User::factory()->create(['role' => 'resident']);
+    $reportData = [
+        'user_id' => $resident->getKey(), 'reporter_name' => 'Reporter', 'contact_number' => '09123456789',
+        'latitude' => 13.95, 'longitude' => 120.65,
+    ];
+    $report = CommunityReport::create([...$reportData, 'status' => 'dispatched']);
+    $resolvedReport = CommunityReport::create([...$reportData, 'status' => 'resolved']);
+    $older = $report->dispatches()->create(['dispatched_by' => $admin->getKey(), 'dispatched_at' => '2026-10-12 10:00:00']);
+    $older->crew()->attach($active);
+    $latest = $report->dispatches()->create(['dispatched_by' => $admin->getKey(), 'dispatched_at' => '2026-10-12 11:00:00']);
+    $latest->crew()->attach($active);
+    $latest->trucks()->create(['truck_name' => 'Engine 1']);
+    $finished = $resolvedReport->dispatches()->create(['dispatched_by' => $admin->getKey(), 'dispatched_at' => '2026-10-12 12:00:00']);
+    $finished->crew()->attach($resolved);
+
+    $this->actingAs($admin)->get(route('dutySchedule'))->assertInertia(fn (Assert $page) => $page
+        ->has('roster.unassigned', 2)
+        ->where('roster.unassigned', fn ($members) => collect($members)->contains(fn ($member) => $member['user_id'] === $active->getKey() && $member['is_dispatched'] &&
+            $member['active_dispatch']['reference'] === sprintf('INC-%s-%04d', $report->created_at->format('Y'), $report->getKey()) &&
+            $member['active_dispatch']['dispatched_at'] === '2026-10-12 11:00' && $member['active_dispatch']['trucks'] === ['Engine 1']
+        ) && collect($members)->contains(fn ($member) => $member['user_id'] === $resolved->getKey() && ! $member['is_dispatched'] && $member['active_dispatch'] === null))
+    );
 });

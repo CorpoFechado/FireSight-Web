@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DutyGroup;
+use App\Models\CommunityReport;
 use App\Models\DutyOverride;
 use App\Models\User;
 use App\Support\DutyRotation;
@@ -74,6 +75,30 @@ class DutyScheduleController extends Controller
             ->with('personnelDetails')
             ->get();
 
+        $dispatchRows = DB::table('incident_dispatch_personnel as personnel')
+            ->join('incident_dispatch as dispatch', 'dispatch.dispatch_id', '=', 'personnel.dispatch_id')
+            ->join('community_report as report', 'report.report_id', '=', 'dispatch.report_id')
+            ->leftJoin('incident_dispatch_truck as truck', 'truck.dispatch_id', '=', 'dispatch.dispatch_id')
+            ->whereIn('personnel.user_id', $users->modelKeys())
+            ->where('report.status', CommunityReport::STATUS_DISPATCHED)
+            ->orderByDesc('dispatch.dispatched_at')
+            ->orderByDesc('dispatch.dispatch_id')
+            ->get(['personnel.user_id', 'dispatch.dispatch_id', 'dispatch.dispatched_at', 'report.report_id', 'report.created_at', 'truck.truck_name']);
+
+        $activeDispatches = $dispatchRows->groupBy('user_id')->map(function ($rows) {
+            $latest = $rows->first();
+            $report = new CommunityReport;
+            $report->report_id = $latest->report_id;
+            $report->created_at = Carbon::parse($latest->created_at);
+
+            return [
+                'report_id' => $latest->report_id,
+                'reference' => IncidentController::reference($report),
+                'dispatched_at' => Carbon::parse($latest->dispatched_at)->format('Y-m-d H:i'),
+                'trucks' => $rows->where('dispatch_id', $latest->dispatch_id)->pluck('truck_name')->filter()->unique()->values()->all(),
+            ];
+        });
+
         $overridesByUser = $overrides->keyBy('user_id');
 
         $roster = [
@@ -100,6 +125,8 @@ class DutyScheduleController extends Controller
                 'is_overridden' => $override !== null,
                 'override_id' => $override?->override_id,
                 'is_on_duty' => $isOnDuty,
+                'is_dispatched' => $activeDispatches->has($user->getKey()),
+                'active_dispatch' => $activeDispatches->get($user->getKey()),
                 '_rank' => $user->personnelDetails?->rank,
                 '_last_name' => $user->last_name,
             ];

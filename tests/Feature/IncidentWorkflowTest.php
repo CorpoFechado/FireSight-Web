@@ -7,6 +7,7 @@ use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Models\ReportStatusHistory;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
     $this->admin = User::factory()->bfpAdmin()->create();
@@ -443,4 +444,34 @@ test('staff and admin can update incident assessment details after resolution', 
     expect(ReportStatusHistory::where('report_id', $report->report_id)
         ->where('notes', 'Incident assessment details updated by BFP personnel.')
         ->count())->toBe(1);
+});
+
+test('incident dispatches are empty until real waves exist and then ordered with reinforcement details', function () {
+    $report = CommunityReport::create([
+        'user_id' => $this->resident->getKey(), 'reporter_name' => 'Reporter',
+        'contact_number' => '09123456789', 'latitude' => 13.95, 'longitude' => 120.65,
+        'status' => CommunityReport::STATUS_DISPATCHED,
+    ]);
+    $this->actingAs($this->admin)->get(route('incidents.show', $report))
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('dispatches', 0));
+
+    BfpPersonnelDetails::create([
+        'user_id' => $this->staff->getKey(), 'rank' => 'Fire Officer 1',
+        'station_assigned' => 'BFP Lian Fire Station', 'employee_number' => 'DISPATCH-1',
+    ]);
+    $later = $report->dispatches()->create(['dispatched_by' => $this->admin->getKey(), 'dispatched_at' => '2026-10-12 11:00:00']);
+    $earlier = $report->dispatches()->create(['dispatched_by' => $this->admin->getKey(), 'dispatched_at' => '2026-10-12 10:00:00']);
+    $earlier->trucks()->create(['truck_name' => 'Engine 1']);
+    $earlier->crew()->attach($this->staff);
+    $later->trucks()->create(['truck_name' => 'Tanker 2']);
+
+    $this->get(route('incidents.show', $report))->assertInertia(fn (AssertableInertia $page) => $page
+        ->has('dispatches', 2)->where('dispatches.0.dispatch_id', $earlier->getKey())
+        ->where('dispatches.0.dispatched_at', '2026-10-12 10:00')
+        ->where('dispatches.0.dispatched_by', $this->admin->name)
+        ->where('dispatches.0.is_reinforcement', false)->where('dispatches.0.trucks', ['Engine 1'])
+        ->where('dispatches.0.personnel.0.name', $this->staff->name)
+        ->where('dispatches.0.personnel.0.rank', 'Fire Officer 1')
+        ->where('dispatches.1.dispatch_id', $later->getKey())->where('dispatches.1.is_reinforcement', true)
+    );
 });

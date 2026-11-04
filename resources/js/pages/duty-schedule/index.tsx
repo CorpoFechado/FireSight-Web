@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     ArrowRightLeft,
@@ -48,6 +48,7 @@ import type {
 } from '@/lib/duty-schedule';
 import { dutySchedule } from '@/routes';
 import { updateGroup } from '@/routes/dutySchedule';
+import { show as showIncident } from '@/routes/incidents';
 
 const PERMANENT_MOVE_OPTIONS: { value: string | null; label: string }[] = [
     { value: 'A', label: 'Duty A' },
@@ -240,6 +241,51 @@ export default function DutySchedulePage({
                                     </Tooltip>
                                 </TooltipProvider>
                             )}
+                            {week.isCurrent &&
+                                member.is_dispatched &&
+                                member.active_dispatch && (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Link
+                                                    href={
+                                                        showIncident(
+                                                            member
+                                                                .active_dispatch
+                                                                .report_id,
+                                                        ).url
+                                                    }
+                                                    className="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-800"
+                                                >
+                                                    <span className="size-1.5 animate-pulse rounded-full bg-red-500" />{' '}
+                                                    Dispatched
+                                                </Link>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="max-w-xs bg-brand-navy p-2.5 text-xs text-white">
+                                                <p className="font-semibold">
+                                                    {
+                                                        member.active_dispatch
+                                                            .reference
+                                                    }
+                                                </p>
+                                                <p>
+                                                    {member.active_dispatch.trucks.join(
+                                                        ', ',
+                                                    ) || 'No trucks listed'}
+                                                </p>
+                                                <p>
+                                                    {
+                                                        member.active_dispatch
+                                                            .dispatched_at
+                                                    }
+                                                </p>
+                                                <p className="mt-1 text-neutral-300">
+                                                    Select to view incident
+                                                </p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
                         </div>
                         <div className="truncate text-xs font-medium text-brand-muted">
                             {member.rank ?? 'Firefighter'}

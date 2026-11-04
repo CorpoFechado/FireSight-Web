@@ -17,6 +17,13 @@ export type Member = {
     is_overridden: boolean;
     override_id: number | null;
     is_on_duty: boolean;
+    is_dispatched: boolean;
+    active_dispatch: {
+        report_id: number;
+        reference: string;
+        dispatched_at: string;
+        trucks: string[];
+    } | null;
 };
 
 export type Override = {

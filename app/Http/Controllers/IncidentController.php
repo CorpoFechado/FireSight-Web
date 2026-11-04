@@ -80,6 +80,9 @@ class IncidentController extends Controller
             'linkedFromReports.incidentRecord.barangay',
             'linkedFromReports.barangay',
             'statusHistory.changedBy.personnelDetails',
+            'dispatches.trucks',
+            'dispatches.crew.personnelDetails',
+            'dispatches.dispatcher',
         ]);
 
         $barangay = $report->barangay ?? $report->incidentRecord?->barangay;
@@ -93,7 +96,7 @@ class IncidentController extends Controller
             ->unique('report_id')
             ->map(fn (CommunityReport $r) => [
                 'report_id' => $r->report_id,
-                'reference' => $this->reference($r),
+                'reference' => self::reference($r),
                 'status' => $r->status,
             ])
             ->values();
@@ -161,6 +164,18 @@ class IncidentController extends Controller
                     'phone_number' => $c->phone_number,
                 ])->values()->all(),
             ],
+            'dispatches' => $report->dispatches->sortBy([['dispatched_at', 'asc'], ['dispatch_id', 'asc']])->values()->map(fn ($dispatch, int $index) => [
+                'dispatch_id' => $dispatch->dispatch_id,
+                'dispatched_at' => $dispatch->dispatched_at->format('Y-m-d H:i'),
+                'dispatched_by' => $dispatch->dispatcher?->name,
+                'is_reinforcement' => $index > 0,
+                'trucks' => $dispatch->trucks->pluck('truck_name')->values(),
+                'personnel' => $dispatch->crew->map(fn ($user) => [
+                    'user_id' => $user->getKey(),
+                    'name' => $user->name,
+                    'rank' => $user->personnelDetails?->rank,
+                ])->values(),
+            ])->all(),
             'statusHistory' => $statusHistory,
             'linkedReports' => $linked,
             'barangays' => Barangay::orderBy('barangay_name')->get(['barangay_id', 'barangay_name']),
@@ -213,7 +228,7 @@ class IncidentController extends Controller
     {
         return [
             'report_id' => $report->report_id,
-            'reference' => $this->reference($report),
+            'reference' => self::reference($report),
             'reporter_name' => $report->reporter_name,
             'contact_number' => $report->contact_number,
             'barangay' => $report->barangay?->barangay_name ?? $report->incidentRecord?->barangay?->barangay_name,
@@ -229,7 +244,7 @@ class IncidentController extends Controller
         ];
     }
 
-    private function reference(CommunityReport $report): string
+    public static function reference(CommunityReport $report): string
     {
         return sprintf('INC-%s-%04d', $report->created_at->format('Y'), $report->report_id);
     }

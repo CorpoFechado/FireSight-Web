@@ -80,6 +80,34 @@ type ReportDetail = {
     }>;
 };
 
+type Dispatch = {
+    dispatch_id: number;
+    dispatched_at: string;
+    dispatched_by: string | null;
+    is_reinforcement: boolean;
+    trucks: string[];
+    personnel: { user_id: number; name: string; rank: string | null }[];
+};
+
+const SAMPLE_DISPATCHES: Dispatch[] = [
+    {
+        dispatch_id: 0,
+        dispatched_at: 'Sample time',
+        dispatched_by: 'Maria Santos',
+        is_reinforcement: false,
+        trucks: ['Engine 1', 'Tanker 2'],
+        personnel: [
+            {
+                user_id: 1,
+                name: 'Juan Dela Cruz',
+                rank: 'Senior Fire Officer 1',
+            },
+            { user_id: 2, name: 'Ana Reyes', rank: 'Fire Officer 3' },
+            { user_id: 3, name: 'Jose Ramos', rank: 'Fire Officer 1' },
+        ],
+    },
+];
+
 type LinkedReport = {
     report_id: number;
     reference: string;
@@ -203,20 +231,33 @@ function ReportPhoto({
 type Barangay = { barangay_id: number; barangay_name: string };
 
 function formatTimeOnly(dt?: string | null): string {
-    if (!dt) return 'Unspecified';
+    if (!dt) {
+return 'Unspecified';
+}
+
     const d = new Date(dt.replace(' ', 'T'));
-    if (isNaN(d.getTime())) return dt;
-    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+    if (isNaN(d.getTime())) {
+return dt;
+}
+
+    return d.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    });
 }
 
 export default function IncidentShow({
     report,
     linkedReports,
+    dispatches,
     statusHistory = [],
     navigationSource,
 }: {
     report: ReportDetail;
     linkedReports: LinkedReport[];
+    dispatches: Dispatch[];
     barangays: Barangay[];
     suggestedBarangayId: number | null;
     statusHistory?: StatusHistoryEntry[];
@@ -256,8 +297,12 @@ export default function IncidentShow({
         report.raw_alarm_level ||
         report.cause_of_fire ||
         report.notes ||
-        (report.injuries !== null && report.injuries !== undefined && report.injuries > 0) ||
-        (report.fatalities !== null && report.fatalities !== undefined && report.fatalities > 0) ||
+        (report.injuries !== null &&
+            report.injuries !== undefined &&
+            report.injuries > 0) ||
+        (report.fatalities !== null &&
+            report.fatalities !== undefined &&
+            report.fatalities > 0) ||
         report.establishment_name ||
         report.owner_name,
     );
@@ -439,6 +484,123 @@ export default function IncidentShow({
                                         'No description provided.'}
                                 </p>
                             </div>
+
+                            {(report.status === 'dispatched' ||
+                                report.status === 'resolved') && (
+                                <div>
+                                    <div className="mb-3 flex items-center justify-between gap-2">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Deployed Units
+                                        </p>
+                                        {dispatches.length === 0 && (
+                                            <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+                                                Sample data
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="space-y-3 rounded-xl border border-[rgba(43,45,66,0.08)] bg-brand-bg/70 p-4">
+                                        {(dispatches.length > 0
+                                            ? dispatches
+                                            : SAMPLE_DISPATCHES
+                                        ).map((dispatch) => (
+                                            <div
+                                                key={dispatch.dispatch_id}
+                                                className="space-y-3 rounded-lg border border-neutral-200 bg-white p-3"
+                                            >
+                                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2 text-sm font-semibold text-brand-navy">
+                                                        {dispatch.is_reinforcement
+                                                            ? 'Additional dispatch'
+                                                            : 'Initial dispatch'}
+                                                        {dispatch.is_reinforcement && (
+                                                            <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] text-orange-800">
+                                                                Reinforcement
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className="font-mono text-xs text-brand-muted">
+                                                        {dispatch.dispatched_at}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-brand-muted">
+                                                    Dispatched by{' '}
+                                                    {dispatch.dispatched_by ??
+                                                        'Unknown'}
+                                                </p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {dispatch.trucks.length ? (
+                                                        dispatch.trucks.map(
+                                                            (truck, index) => (
+                                                                <span
+                                                                    key={`${truck}-${index}`}
+                                                                    className="rounded-full bg-brand-navy/10 px-2 py-1 text-xs font-medium text-brand-navy"
+                                                                >
+                                                                    {truck}
+                                                                </span>
+                                                            ),
+                                                        )
+                                                    ) : (
+                                                        <span className="text-xs text-brand-muted">
+                                                            No trucks listed
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {dispatch.personnel
+                                                        .length ? (
+                                                        dispatch.personnel.map(
+                                                            (person) => (
+                                                                <div
+                                                                    key={
+                                                                        person.user_id
+                                                                    }
+                                                                    className="flex items-center gap-2"
+                                                                >
+                                                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-navy/10 text-xs font-bold text-brand-navy">
+                                                                        {person.name
+                                                                            .split(
+                                                                                /\s+/,
+                                                                            )
+                                                                            .map(
+                                                                                (
+                                                                                    part,
+                                                                                ) =>
+                                                                                    part[0],
+                                                                            )
+                                                                            .slice(
+                                                                                0,
+                                                                                2,
+                                                                            )
+                                                                            .join(
+                                                                                '',
+                                                                            )
+                                                                            .toUpperCase()}
+                                                                    </span>
+                                                                    <div>
+                                                                        <p className="text-xs font-semibold text-brand-navy">
+                                                                            {
+                                                                                person.name
+                                                                            }
+                                                                        </p>
+                                                                        <p className="text-xs text-brand-muted">
+                                                                            {person.rank ??
+                                                                                'Firefighter'}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            ),
+                                                        )
+                                                    ) : (
+                                                        <p className="text-xs text-brand-muted">
+                                                            No crew listed
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Status Change History */}
                             <div>
@@ -699,7 +861,8 @@ export default function IncidentShow({
                                             Establishment
                                         </p>
                                         <p className="mt-1 font-semibold text-brand-navy">
-                                            {report.establishment_name || 'None'}
+                                            {report.establishment_name ||
+                                                'None'}
                                         </p>
                                     </div>
 
@@ -708,7 +871,12 @@ export default function IncidentShow({
                                             Owner / Occupant
                                         </p>
                                         <p className="mt-1 font-semibold text-brand-navy">
-                                            {[report.owner_name, report.occupant_name].filter(Boolean).join(' · ') || 'Unspecified'}
+                                            {[
+                                                report.owner_name,
+                                                report.occupant_name,
+                                            ]
+                                                .filter(Boolean)
+                                                .join(' · ') || 'Unspecified'}
                                         </p>
                                     </div>
 
@@ -717,7 +885,10 @@ export default function IncidentShow({
                                             Time Fire Started
                                         </p>
                                         <p className="mt-1 font-mono text-sm font-bold text-brand-navy">
-                                            {formatTimeOnly(report.time_fire_started ?? report.dateTime)}
+                                            {formatTimeOnly(
+                                                report.time_fire_started ??
+                                                    report.dateTime,
+                                            )}
                                         </p>
                                     </div>
 
@@ -726,7 +897,9 @@ export default function IncidentShow({
                                             Time Fire Out
                                         </p>
                                         <p className="mt-1 font-mono text-sm font-bold text-brand-navy">
-                                            {formatTimeOnly(report.time_fire_out)}
+                                            {formatTimeOnly(
+                                                report.time_fire_out,
+                                            )}
                                         </p>
                                     </div>
 
@@ -735,7 +908,8 @@ export default function IncidentShow({
                                             Cause of Fire
                                         </p>
                                         <p className="mt-1 text-base font-bold text-brand-navy">
-                                            {report.cause_of_fire || 'Not yet determined'}
+                                            {report.cause_of_fire ||
+                                                'Not yet determined'}
                                         </p>
                                     </div>
 
@@ -752,7 +926,9 @@ export default function IncidentShow({
                                         <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
                                             Fatalities
                                         </p>
-                                        <p className={`mt-1 font-mono text-2xl font-bold ${(report.fatalities ?? 0) > 0 ? 'text-brand-red' : 'text-brand-navy'}`}>
+                                        <p
+                                            className={`mt-1 font-mono text-2xl font-bold ${(report.fatalities ?? 0) > 0 ? 'text-brand-red' : 'text-brand-navy'}`}
+                                        >
                                             {report.fatalities ?? 0}
                                         </p>
                                     </div>
