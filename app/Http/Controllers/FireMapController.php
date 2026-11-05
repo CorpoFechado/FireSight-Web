@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AlarmLevel;
+use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Support\BarangayRiskSnapshot;
 use App\Support\DateRange;
@@ -60,11 +61,23 @@ class FireMapController extends Controller
             $alarmLevel = 'all';
         }
 
+        $barangayId = $request->integer('barangay_id') ?: null;
+        if ($barangayId !== null && ! Barangay::where('barangay_id', $barangayId)->exists()) {
+            $barangayId = null;
+        }
+
         // ── Query ───────────────────────────────────────────────────────────
         $incidents = CommunityReport::query()
             ->where('status', self::DISPLAY_STATUS)
             // Date range on community_report.created_at (submission date).
             ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+            ->when(
+                $barangayId !== null,
+                fn ($q) => $q->where(function ($q) use ($barangayId) {
+                    $q->where('barangay_id', $barangayId)
+                        ->orWhereHas('incidentRecord', fn ($q) => $q->where('barangay_id', $barangayId));
+                })
+            )
             ->when(
                 $incidentType !== 'all',
                 fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('incident_type', $incidentType))
@@ -73,7 +86,7 @@ class FireMapController extends Controller
                 $alarmLevel !== 'all',
                 fn ($q) => $q->whereHas('incidentRecord', fn ($q) => $q->where('alarm_level', $alarmLevel))
             )
-            ->with('incidentRecord.barangay')
+            ->with(['incidentRecord.barangay', 'barangay'])
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (CommunityReport $report) => [
@@ -82,7 +95,7 @@ class FireMapController extends Controller
                 'type' => $report->incidentRecord?->incident_type,
                 'typeLabel' => AnalyticsController::TYPE_LABELS[$report->incidentRecord?->incident_type ?? ''] ?? null,
                 'alarm_level' => $report->incidentRecord?->alarm_level?->value ?? $report->incidentRecord?->alarm_level,
-                'barangay' => $report->incidentRecord?->barangay?->barangay_name,
+                'barangay' => $report->incidentRecord?->barangay?->barangay_name ?? $report->barangay?->barangay_name,
                 'latitude' => (float) $report->latitude,
                 'longitude' => (float) $report->longitude,
                 'dateTime' => $report->created_at->format('Y-m-d H:i'),
@@ -98,7 +111,9 @@ class FireMapController extends Controller
                 'date_to' => $dateTo,
                 'incident_type' => $incidentType,
                 'alarm_level' => $alarmLevel,
+                'barangay_id' => $barangayId ? (string) $barangayId : '',
             ],
+            'barangays' => Barangay::orderBy('barangay_name')->get(['barangay_id', 'barangay_name']),
         ]);
     }
 }

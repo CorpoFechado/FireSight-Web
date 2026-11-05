@@ -17,6 +17,7 @@ import {
     Marker,
     Popup,
     TileLayer,
+    useMap,
     useMapEvents,
 } from 'react-leaflet';
 import { PortalCard } from '@/components/portal/portal-card';
@@ -77,12 +78,18 @@ type BarangayRiskPoint = {
 
 type Period = 'this_month' | 'last_3_months' | 'this_year' | 'custom';
 
+type BarangayOption = {
+    barangay_id: number;
+    barangay_name: string;
+};
+
 type Filters = {
     period: Period;
     date_from: string;
     date_to: string;
     incident_type: string;
     alarm_level: string;
+    barangay_id: string;
 };
 
 type ColorBy = 'alarm_level' | 'type';
@@ -149,7 +156,45 @@ function RememberMapView({ onChange }: { onChange: (view: MapView) => void }) {
     return null;
 }
 
+function BarangayFocusView({
+    selectedFeature,
+    barangayId,
+}: {
+    selectedFeature: BarangayFeature | null;
+    barangayId: string;
+}) {
+    const map = useMap();
+    const lastFittedIdRef = useRef<string>('');
+
+    useEffect(() => {
+        if (barangayId) {
+            if (selectedFeature && lastFittedIdRef.current !== barangayId) {
+                const bounds = L.geoJSON(selectedFeature).getBounds();
+
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+                    lastFittedIdRef.current = barangayId;
+                }
+            }
+        } else {
+            // When the filter is cleared, return to the default Lian view.
+            if (lastFittedIdRef.current !== '') {
+                map.setView(LIAN_CENTER, LIAN_DEFAULT_ZOOM);
+                lastFittedIdRef.current = '';
+            }
+        }
+    }, [map, barangayId, selectedFeature]);
+
+    return null;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatBarangayLabel(name: string): string {
+    return name.startsWith('Barangay') || name.startsWith('Brgy')
+        ? name
+        : `Brgy. ${name}`;
+}
 
 function markerColor(inc: MapIncident, colorBy: ColorBy): string {
     if (colorBy === 'alarm_level') {
@@ -175,6 +220,7 @@ function buildResultSummary(
     incidents: MapIncident[],
     filters: Filters,
     periodLabel: string,
+    barangayName?: string | null,
 ): string {
     const count = incidents.length;
     const typeLabel =
@@ -192,7 +238,11 @@ function buildResultSummary(
         ? `${qualifier} incident${count !== 1 ? 's' : ''}`
         : `incident${count !== 1 ? 's' : ''}`;
 
-    return `${count} ${noun} · ${periodLabel}`;
+    const location = barangayName
+        ? ` in ${formatBarangayLabel(barangayName)}`
+        : '';
+
+    return `${count} ${noun}${location} · ${periodLabel}`;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -202,11 +252,13 @@ export default function FireIncidentsMap({
     barangayRisk,
     periodLabel,
     filters,
+    barangays = [],
 }: {
     incidents: MapIncident[];
     barangayRisk: BarangayRiskPoint[];
     periodLabel: string;
     filters: Filters;
+    barangays: BarangayOption[];
 }) {
     const [sidebarOpen, setSidebarOpen] = useRemember(
         true,
@@ -247,6 +299,35 @@ export default function FireIncidentsMap({
     )
         ? selectedId
         : null;
+
+    const selectedBarangay = useMemo(() => {
+        if (!filters.barangay_id) {
+            return null;
+        }
+
+        return (
+            barangays.find(
+                (b) => String(b.barangay_id) === String(filters.barangay_id),
+            ) ?? null
+        );
+    }, [barangays, filters.barangay_id]);
+
+    const selectedFeature = useMemo(() => {
+        if (!selectedBarangay || !barangayGeo) {
+            return null;
+        }
+
+        return (
+            barangayGeo.features.find((f) => {
+                const raw = getFeatureBarangayName(f.properties);
+
+                return (
+                    resolveDbBarangayName(raw) ===
+                    selectedBarangay.barangay_name
+                );
+            }) ?? null
+        );
+    }, [selectedBarangay, barangayGeo]);
 
     useEffect(() => {
         if (activeSelectedId !== null) {
@@ -338,6 +419,10 @@ export default function FireIncidentsMap({
             params.date_to = raw.date_to;
         }
 
+        if (raw.barangay_id) {
+            params.barangay_id = raw.barangay_id;
+        }
+
         if (raw.incident_type && raw.incident_type !== 'all') {
             params.incident_type = raw.incident_type;
         }
@@ -368,7 +453,12 @@ export default function FireIncidentsMap({
         });
     };
 
-    const resultSummary = buildResultSummary(incidents, filters, periodLabel);
+    const resultSummary = buildResultSummary(
+        incidents,
+        filters,
+        periodLabel,
+        selectedBarangay?.barangay_name,
+    );
 
     return (
         <PortalLayout
@@ -460,6 +550,33 @@ export default function FireIncidentsMap({
                             className="h-5 w-px"
                             style={{ background: 'rgba(43,45,66,0.12)' }}
                         />
+
+                        {/* Barangay dropdown */}
+                        <div className="relative flex items-center">
+                            <select
+                                id="map-barangay-filter"
+                                value={filters.barangay_id}
+                                onChange={(e) =>
+                                    navigate({ barangay_id: e.target.value })
+                                }
+                                className={selectClass}
+                                style={inputStyle}
+                            >
+                                <option value="">All barangays</option>
+                                {barangays.map((b) => (
+                                    <option
+                                        key={b.barangay_id}
+                                        value={String(b.barangay_id)}
+                                    >
+                                        {b.barangay_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown
+                                size={11}
+                                className="pointer-events-none absolute right-1.5 text-brand-muted"
+                            />
+                        </div>
 
                         {/* Type dropdown */}
                         <div className="relative flex items-center">
@@ -572,7 +689,9 @@ export default function FireIncidentsMap({
                                 {incidents.length === 0 && (
                                     <div className="flex flex-col items-center gap-2 p-6 text-center">
                                         <p className="text-xs font-semibold text-brand-muted">
-                                            No incidents found
+                                            {selectedBarangay
+                                                ? `No incidents found in ${formatBarangayLabel(selectedBarangay.barangay_name)}`
+                                                : 'No incidents found'}
                                         </p>
                                         <p className="text-xs text-brand-muted">
                                             Try adjusting the period or filters
@@ -696,58 +815,121 @@ export default function FireIncidentsMap({
                                 style={{ height: '100%', width: '100%' }}
                             >
                                 <RememberMapView onChange={setMapView} />
+                                <BarangayFocusView
+                                    selectedFeature={selectedFeature}
+                                    barangayId={filters.barangay_id}
+                                />
                                 <TileLayer
                                     url={OSM_TILE_URL}
                                     attribution={OSM_ATTRIBUTION}
                                 />
 
-                                {layers.risk && barangayGeo && (
-                                    <GeoJSON
-                                        key="barangay-risk-layer"
-                                        data={barangayGeo}
-                                        style={(feature) => {
-                                            const rawName = feature
-                                                ? getFeatureBarangayName(
-                                                      feature.properties,
-                                                  )
-                                                : '';
-                                            const dbName =
-                                                resolveDbBarangayName(rawName);
-                                            const risk = dbName
-                                                ? riskByBarangayName.get(dbName)
-                                                : undefined;
+                                {(layers.risk || Boolean(selectedBarangay)) &&
+                                    barangayGeo && (
+                                        <GeoJSON
+                                            key={`barangay-layer-${filters.barangay_id || 'all'}-${layers.risk}`}
+                                            data={barangayGeo}
+                                            style={(feature) => {
+                                                const rawName = feature
+                                                    ? getFeatureBarangayName(
+                                                          feature.properties,
+                                                      )
+                                                    : '';
+                                                const dbName =
+                                                    resolveDbBarangayName(
+                                                        rawName,
+                                                    );
+                                                const risk = dbName
+                                                    ? riskByBarangayName.get(
+                                                          dbName,
+                                                      )
+                                                    : undefined;
+                                                const isSelected =
+                                                    selectedBarangay &&
+                                                    dbName ===
+                                                        selectedBarangay.barangay_name;
 
-                                            return riskMapPolygonStyle(
-                                                risk?.risk_level,
-                                            );
-                                        }}
-                                        onEachFeature={(
-                                            feature: BarangayFeature,
-                                            layer,
-                                        ) => {
-                                            const rawName =
-                                                getFeatureBarangayName(
-                                                    feature.properties,
+                                                if (selectedBarangay) {
+                                                    if (isSelected) {
+                                                        return {
+                                                            color: '#1D3557',
+                                                            weight: 3.5,
+                                                            opacity: 1,
+                                                            fillColor:
+                                                                layers.risk &&
+                                                                risk?.risk_level
+                                                                    ? riskMapPolygonStyle(
+                                                                          risk.risk_level,
+                                                                      )
+                                                                          .fillColor
+                                                                    : '#1D3557',
+                                                            fillOpacity:
+                                                                layers.risk
+                                                                    ? 0.35
+                                                                    : 0.15,
+                                                        };
+                                                    }
+
+                                                    if (layers.risk) {
+                                                        const baseStyle =
+                                                            riskMapPolygonStyle(
+                                                                risk?.risk_level,
+                                                            );
+
+                                                        return {
+                                                            ...baseStyle,
+                                                            weight: 1,
+                                                            opacity: 0.25,
+                                                            fillOpacity: 0.05,
+                                                        };
+                                                    }
+
+                                                    return {
+                                                        color: '#6B7A8D',
+                                                        weight: 1,
+                                                        opacity: 0.2,
+                                                        fillColor: '#6B7A8D',
+                                                        fillOpacity: 0.02,
+                                                    };
+                                                }
+
+                                                return riskMapPolygonStyle(
+                                                    risk?.risk_level,
                                                 );
-                                            const dbName =
-                                                resolveDbBarangayName(rawName);
-                                            const risk =
-                                                riskByBarangayName.get(dbName);
-                                            const label = risk?.risk_level
-                                                ? RISK_CFG[risk.risk_level]
-                                                      .label
-                                                : 'No risk data';
-                                            const displayName =
-                                                dbName ||
-                                                rawName ||
-                                                'Unknown Barangay';
-                                            layer.bindPopup(
-                                                `<p class="text-sm font-semibold">${displayName}</p>` +
-                                                    `<p class="text-xs text-gray-500">${label} risk</p>`,
-                                            );
-                                        }}
-                                    />
-                                )}
+                                            }}
+                                            onEachFeature={(
+                                                feature: BarangayFeature,
+                                                layer,
+                                            ) => {
+                                                const rawName =
+                                                    getFeatureBarangayName(
+                                                        feature.properties,
+                                                    );
+                                                const dbName =
+                                                    resolveDbBarangayName(
+                                                        rawName,
+                                                    );
+                                                const risk =
+                                                    riskByBarangayName.get(
+                                                        dbName,
+                                                    );
+                                                const label = risk?.risk_level
+                                                    ? RISK_CFG[risk.risk_level]
+                                                          .label
+                                                    : 'No risk data';
+                                                const displayName =
+                                                    dbName ||
+                                                    rawName ||
+                                                    'Unknown Barangay';
+                                                const riskInfo = layers.risk
+                                                    ? `<p class="text-xs text-gray-500">${label} risk</p>`
+                                                    : '';
+                                                layer.bindPopup(
+                                                    `<p class="text-sm font-semibold">${displayName}</p>${riskInfo}`,
+                                                );
+                                            }}
+                                        />
+                                    )}
 
                                 {layers.station && (
                                     <Marker
@@ -954,7 +1136,9 @@ export default function FireIncidentsMap({
                                 <div className="pointer-events-none absolute inset-0 z-[999] flex items-center justify-center">
                                     <div className="rounded-xl bg-white/90 px-6 py-4 text-center shadow-lg">
                                         <p className="text-sm font-semibold text-brand-navy">
-                                            No resolved incidents found
+                                            {selectedBarangay
+                                                ? `No resolved incidents found in ${formatBarangayLabel(selectedBarangay.barangay_name)}`
+                                                : 'No resolved incidents found'}
                                         </p>
                                         <p className="mt-1 text-xs text-brand-muted">
                                             Try a different period, type, or
