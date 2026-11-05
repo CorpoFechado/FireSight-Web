@@ -193,20 +193,20 @@ export function groupLabel(group: string | null | undefined): string {
 
 /**
  * Color palette for Duty A and Duty B platoons:
- * Duty A: Navy / Indigo accent
+ * Duty A: Navy accent
  * Duty B: Amber / Terracotta accent
  */
 export const DUTY_COLORS = {
     A: {
-        badgeBg: 'bg-indigo-50 border-indigo-200 text-indigo-800',
-        activeBadgeBg: 'bg-indigo-600 text-white',
-        dot: 'bg-indigo-500',
-        border: 'border-indigo-400',
-        ring: 'ring-indigo-500',
-        chipActive: 'bg-indigo-600 text-white font-semibold shadow-sm',
+        badgeBg: 'bg-brand-navy/5 border-brand-navy/20 text-brand-navy',
+        activeBadgeBg: 'bg-brand-navy text-white',
+        dot: 'bg-brand-navy',
+        border: 'border-brand-navy/40',
+        ring: 'ring-brand-navy',
+        chipActive: 'bg-brand-navy text-white font-semibold shadow-sm',
         chipInactive:
-            'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200',
-        subtle: 'text-indigo-600',
+            'bg-brand-navy/5 text-brand-navy hover:bg-brand-navy/10 border border-brand-navy/20',
+        subtle: 'text-brand-navy',
     },
     B: {
         badgeBg: 'bg-amber-50 border-amber-200 text-amber-800',

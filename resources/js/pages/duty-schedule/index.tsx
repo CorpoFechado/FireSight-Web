@@ -491,10 +491,10 @@ export default function DutySchedulePage({
                                     className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-all ${
                                         isSelected
                                             ? isA
-                                                ? 'bg-indigo-600 font-semibold text-white shadow-sm ring-2 ring-indigo-500 ring-offset-1'
+                                                ? 'bg-brand-navy font-semibold text-white shadow-sm ring-2 ring-brand-navy ring-offset-1'
                                                 : 'bg-amber-600 font-semibold text-white shadow-sm ring-2 ring-amber-500 ring-offset-1'
                                             : isA
-                                              ? 'border border-indigo-200/80 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                                              ? 'border border-brand-navy/20 bg-brand-navy/5 text-brand-navy hover:bg-brand-navy/10'
                                               : 'border border-amber-200/80 bg-amber-50 text-amber-800 hover:bg-amber-100'
                                     }`}
                                 >
@@ -525,14 +525,14 @@ export default function DutySchedulePage({
                     /* Roster Board: 3 Columns like the Station's Wall Board */
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                         {/* COLUMN 1: Duty A */}
-                        <div className="flex flex-col rounded-2xl border border-indigo-200/90 bg-indigo-50/20 p-4 shadow-2xs">
-                            <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
+                        <div className="flex flex-col rounded-2xl border border-brand-navy/20 bg-brand-navy/5 p-4 shadow-2xs">
+                            <div className="flex items-center justify-between border-b border-brand-navy/10 pb-3">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-3 w-3 rounded-full bg-indigo-600" />
-                                    <h2 className="text-base font-bold text-indigo-950">
+                                    <div className="h-3 w-3 rounded-full bg-brand-navy" />
+                                    <h2 className="text-base font-bold text-brand-navy">
                                         Duty A
                                     </h2>
-                                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                                    <span className="rounded-full bg-brand-navy/10 px-2 py-0.5 text-xs font-semibold text-brand-navy">
                                         {roster.A.length}
                                     </span>
                                 </div>
@@ -553,7 +553,7 @@ export default function DutySchedulePage({
 
                             <div className="mt-3.5 flex-1 space-y-2.5">
                                 {roster.A.length === 0 ? (
-                                    <div className="rounded-xl border border-dashed border-indigo-200 bg-white/50 p-6 text-center text-xs text-brand-muted">
+                                    <div className="rounded-xl border border-dashed border-brand-navy/20 bg-white/50 p-6 text-center text-xs text-brand-muted">
                                         No personnel assigned to Duty A.
                                     </div>
                                 ) : (

@@ -252,7 +252,7 @@ export default function PersonnelIndex({
                                                 <span
                                                     className={`mt-1 inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${
                                                         p.duty_group === 'A'
-                                                            ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                                                            ? 'border-brand-navy/20 bg-brand-navy/5 text-brand-navy'
                                                             : p.duty_group ===
                                                                 'B'
                                                               ? 'border-amber-200 bg-amber-50 text-amber-800'

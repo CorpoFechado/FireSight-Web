@@ -2,6 +2,7 @@
 
 use App\Models\BfpPersonnelDetails;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 test('bfp personnel cannot access the personnel accounts page', function () {
     $user = User::factory()->bfpPersonnel()->create();
@@ -17,6 +18,7 @@ test('bfp admin can view the personnel accounts page', function () {
 
     $response = $this->get(route('personnel'));
     $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page->component('personnel/index'));
 });
 
 test('bfp admin can create a new personnel account', function () {
