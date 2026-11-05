@@ -117,11 +117,14 @@ class IncidentActionController extends Controller
         );
 
         DB::transaction(function () use ($report) {
-            IncidentRecord::create([
-                'report_id' => $report->report_id,
-                'barangay_id' => $report->barangay_id,
-                'incident_datetime' => now(),
-            ]);
+            $now = now();
+
+            $record = IncidentRecord::firstOrNew(['report_id' => $report->report_id]);
+            $record->fill([
+                'barangay_id' => $record->barangay_id ?? $report->barangay_id,
+                'incident_datetime' => $record->incident_datetime ?? $now,
+                'time_fire_out' => $record->time_fire_out ?? $now,
+            ])->save();
 
             $report->update(['status' => CommunityReport::STATUS_RESOLVED]);
 
@@ -147,7 +150,7 @@ class IncidentActionController extends Controller
         $this->assertStatus($report, [CommunityReport::STATUS_RESOLVED], 'update details for');
 
         $data = $request->validate([
-            'incident_type' => ['required', Rule::in([
+            'incident_type' => ['nullable', Rule::in([
                 'residential_fire',
                 'commercial_fire',
                 'vehicular_fire',
@@ -155,7 +158,7 @@ class IncidentActionController extends Controller
                 'rubbish_fire',
                 'others',
             ])],
-            'alarm_level' => ['required', Rule::enum(AlarmLevel::class)],
+            'alarm_level' => ['nullable', Rule::enum(AlarmLevel::class)],
             'cause_of_fire' => ['nullable', 'string', 'max:150'],
             'injuries' => ['nullable', 'integer', 'min:0'],
             'fatalities' => ['nullable', 'integer', 'min:0'],

@@ -1,4 +1,5 @@
 import { useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
@@ -119,6 +120,19 @@ export function EditDetailsModal({
                 : '0',
         notes: initialValues.notes ?? '',
     });
+
+    const isChanged =
+        data.establishment_name !== (initialValues.establishment_name ?? '') ||
+        data.owner_name !== (initialValues.owner_name ?? '') ||
+        data.occupant_name !== (initialValues.occupant_name ?? '') ||
+        data.time_fire_started !== (initialValues.time_fire_started ?? '') ||
+        data.time_fire_out !== (initialValues.time_fire_out ?? '') ||
+        data.incident_type !== (initialValues.incident_type ?? '') ||
+        data.alarm_level !== (initialValues.alarm_level ?? '') ||
+        data.cause_of_fire !== (initialValues.cause_of_fire ?? '') ||
+        data.injuries !== ((initialValues.injuries ?? 0).toString()) ||
+        data.fatalities !== ((initialValues.fatalities ?? 0).toString()) ||
+        data.notes !== (initialValues.notes ?? '');
 
     useEffect(() => {
         if (open) {
@@ -295,26 +309,43 @@ export function EditDetailsModal({
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <Label>Incident Type</Label>
-                            <Select
-                                value={data.incident_type}
-                                onValueChange={(v) =>
-                                    setData('incident_type', v)
-                                }
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white text-brand-navy">
-                                    {INCIDENT_TYPES.map((t) => (
-                                        <SelectItem
-                                            key={t.value}
-                                            value={t.value}
-                                        >
-                                            {t.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="relative">
+                                <Select
+                                    value={data.incident_type}
+                                    onValueChange={(v) =>
+                                        setData('incident_type', v)
+                                    }
+                                >
+                                    <SelectTrigger className={`w-full ${data.incident_type ? '[&_svg]:hidden pr-8' : ''}`}>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white text-brand-navy">
+                                        {INCIDENT_TYPES.map((t) => (
+                                            <SelectItem
+                                                key={t.value}
+                                                value={t.value}
+                                            >
+                                                {t.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {data.incident_type && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setData('incident_type', '');
+                                        }}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 flex size-5 items-center justify-center rounded-full text-brand-muted hover:bg-neutral-100 hover:text-brand-navy transition-colors"
+                                        title="Clear Incident Type"
+                                        aria-label="Clear Incident Type"
+                                    >
+                                        <X className="size-3.5" />
+                                    </button>
+                                )}
+                            </div>
                             {errors.incident_type && (
                                 <p className="text-xs text-brand-red">
                                     {errors.incident_type}
@@ -324,24 +355,41 @@ export function EditDetailsModal({
 
                         <div className="space-y-1.5">
                             <Label>Alarm Level</Label>
-                            <Select
-                                value={data.alarm_level}
-                                onValueChange={(v) => setData('alarm_level', v)}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select alarm level" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white text-brand-navy">
-                                    {ALARM_LEVELS.map((a) => (
-                                        <SelectItem
-                                            key={a.value}
-                                            value={a.value}
-                                        >
-                                            {a.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="relative">
+                                <Select
+                                    value={data.alarm_level}
+                                    onValueChange={(v) => setData('alarm_level', v)}
+                                >
+                                    <SelectTrigger className={`w-full ${data.alarm_level ? '[&_svg]:hidden pr-8' : ''}`}>
+                                        <SelectValue placeholder="Select alarm level" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white text-brand-navy">
+                                        {ALARM_LEVELS.map((a) => (
+                                            <SelectItem
+                                                key={a.value}
+                                                value={a.value}
+                                            >
+                                                {a.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {data.alarm_level && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setData('alarm_level', '');
+                                        }}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 flex size-5 items-center justify-center rounded-full text-brand-muted hover:bg-neutral-100 hover:text-brand-navy transition-colors"
+                                        title="Clear Alarm Level"
+                                        aria-label="Clear Alarm Level"
+                                    >
+                                        <X className="size-3.5" />
+                                    </button>
+                                )}
+                            </div>
                             {errors.alarm_level && (
                                 <p className="text-xs text-brand-red">
                                     {errors.alarm_level}
@@ -351,7 +399,7 @@ export function EditDetailsModal({
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label>Cause of Fire (optional)</Label>
+                        <Label>Cause of Fire</Label>
                         <input
                             value={data.cause_of_fire}
                             onChange={(e) =>
@@ -409,7 +457,7 @@ export function EditDetailsModal({
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label>Investigation Notes (optional)</Label>
+                        <Label>Investigation Notes</Label>
                         <textarea
                             value={data.notes}
                             onChange={(e) => setData('notes', e.target.value)}
@@ -435,11 +483,7 @@ export function EditDetailsModal({
                         </button>
                         <button
                             type="submit"
-                            disabled={
-                                processing ||
-                                !data.incident_type ||
-                                !data.alarm_level
-                            }
+                            disabled={processing || !isChanged}
                             className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                             style={{ background: '#1D3557' }}
                         >

@@ -132,6 +132,16 @@ class IncidentController extends Controller
             ->values()
             ->all();
 
+        $resolvedAt = $report->statusHistory
+            ->where('status', CommunityReport::STATUS_RESOLVED)
+            ->sortByDesc('created_at')
+            ->first()
+            ?->created_at;
+
+        if (! $resolvedAt && $report->status === CommunityReport::STATUS_RESOLVED) {
+            $resolvedAt = $report->updated_at;
+        }
+
         return Inertia::render('incidents/show', [
             'report' => [
                 ...$this->toRow($report),
@@ -152,7 +162,7 @@ class IncidentController extends Controller
                 'owner_name' => $report->incidentRecord?->owner_name,
                 'occupant_name' => $report->incidentRecord?->occupant_name,
                 'time_fire_started' => $report->incidentRecord?->time_fire_started?->format('Y-m-d H:i') ?? $report->created_at?->format('Y-m-d H:i'),
-                'time_fire_out' => $report->incidentRecord?->time_fire_out?->format('Y-m-d H:i'),
+                'time_fire_out' => $report->incidentRecord?->time_fire_out?->format('Y-m-d H:i') ?? $resolvedAt?->format('Y-m-d H:i'),
                 'notes' => $report->incidentRecord?->notes,
                 'barangay_contact_person' => $primaryContact?->name,
                 'barangay_contact_number' => $primaryContact?->phone_number,
