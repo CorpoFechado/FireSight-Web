@@ -9,6 +9,7 @@ function Toaster({ ...props }: ToasterProps) {
             theme="light"
             className="toaster group"
             position="bottom-right"
+            closeButton
             style={
                 {
                     '--normal-bg': '#fff',

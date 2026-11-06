@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\ReportStatusHistory;
-use App\Support\Geo;
+use App\Services\GeoBoundaryService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -199,37 +199,19 @@ class IncidentController extends Controller
 
     /**
      * Pre-fill guess for the accept form — not authoritative, the admin can
-     * always pick a different barangay. Tries an exact polygon match first
-     * (point-in-polygon against `barangay.boundary_geojson`), and only falls back
-     * to nearest-centroid distance if the report's coordinates don't land
-     * inside any known boundary.
+     * always pick a different barangay. Uses polygon point-in-polygon with an 800m
+     * shoreline buffer; returns null if the report is outside Lian borders.
      */
     private function suggestBarangayId(CommunityReport $report): ?int
     {
-        return $this->barangayContainingPoint($report)?->barangay_id
-            ?? $this->nearestBarangayId($report);
-    }
+        if ($report->latitude === null || $report->longitude === null) {
+            return null;
+        }
 
-    private function barangayContainingPoint(CommunityReport $report): ?Barangay
-    {
-        $lat = (float) $report->latitude;
-        $lng = (float) $report->longitude;
-
-        return Barangay::query()
-            ->whereNotNull('boundary_geojson')
-            ->get()
-            ->first(fn (Barangay $barangay) => Geo::pointInPolygon($lat, $lng, $barangay->boundary_geojson));
-    }
-
-    private function nearestBarangayId(CommunityReport $report): ?int
-    {
-        return Barangay::query()
-            ->whereNotNull('centroid_lat')
-            ->whereNotNull('centroid_lng')
-            ->get()
-            ->sortBy(fn (Barangay $barangay) => (($barangay->centroid_lat - $report->latitude) ** 2) + (($barangay->centroid_lng - $report->longitude) ** 2))
-            ->first()
-            ?->barangay_id;
+        return app(GeoBoundaryService::class)->findBarangayByLocation(
+            (float) $report->latitude,
+            (float) $report->longitude
+        );
     }
 
     /**

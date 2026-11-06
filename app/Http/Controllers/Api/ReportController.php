@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\ReportStatusHistory;
 use App\Models\User;
@@ -46,16 +45,9 @@ class ReportController extends ApiController
         $locationName = trim((string) $request->input('location_name', ''));
         $description = trim((string) $request->input('description', ''));
 
-        // Point-in-Polygon check: exact coordinates override user's registered barangay
-        $pipBarangayId = $this->geoService->findBarangayByLocation($latitude, $longitude);
-        $barangayId = $pipBarangayId;
-
-        if ($barangayId === null && $request->filled('barangay_id')) {
-            $checkId = (int) $request->input('barangay_id');
-            if (Barangay::where('barangay_id', $checkId)->exists()) {
-                $barangayId = $checkId;
-            }
-        }
+        // Point-in-Polygon check: determines if the incident is strictly within Lian borders.
+        // If outside Lian borders, barangay_id is strictly NULL (no fallback to user's registered address).
+        $barangayId = $this->geoService->findBarangayByLocation($latitude, $longitude);
 
         // Validate photo
         if (! $request->hasFile('report_image') || ! $request->file('report_image')->isValid()) {

@@ -60,7 +60,9 @@ class PersonnelController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'full_name' => ['required', 'string', 'max:150'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'rank' => ['required', 'string', 'max:100'],
             'contact_number' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -68,20 +70,29 @@ class PersonnelController extends Controller
             'duty_group' => ['nullable', Rule::enum(DutyGroup::class)],
         ]);
 
-        [$firstName, $lastName] = $this->splitName($data['full_name']);
-        $tempPassword = Str::password(10, symbols: false);
+        $firstName = trim($data['first_name']);
+        $middleName = ! empty($data['middle_name']) ? trim($data['middle_name']) : null;
+        $lastName = trim($data['last_name']);
 
-        $user = DB::transaction(function () use ($data, $firstName, $lastName, $tempPassword) {
+        $firstInitial = strtolower(substr($firstName, 0, 1));
+        $cleanLast = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $lastName));
+        if ($cleanLast === '') {
+            $cleanLast = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $firstName));
+        }
+        $tempPassword = "{$firstInitial}{$cleanLast}_bfp";
+
+        $user = DB::transaction(function () use ($data, $firstName, $middleName, $lastName, $tempPassword) {
             $user = User::create([
                 'role' => $data['role'],
                 'status' => User::STATUS_ACTIVE,
                 'first_name' => $firstName,
+                'middle_name' => $middleName,
                 'last_name' => $lastName,
                 'email' => $data['email'],
                 'contact_number' => $data['contact_number'],
                 'password' => Hash::make($tempPassword),
                 // Admin-provisioned accounts skip the email verification
-                // link — the temp password below is how they first get in.
+                // link — the initial password below is how they first get in.
                 'email_verified_at' => now(),
             ]);
 
@@ -98,8 +109,8 @@ class PersonnelController extends Controller
 
         return back()->with('toast', [
             'type' => 'success',
-            'message' => "{$user->name} was added. Temporary password: {$tempPassword} — share it with them.",
-            'duration' => 15000,
+            'message' => "{$user->name} was added. Default password: {$tempPassword}",
+            'duration' => 20000,
         ]);
     }
 
@@ -108,7 +119,9 @@ class PersonnelController extends Controller
         $this->assertPersonnel($user);
 
         $data = $request->validate([
-            'full_name' => ['required', 'string', 'max:150'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'rank' => ['required', 'string', 'max:100'],
             'contact_number' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
@@ -123,11 +136,14 @@ class PersonnelController extends Controller
             ]);
         }
 
-        [$firstName, $lastName] = $this->splitName($data['full_name']);
+        $firstName = trim($data['first_name']);
+        $middleName = ! empty($data['middle_name']) ? trim($data['middle_name']) : null;
+        $lastName = trim($data['last_name']);
 
-        DB::transaction(function () use ($user, $data, $firstName, $lastName) {
+        DB::transaction(function () use ($user, $data, $firstName, $middleName, $lastName) {
             $user->update([
                 'first_name' => $firstName,
+                'middle_name' => $middleName,
                 'last_name' => $lastName,
                 'email' => $data['email'],
                 'contact_number' => $data['contact_number'],
@@ -203,6 +219,9 @@ class PersonnelController extends Controller
             'user_id' => $user->getKey(),
             'employee_number' => $user->personnelDetails?->employee_number,
             'name' => $user->name,
+            'first_name' => $user->first_name,
+            'middle_name' => $user->middle_name,
+            'last_name' => $user->last_name,
             'rank' => $user->personnelDetails?->rank,
             'duty_group' => $user->personnelDetails?->duty_group?->value,
             'role' => $user->role,

@@ -27,7 +27,7 @@ class PasswordResetOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'FireSight - Password Reset Verification Code',
+            subject: "{$this->otp} - Your FireSight Password Reset Code",
         );
     }
 

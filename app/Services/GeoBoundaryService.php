@@ -12,19 +12,20 @@ class GeoBoundaryService
 {
     /**
      * Given a lat/lng, reads the Lian barangay boundaries GeoJSON and returns the matched barangay_id.
-     * Returns null if the point is outside all polygons (e.g. testing in Nasugbu).
+     * If the point lies on an immediate coastal edge or border road within 800m, falls back to the nearest centroid.
+     * Returns null if the point is outside Lian borders (e.g. Nasugbu, Calatagan, or outside town).
      */
     public function findBarangayByLocation(float $lat, float $lng): ?int
     {
         $geojsonPath = public_path('geo/barangay_boundaries_lian.json');
         if (! File::exists($geojsonPath)) {
-            return null;
+            return $this->findNearestBarangay($lat, $lng, 800);
         }
 
         $json = File::get($geojsonPath);
         $data = json_decode($json, true);
         if (! isset($data['features']) || ! is_array($data['features'])) {
-            return null;
+            return $this->findNearestBarangay($lat, $lng, 800);
         }
 
         $matchedBarangayName = null;
@@ -61,19 +62,97 @@ class GeoBoundaryService
         }
 
         if ($matchedBarangayName) {
-            $cleanedTarget = strtolower(str_replace('-', ' ', trim($matchedBarangayName)));
+            $normalizedTarget = $this->normalizeName($matchedBarangayName);
 
             // Find matching barangay in DB
             $barangays = Barangay::all();
             foreach ($barangays as $b) {
-                $cleanedName = strtolower(str_replace('-', ' ', trim($b->barangay_name)));
-                if ($cleanedName === $cleanedTarget) {
+                $normalizedName = $this->normalizeName($b->barangay_name);
+                if ($normalizedName === $normalizedTarget) {
                     return (int) $b->barangay_id;
                 }
             }
         }
 
-        return null;
+        // Only allow fallback if within 800m of a Lian barangay (e.g. shoreline / beach drift).
+        // If further away (in Nasugbu, Calatagan, Tuy, etc.), return null (outside jurisdiction).
+        return $this->findNearestBarangay($lat, $lng, 800);
+    }
+
+    /**
+     * Fallback if the point is slightly outside polygons (e.g. coastal edge or border road).
+     * Calculates the nearest barangay by centroid distance if within $maxMeters.
+     */
+    public function findNearestBarangay(float $lat, float $lng, float $maxMeters = 800): ?int
+    {
+        $barangays = Barangay::whereNotNull('centroid_lat')
+            ->whereNotNull('centroid_lng')
+            ->get();
+
+        if ($barangays->isEmpty()) {
+            return null;
+        }
+
+        $bestId = null;
+        $bestDistance = INF;
+
+        foreach ($barangays as $b) {
+            $dist = Geo::distanceInMeters($lat, $lng, (float) $b->centroid_lat, (float) $b->centroid_lng);
+            if ($dist < $bestDistance) {
+                $bestDistance = $dist;
+                $bestId = (int) $b->barangay_id;
+            }
+        }
+
+        // If the coordinate is beyond the Lian boundary buffer, it is outside Lian jurisdiction
+        if ($bestDistance > $maxMeters) {
+            return null;
+        }
+
+        return $bestId;
+    }
+
+    /**
+     * Normalizes barangay name variants between GeoJSON and the database.
+     * e.g. "Barangay 1 (Pob.)" -> "barangay 1 poblacion"
+     */
+    private function normalizeName(string $name): string
+    {
+        $normalized = strtolower(trim($name));
+        $normalized = str_replace(['-', '.', ',', '(', ')'], ' ', $normalized);
+        $normalized = preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
+        $normalized = trim($normalized);
+
+        $aliases = [
+            'barangay 1 pob' => 'barangay 1 poblacion',
+            'barangay 2 pob' => 'barangay 2 poblacion',
+            'barangay 3 pob' => 'barangay 3 poblacion',
+            'barangay 4 pob' => 'barangay 4 poblacion',
+            'barangay 5 pob' => 'barangay 5 poblacion',
+            'brgy 1 pob' => 'barangay 1 poblacion',
+            'brgy 2 pob' => 'barangay 2 poblacion',
+            'brgy 3 pob' => 'barangay 3 poblacion',
+            'brgy 4 pob' => 'barangay 4 poblacion',
+            'brgy 5 pob' => 'barangay 5 poblacion',
+            'brgy 1' => 'barangay 1 poblacion',
+            'brgy 2' => 'barangay 2 poblacion',
+            'brgy 3' => 'barangay 3 poblacion',
+            'brgy 4' => 'barangay 4 poblacion',
+            'brgy 5' => 'barangay 5 poblacion',
+            'pob 1' => 'barangay 1 poblacion',
+            'pob 2' => 'barangay 2 poblacion',
+            'pob 3' => 'barangay 3 poblacion',
+            'pob 4' => 'barangay 4 poblacion',
+            'pob 5' => 'barangay 5 poblacion',
+            'poblacion 1' => 'barangay 1 poblacion',
+            'poblacion 2' => 'barangay 2 poblacion',
+            'poblacion 3' => 'barangay 3 poblacion',
+            'poblacion 4' => 'barangay 4 poblacion',
+            'poblacion 5' => 'barangay 5 poblacion',
+            'puting kahoy' => 'puting kahoy',
+        ];
+
+        return $aliases[$normalized] ?? $normalized;
     }
 
     /**

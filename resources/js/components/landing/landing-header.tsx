@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Menu, ShieldCheck, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { dashboard, login } from '@/routes';
 import type { User } from '@/types';
@@ -142,9 +142,8 @@ export function LandingHeader({ user }: LandingHeaderProps) {
 
                 <Link
                     href={portalRoute}
-                    className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-firesight-orange-light to-firesight-orange px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_25px_-8px_rgba(255,106,19,0.75)] transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-firesight-navy focus-visible:outline-none md:inline-flex"
+                    className="hidden items-center justify-center rounded-full bg-gradient-to-r from-firesight-orange-light to-firesight-orange px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_25px_-8px_rgba(255,106,19,0.75)] transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-firesight-navy focus-visible:outline-none md:inline-flex"
                 >
-                    <ShieldCheck className="size-4" aria-hidden="true" />
                     {portalLabel}
                 </Link>
 
@@ -195,12 +194,8 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                         <Link
                             href={portalRoute}
                             onClick={() => setIsMenuOpen(false)}
-                            className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-firesight-orange-light to-firesight-orange px-5 py-3 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                            className="mt-2 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-firesight-orange-light to-firesight-orange px-5 py-3 text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
                         >
-                            <ShieldCheck
-                                className="size-4"
-                                aria-hidden="true"
-                            />
                             {portalLabel}
                         </Link>
                     </nav>

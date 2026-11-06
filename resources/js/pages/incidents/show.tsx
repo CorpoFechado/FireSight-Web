@@ -392,7 +392,7 @@ export default function IncidentShow({
     return (
         <PortalLayout
             title={report.reference}
-            subtitle={`${report.type ?? 'Unclassified'} · ${report.barangay ?? 'Barangay not yet assigned'}`}
+            subtitle={`${report.type ?? 'Unclassified'} · ${report.barangay ? `Brgy. ${report.barangay}` : 'Outside Lian Jurisdiction'}`}
         >
             <div className="space-y-4">
                 {navigationSource === 'map' ? (
@@ -433,8 +433,13 @@ export default function IncidentShow({
                                 </p>
                                 <p className="text-xs text-brand-muted">
                                     {report.type ?? 'Unclassified'} ·{' '}
-                                    {report.barangay ??
-                                        'Barangay not yet assigned'}
+                                    {report.barangay ? (
+                                        `Brgy. ${report.barangay}`
+                                    ) : (
+                                        <span className="font-semibold text-amber-700">
+                                            Outside Lian Jurisdiction
+                                        </span>
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -473,11 +478,6 @@ export default function IncidentShow({
                                         ['Name', report.reporter_name],
                                         ['Contact', report.contact_number],
                                         ['Submitted', report.dateTime],
-                                        [
-                                            'Barangay',
-                                            report.barangay ??
-                                                'Not yet assigned',
-                                        ],
                                     ].map(([label, value]) => (
                                         <div
                                             key={label}
@@ -486,9 +486,9 @@ export default function IncidentShow({
                                             <p className="w-24 flex-shrink-0 text-xs text-brand-muted">
                                                 {label}
                                             </p>
-                                            <p className="text-xs font-semibold text-brand-navy">
+                                            <div className="text-xs font-semibold text-brand-navy">
                                                 {value}
-                                            </p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -504,9 +504,11 @@ export default function IncidentShow({
                                         />
                                         Barangay Local Contact
                                     </p>
-                                    <span className="text-[11px] font-semibold text-brand-blue">
-                                        {report.barangay ?? 'Unassigned'}
-                                    </span>
+                                    {report.barangay && (
+                                        <span className="text-[11px] font-semibold text-brand-blue">
+                                            Brgy. {report.barangay}
+                                        </span>
+                                    )}
                                 </div>
                                 {report.barangay_contact_person ? (
                                     <div className="space-y-2 text-xs">
@@ -549,10 +551,10 @@ export default function IncidentShow({
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-brand-muted">
+                                    <p className="text-xs text-brand-muted leading-relaxed">
                                         {report.barangay
                                             ? `No official contact details registered for Brgy. ${report.barangay}.`
-                                            : 'Assign a barangay to view local official emergency contacts.'}
+                                            : 'This incident was reported outside the Municipality of Lian. Local Lian barangay contacts are not applicable.'}
                                     </p>
                                 )}
                             </div>
@@ -827,8 +829,9 @@ export default function IncidentShow({
                                             className="text-brand-red"
                                         />
                                         <p className="text-xs font-semibold text-brand-navy">
-                                            {report.barangay ??
-                                                'Lian, Batangas'}
+                                            {report.barangay
+                                                ? `Brgy. ${report.barangay}, Lian`
+                                                : 'Outside Lian Jurisdiction'}
                                         </p>
                                     </div>
                                 </div>

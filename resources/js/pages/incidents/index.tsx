@@ -347,7 +347,13 @@ export default function IncidentsIndex({
                                             </p>
                                         </td>
                                         <td className="px-4 py-3 text-xs text-brand-navy">
-                                            {r.barangay ?? '—'}
+                                            {r.barangay ? (
+                                                r.barangay
+                                            ) : (
+                                                <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+                                                    Outside Lian
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-xs text-brand-navy">
                                             {r.type ?? '—'}

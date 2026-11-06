@@ -47,10 +47,13 @@ class ProfileController extends ApiController
                 return $this->sendError('New password must be at least 8 characters.', 422);
             }
 
-            if ($request->filled('current_password')) {
-                if (! Hash::check((string) $request->input('current_password'), $user->password)) {
-                    return $this->sendError('The current password you entered is incorrect.', 422);
-                }
+            $currentPassword = (string) $request->input('current_password');
+            if (empty($currentPassword)) {
+                return $this->sendError('Please enter your current password to set a new password.', 422);
+            }
+
+            if (! Hash::check($currentPassword, $user->password)) {
+                return $this->sendError('The current password you entered is incorrect.', 422);
             }
         }
 

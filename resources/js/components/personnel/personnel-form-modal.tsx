@@ -23,6 +23,9 @@ export type PersonnelRow = {
     user_id: number;
     employee_number: string | null;
     name: string;
+    first_name?: string;
+    middle_name?: string | null;
+    last_name?: string;
     rank: string | null;
     duty_group?: string | null;
     role: PersonnelRole;
@@ -49,6 +52,28 @@ const DUTY_GROUP_OPTIONS: { value: string; label: string }[] = [
     { value: 'detached', label: 'Detached' },
 ];
 
+function getInitialNames(personnel?: PersonnelRow) {
+    if (personnel?.first_name || personnel?.last_name) {
+        return {
+            first_name: personnel.first_name ?? '',
+            middle_name: personnel.middle_name ?? '',
+            last_name: personnel.last_name ?? '',
+        };
+    }
+    const parts = (personnel?.name ?? '').trim().split(/\s+/);
+    if (parts.length === 0 || parts[0] === '') {
+        return { first_name: '', middle_name: '', last_name: '' };
+    }
+    if (parts.length === 1) {
+        return { first_name: parts[0], middle_name: '', last_name: '' };
+    }
+    return {
+        first_name: parts[0],
+        middle_name: parts.length > 2 ? parts.slice(1, -1).join(' ') : '',
+        last_name: parts[parts.length - 1],
+    };
+}
+
 export function PersonnelFormModal({
     mode,
     personnel,
@@ -62,6 +87,8 @@ export function PersonnelFormModal({
 }) {
     const [confirming, setConfirming] = useState(false);
 
+    const initialNames = getInitialNames(personnel);
+
     const {
         data,
         setData,
@@ -72,7 +99,9 @@ export function PersonnelFormModal({
         reset,
         clearErrors,
     } = useForm<{
-        full_name: string;
+        first_name: string;
+        middle_name: string;
+        last_name: string;
         rank: string;
         contact_number: string;
         email: string;
@@ -80,7 +109,9 @@ export function PersonnelFormModal({
         status: PersonnelStatus;
         duty_group: string | null;
     }>({
-        full_name: personnel?.name ?? '',
+        first_name: initialNames.first_name,
+        middle_name: initialNames.middle_name,
+        last_name: initialNames.last_name,
         rank: personnel?.rank ?? '',
         contact_number: personnel?.contact_number ?? '',
         email: personnel?.email ?? '',
@@ -93,8 +124,11 @@ export function PersonnelFormModal({
     // from a previous open don't leak in.
     useEffect(() => {
         if (open) {
+            const names = getInitialNames(personnel);
             setData({
-                full_name: personnel?.name ?? '',
+                first_name: names.first_name,
+                middle_name: names.middle_name,
+                last_name: names.last_name,
                 rank: personnel?.rank ?? '',
                 contact_number: personnel?.contact_number ?? '',
                 email: personnel?.email ?? '',
@@ -110,7 +144,8 @@ export function PersonnelFormModal({
     }, [open, personnel?.user_id]);
 
     const isValid =
-        data.full_name.trim() !== '' &&
+        data.first_name.trim() !== '' &&
+        data.last_name.trim() !== '' &&
         data.rank.trim() !== '' &&
         data.contact_number.trim() !== '' &&
         data.email.trim() !== '';
@@ -155,9 +190,17 @@ export function PersonnelFormModal({
         setConfirming(true);
     };
 
+    const displayedFullName = [
+        data.first_name.trim(),
+        data.middle_name.trim(),
+        data.last_name.trim(),
+    ]
+        .filter(Boolean)
+        .join(' ');
+
     return (
         <Dialog open={open} onOpenChange={close}>
-            <DialogContent className="bg-white text-brand-navy sm:max-w-lg">
+            <DialogContent className="bg-white text-brand-navy sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle className="text-brand-navy">
                         {mode === 'create'
@@ -167,27 +210,77 @@ export function PersonnelFormModal({
                 </DialogHeader>
 
                 <form onSubmit={handlePrimarySubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Separate First, Middle (Optional), and Last Name */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="space-y-1.5">
-                            <Label>Full Name</Label>
+                            <Label>
+                                First Name <span className="text-brand-red">*</span>
+                            </Label>
                             <input
-                                value={data.full_name}
+                                value={data.first_name}
                                 onChange={(e) =>
-                                    setData('full_name', e.target.value)
+                                    setData('first_name', e.target.value)
                                 }
-                                placeholder="Enter full name"
+                                placeholder="Enter first name"
                                 className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                                 style={{ borderColor: 'rgba(43,45,66,0.15)' }}
                             />
-                            {errors.full_name && (
+                            {errors.first_name && (
                                 <p className="text-xs text-brand-red">
-                                    {errors.full_name}
+                                    {errors.first_name}
                                 </p>
                             )}
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label>Rank</Label>
+                            <Label>
+                                Middle Name{' '}
+                                <span className="text-xs font-normal text-brand-muted">
+                                    (Optional)
+                                </span>
+                            </Label>
+                            <input
+                                value={data.middle_name}
+                                onChange={(e) =>
+                                    setData('middle_name', e.target.value)
+                                }
+                                placeholder="Enter middle name"
+                                className="h-9 w-full rounded-md border px-3 text-sm outline-none"
+                                style={{ borderColor: 'rgba(43,45,66,0.15)' }}
+                            />
+                            {errors.middle_name && (
+                                <p className="text-xs text-brand-red">
+                                    {errors.middle_name}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label>
+                                Last Name <span className="text-brand-red">*</span>
+                            </Label>
+                            <input
+                                value={data.last_name}
+                                onChange={(e) =>
+                                    setData('last_name', e.target.value)
+                                }
+                                placeholder="Enter last name"
+                                className="h-9 w-full rounded-md border px-3 text-sm outline-none"
+                                style={{ borderColor: 'rgba(43,45,66,0.15)' }}
+                            />
+                            {errors.last_name && (
+                                <p className="text-xs text-brand-red">
+                                    {errors.last_name}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                            <Label>
+                                Rank <span className="text-brand-red">*</span>
+                            </Label>
                             <input
                                 value={data.rank}
                                 onChange={(e) =>
@@ -205,7 +298,9 @@ export function PersonnelFormModal({
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label>Contact Number</Label>
+                            <Label>
+                                Contact Number <span className="text-brand-red">*</span>
+                            </Label>
                             <input
                                 value={data.contact_number}
                                 onChange={(e) =>
@@ -221,25 +316,27 @@ export function PersonnelFormModal({
                                 </p>
                             )}
                         </div>
+                    </div>
 
-                        <div className="space-y-1.5">
-                            <Label>Email</Label>
-                            <input
-                                type="email"
-                                value={data.email}
-                                onChange={(e) =>
-                                    setData('email', e.target.value)
-                                }
-                                placeholder="Enter email"
-                                className="h-9 w-full rounded-md border px-3 text-sm outline-none"
-                                style={{ borderColor: 'rgba(43,45,66,0.15)' }}
-                            />
-                            {errors.email && (
-                                <p className="text-xs text-brand-red">
-                                    {errors.email}
-                                </p>
-                            )}
-                        </div>
+                    <div className="space-y-1.5">
+                        <Label>
+                            Email <span className="text-brand-red">*</span>
+                        </Label>
+                        <input
+                            type="email"
+                            value={data.email}
+                            onChange={(e) =>
+                                setData('email', e.target.value)
+                            }
+                            placeholder="Enter email"
+                            className="h-9 w-full rounded-md border px-3 text-sm outline-none"
+                            style={{ borderColor: 'rgba(43,45,66,0.15)' }}
+                        />
+                        {errors.email && (
+                            <p className="text-xs text-brand-red">
+                                {errors.email}
+                            </p>
+                        )}
                     </div>
 
                     <div
@@ -346,7 +443,7 @@ export function PersonnelFormModal({
                             <p className="text-sm font-semibold text-brand-navy">
                                 Create account for{' '}
                                 <span className="text-brand-blue">
-                                    {data.full_name}
+                                    {displayedFullName}
                                 </span>
                                 ?
                             </p>
