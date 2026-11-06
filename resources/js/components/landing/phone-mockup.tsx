@@ -38,12 +38,12 @@ export function PhoneMockup({ compact = false }: { compact?: boolean }) {
                                 }
                             />
                             <span
-                                className={`font-extrabold tracking-tight ${compact ? 'text-[8px]' : 'text-[10px]'}`}
+                                className={`font-extrabold tracking-wide ${compact ? 'text-[8px]' : 'text-[10px]'}`}
                             >
+                                <span className="text-white">FIRE</span>
                                 <span className="text-firesight-orange">
-                                    Fire
+                                    SIGHT
                                 </span>
-                                <span className="text-white">Sight</span>
                             </span>
                         </div>
                         <Bell className="size-4 text-white" />

@@ -40,10 +40,10 @@ const features: Feature[] = [
             'Follow incidents from initial reporting and verification through coordination and resolution.',
     },
     {
-        title: 'Barangay Risk Analytics',
+        title: 'Barangay Risk Assessment',
         icon: BarChart3,
         description:
-            'Review vulnerability and risk information to support preparedness and resource planning.',
+            'Identify high-risk areas across Lian to strengthen fire prevention, station readiness, and emergency response planning.',
     },
     {
         title: 'Personnel and Duty Coordination',

@@ -11,8 +11,9 @@ export default function AppLogo() {
                 className="h-8 w-auto flex-shrink-0 object-contain"
             />
             <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold">
-                    {name ?? 'FireSight'}
+                <span className="mb-0.5 truncate leading-tight font-extrabold tracking-wide">
+                    <span className="text-foreground">FIRE</span>
+                    <span className="text-firesight-orange">SIGHT</span>
                 </span>
             </div>
         </>

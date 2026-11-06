@@ -107,9 +107,9 @@ export function LandingHeader({ user }: LandingHeaderProps) {
                         className="h-9 w-auto object-contain"
                         aria-hidden="true"
                     />
-                    <span className="text-xl font-extrabold tracking-tight sm:text-5xl">
-                        <span className="text-firesight-orange">Fire</span>
-                        <span className="text-white">Sight</span>
+                    <span className="text-xl font-extrabold tracking-wide sm:text-2xl">
+                        <span className="text-white">FIRE</span>
+                        <span className="text-firesight-orange">SIGHT</span>
                     </span>
                 </button>
 

@@ -35,8 +35,8 @@ export function PortalSidebar({
                     className="h-10 w-auto flex-shrink-0 object-contain drop-shadow-sm"
                 />
                 <div className="overflow-hidden">
-                    <p className="text-sm leading-none font-bold text-white">
-                        FireSight
+                    <p className="text-base leading-none font-extrabold tracking-wide text-white">
+                        FIRE<span className="text-firesight-orange">SIGHT</span>
                     </p>
                     <p className="mt-1 text-xs leading-none text-white/45">
                         BFP Lian

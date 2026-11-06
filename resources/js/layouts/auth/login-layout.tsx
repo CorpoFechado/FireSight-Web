@@ -28,9 +28,9 @@ export default function LoginLayout({
                         className="flex items-center justify-center gap-4 rounded-xl focus-visible:ring-2 focus-visible:ring-firesight-orange focus-visible:ring-offset-4 focus-visible:ring-offset-firesight-navy focus-visible:outline-none"
                         aria-label="FireSight home"
                     >
-                        <span className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-                            <span className="text-firesight-orange">Fire</span>
-                            <span className="text-white">Sight</span>
+                        <span className="text-4xl font-extrabold tracking-wide sm:text-5xl lg:text-6xl">
+                            <span className="text-white">FIRE</span>
+                            <span className="text-firesight-orange">SIGHT</span>
                         </span>
                         <img
                             src="/images/firesight-logo.png"

@@ -1,8 +1,5 @@
-import { Link } from '@inertiajs/react';
 import { Settings, ShieldCheck, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { login } from '@/routes';
-import { ComingSoonButton } from './coming-soon-button';
 
 type Audience = {
     title: string;
@@ -62,15 +59,6 @@ export function AudienceSection() {
                         administrators so reports move quickly from the
                         community to verified, coordinated action.
                     </p>
-                    <div className="mt-7 flex flex-col items-start gap-4">
-                        <ComingSoonButton />
-                        <Link
-                            href={login()}
-                            className="text-sm font-bold text-firesight-navy underline decoration-firesight-orange decoration-2 underline-offset-4 transition hover:text-firesight-orange focus-visible:ring-2 focus-visible:ring-firesight-orange focus-visible:outline-none"
-                        >
-                            Admin Portal
-                        </Link>
-                    </div>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-3 lg:col-span-8">

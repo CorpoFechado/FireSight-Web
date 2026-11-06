@@ -47,7 +47,14 @@ export function AppCtaSection() {
                         id="app-cta-heading"
                         className="mt-3 text-3xl font-bold tracking-tight lg:text-4xl"
                     >
-                        Download FireSight Soon
+                        Download{' '}
+                        <span className="font-extrabold tracking-wide text-white">
+                            FIRE
+                        </span>
+                        <span className="font-extrabold tracking-wide text-firesight-orange">
+                            SIGHT
+                        </span>{' '}
+                        Soon
                     </h2>
                     <p className="mt-4 max-w-lg leading-7 text-white/75">
                         The resident mobile app is in development and will soon
@@ -59,12 +66,7 @@ export function AppCtaSection() {
                     </div>
                 </div>
                 <div className="md:col-span-4 md:justify-self-end">
-                    <img
-                        src="/images/firesight-logo.png"
-                        alt="FireSight"
-                        className="h-12 w-auto"
-                    />
-                    <p className="mt-4 text-xl font-semibold text-white italic">
+                    <p className="text-xl font-semibold text-white italic">
                         Sa Ligtas na Lian, Sama-sama.
                     </p>
                     <svg
