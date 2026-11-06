@@ -20,6 +20,7 @@ class IncidentRecord extends Model
         'alarm_level', 'cause_of_fire', 'casualties', 'notes',
         'establishment_name', 'owner_name', 'occupant_name',
         'time_fire_started', 'time_fire_out', 'injuries', 'fatalities',
+        'estimated_damage',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class IncidentRecord extends Model
             'time_fire_out' => 'datetime',
             'injuries' => 'integer',
             'fatalities' => 'integer',
+            'estimated_damage' => 'decimal:2',
             'alarm_level' => AlarmLevel::class,
         ];
     }

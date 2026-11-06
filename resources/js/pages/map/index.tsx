@@ -126,6 +126,15 @@ const ALARM_LEVEL_OPTIONS = [
     })),
 ];
 
+const FIXED_MUNICIPAL_ALARMS = new Set<AlarmLevel>([
+    'verification',
+    '1st_alarm',
+    '2nd_alarm',
+    '3rd_alarm',
+    '4th_alarm',
+    '5th_alarm',
+]);
+
 const inputStyle = { borderColor: 'rgba(43,45,66,0.13)' };
 const inputClass =
     'rounded-lg border bg-brand-bg py-1.5 px-2.5 text-sm text-brand-navy outline-none focus:ring-1 focus:ring-brand-navy/20';
@@ -385,7 +394,11 @@ export default function FireIncidentsMap({
     const legendEntries = useMemo(() => {
         if (colorBy === 'alarm_level') {
             return (Object.keys(ALARM_LEVEL_CFG) as AlarmLevel[])
-                .filter((s) => groupedCounts[s] !== undefined)
+                .filter(
+                    (s) =>
+                        FIXED_MUNICIPAL_ALARMS.has(s) ||
+                        groupedCounts[s] !== undefined,
+                )
                 .map((s) => ({
                     key: s,
                     label: ALARM_LEVEL_CFG[s].label,
@@ -1060,13 +1073,18 @@ export default function FireIncidentsMap({
                                                 {legendEntries.map((entry) => (
                                                     <div
                                                         key={entry.key}
-                                                        className="flex items-center gap-1.5"
+                                                        className="flex items-center gap-1.5 whitespace-nowrap"
                                                     >
                                                         <span
-                                                            className="size-2 rounded-full"
+                                                            className="size-2 shrink-0 rounded-full"
                                                             style={{
                                                                 background:
                                                                     entry.color,
+                                                                border:
+                                                                    entry.key ===
+                                                                    'verification'
+                                                                        ? '1px solid #4a5a75'
+                                                                        : undefined,
                                                             }}
                                                         />
                                                         <span className="text-xs text-brand-muted">
@@ -1096,7 +1114,7 @@ export default function FireIncidentsMap({
                                             <p className="text-[10px] font-semibold tracking-wide text-brand-muted uppercase">
                                                 Barangay Risk
                                             </p>
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-1">
                                                 {(
                                                     [
                                                         'high',

@@ -36,7 +36,7 @@ test('a new report notifies active admins only', function () {
 
     $this->assertDatabaseHas('notification', [
         'user_id' => $admin->getKey(),
-        'title' => 'New Community Report',
+        'title' => 'New Fire Report',
         'message' => "Report #{$report->report_id} from Juan Dela Cruz in Poblacion 1 is awaiting verification.",
         'notification_type' => 'incident_alert',
     ]);
@@ -68,7 +68,7 @@ test('a low-confidence AI detection sends a regular new report notification', fu
     ]);
 
     expect(Notification::where('user_id', $admin->getKey())->pluck('title')->all())
-        ->toBe(['New Community Report']);
+        ->toBe(['New Fire Report']);
 });
 
 test('AI verification completing after submission triggers a critical alert', function () {

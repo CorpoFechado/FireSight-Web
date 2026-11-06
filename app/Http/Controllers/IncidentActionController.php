@@ -7,6 +7,7 @@ use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Models\ReportStatusHistory;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +132,7 @@ class IncidentActionController extends Controller
             $this->logStatusHistory(
                 $report,
                 CommunityReport::STATUS_RESOLVED,
-                'Fire declared extinguished; incident marked resolved by responding crew.'
+                'Fire extinguished and incident marked as resolved.'
             );
         });
 
@@ -163,6 +164,7 @@ class IncidentActionController extends Controller
             'injuries' => ['nullable', 'integer', 'min:0'],
             'fatalities' => ['nullable', 'integer', 'min:0'],
             'casualties' => ['nullable', 'integer', 'min:0'],
+            'estimated_damage' => ['nullable', 'numeric', 'min:0'],
             'establishment_name' => ['nullable', 'string', 'max:200'],
             'owner_name' => ['nullable', 'string', 'max:150'],
             'occupant_name' => ['nullable', 'string', 'max:150'],
@@ -192,6 +194,7 @@ class IncidentActionController extends Controller
                 'injuries' => $injuries,
                 'fatalities' => $fatalities,
                 'casualties' => $casualties,
+                'estimated_damage' => isset($data['estimated_damage']) && $data['estimated_damage'] !== '' ? (float) $data['estimated_damage'] : null,
                 'establishment_name' => $data['establishment_name'] ?? null,
                 'owner_name' => $data['owner_name'] ?? null,
                 'occupant_name' => $data['occupant_name'] ?? null,
@@ -200,10 +203,11 @@ class IncidentActionController extends Controller
                 'notes' => $data['notes'] ?? null,
             ])->save();
 
+            $actorRole = auth()->user()?->role === User::ROLE_BFP_ADMIN ? 'BFP admin' : 'BFP personnel';
             $this->logStatusHistory(
                 $report,
                 $report->status,
-                'Incident assessment details updated by BFP personnel.'
+                "Incident assessment details updated by {$actorRole}."
             );
         });
 

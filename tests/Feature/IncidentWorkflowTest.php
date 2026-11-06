@@ -446,6 +446,45 @@ test('staff and admin can update incident assessment details after resolution', 
         ->count())->toBe(1);
 });
 
+test('updating incident details saves estimated_damage, establishment_name, owner, occupant, and times', function () {
+    $report = CommunityReport::create([
+        'user_id' => $this->resident->getKey(),
+        'reporter_name' => 'Reporter',
+        'contact_number' => '09123456789',
+        'description' => 'Fire test',
+        'latitude' => 13.95,
+        'longitude' => 120.65,
+        'barangay_id' => $this->barangay->barangay_id,
+        'status' => CommunityReport::STATUS_RESOLVED,
+    ]);
+
+    $this->actingAs($this->staff)
+        ->patch(route('incidents.updateDetails', $report), [
+            'incident_type' => 'commercial_fire',
+            'alarm_level' => '1st_alarm',
+            'establishment_name' => 'San Jose Bakery',
+            'owner_name' => 'Juan Dela Cruz',
+            'occupant_name' => 'Maria Dela Cruz',
+            'time_fire_started' => '2026-11-05 14:00:00',
+            'time_fire_out' => '2026-11-05 15:30:00',
+            'cause_of_fire' => 'Overheated oven',
+            'injuries' => 1,
+            'fatalities' => 0,
+            'estimated_damage' => 250000.50,
+            'notes' => 'Structural damage to kitchen area.',
+        ])
+        ->assertRedirect();
+
+    $record = IncidentRecord::where('report_id', $report->report_id)->first();
+    expect($record)->not->toBeNull()
+        ->and($record->establishment_name)->toBe('San Jose Bakery')
+        ->and($record->owner_name)->toBe('Juan Dela Cruz')
+        ->and($record->occupant_name)->toBe('Maria Dela Cruz')
+        ->and((float) $record->estimated_damage)->toBe(250000.50)
+        ->and($record->injuries)->toBe(1)
+        ->and($record->fatalities)->toBe(0);
+});
+
 test('incident dispatches are empty until real waves exist and then ordered with reinforcement details', function () {
     $report = CommunityReport::create([
         'user_id' => $this->resident->getKey(), 'reporter_name' => 'Reporter',

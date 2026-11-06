@@ -99,12 +99,12 @@ class AdminNotificationSeeder extends Seeder
                     ];
                 }
 
-                // ── 3. BFP Admin: New Community Report (Web) ────────────────────
+                // ── 3. BFP Admin: New Fire Report (Web) ─────────────────────────
                 foreach ($adminIds as $adminId) {
                     $notificationsToInsert[] = [
                         'user_id' => $adminId,
                         'report_id' => $reportId,
-                        'title' => 'New Community Report',
+                        'title' => 'New Fire Report',
                         'message' => "Report #{$reportId} from {$reporterName}{$locationSuffix} is awaiting verification.",
                         'notification_type' => 'incident_alert',
                         'is_read' => ! $isRecentReport,

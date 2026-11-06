@@ -97,7 +97,6 @@ export default function Dashboard({
                         icon={Flame}
                         accent="#E63946"
                         bgAccent="rgba(230, 57, 70, 0.12)"
-                        href={`${incidents()}?status=accepted`}
                     />
                     <KPICard
                         label="Pending Verification"
@@ -106,7 +105,6 @@ export default function Dashboard({
                         icon={ClipboardList}
                         accent="#D97706"
                         bgAccent="rgba(217, 119, 6, 0.12)"
-                        href={`${incidents()}?status=pending`}
                     />
                     <KPICard
                         label="Resolved Today"
@@ -115,7 +113,6 @@ export default function Dashboard({
                         icon={CheckCircle2}
                         accent="#10B981"
                         bgAccent="rgba(16, 185, 129, 0.12)"
-                        href={`${incidents()}?status=resolved`}
                     />
                     <KPICard
                         label="Resolved this Month"
@@ -124,7 +121,6 @@ export default function Dashboard({
                         icon={Calendar}
                         accent="#3B82F6"
                         bgAccent="rgba(59, 130, 246, 0.12)"
-                        href={`${incidents()}?status=resolved`}
                     />
                 </div>
 
@@ -250,15 +246,15 @@ export default function Dashboard({
                                 Monthly Incident Trend
                             </h2>
                         </div>
-                        <div className="min-h-[240px] flex-1 px-2 pt-4 pb-2">
+                        <div className="min-h-[240px] flex-1 px-3 pt-4 pb-2">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart
                                     data={monthlyTrend}
                                     margin={{
-                                        top: 4,
-                                        right: 4,
+                                        top: 8,
+                                        right: 12,
                                         bottom: 0,
-                                        left: -8,
+                                        left: 0,
                                     }}
                                 >
                                     <defs>
@@ -297,7 +293,8 @@ export default function Dashboard({
                                         tick={{ fontSize: 11, fill: '#6B7A8D' }}
                                         axisLine={false}
                                         tickLine={false}
-                                        width={24}
+                                        width={38}
+                                        tickMargin={6}
                                     />
                                     <Tooltip
                                         contentStyle={{

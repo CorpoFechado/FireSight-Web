@@ -24,7 +24,7 @@ it('admin only sees their own notifications, not residents\'', function () {
 
     Notification::create([
         'user_id' => $admin->getKey(),
-        'title' => 'New Community Report',
+        'title' => 'New Fire Report',
         'message' => 'Report #1 is awaiting verification.',
         'notification_type' => 'incident_alert',
         'is_read' => false,
@@ -37,7 +37,7 @@ it('admin only sees their own notifications, not residents\'', function () {
         ->component('notifications/index')
         ->where('isAdmin', true)
         ->has('groups.today', 1)
-        ->where('groups.today.0.title', 'New Community Report')
+        ->where('groups.today.0.title', 'New Fire Report')
         ->missing('groups.today.0.user_name')
         ->where('unreadCount', 1)
     );

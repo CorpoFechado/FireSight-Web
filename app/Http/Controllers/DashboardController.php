@@ -211,7 +211,7 @@ class DashboardController extends Controller
     {
         return collect(range(6, 0))
             ->map(function (int $monthsAgo) {
-                $start = Date::now()->subMonths($monthsAgo)->startOfMonth();
+                $start = Date::now()->startOfMonth()->subMonths($monthsAgo);
                 $end = $start->copy()->endOfMonth();
 
                 $total = IncidentRecord::whereBetween('incident_datetime', [$start, $end])->count();

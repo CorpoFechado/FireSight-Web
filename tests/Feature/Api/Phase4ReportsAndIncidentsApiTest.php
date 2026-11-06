@@ -2,6 +2,7 @@
 
 use App\Models\AuthToken;
 use App\Models\Barangay;
+use App\Models\BfpPersonnelDetails;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Models\Notification;
@@ -220,6 +221,8 @@ test('bfp operations workflow: verify, advance status, update details, mark inva
     $resDispatched = $this->withHeader('Authorization', 'Bearer '.$bfpToken)
         ->postJson('/api/v1/incidents/'.$report->report_id.'/status', [
             'status' => 'dispatched',
+            'trucks' => ['Engine 1'],
+            'personnel_ids' => [$bfp->user_id],
             'notes' => 'Engine 1 en route.',
         ]);
     $resDispatched->assertStatus(200)->assertJsonPath('status', 'dispatched');
@@ -338,6 +341,31 @@ test('api incident endpoints save verification alarm level', function (): void {
         ])
         ->assertSuccessful()
         ->assertJsonPath('alarm_level', 'verification');
+
+    $resDamage = $this->withHeader('Authorization', 'Bearer '.$bfpToken)
+        ->putJson('/api/v1/incidents/'.$report->report_id.'/details', [
+            'incident_type' => 'commercial_fire',
+            'alarm_level' => '1st_alarm',
+            'estimated_damage' => 1750000.75,
+            'establishment_name' => 'Lian Supermarket',
+            'owner_name' => 'Roberto Santos',
+            'occupant_name' => 'Santos Retail Corp',
+            'cause_of_fire' => 'Defective chiller compressor',
+            'injuries' => 2,
+            'fatalities' => 0,
+        ]);
+
+    $resDamage->assertSuccessful()
+        ->assertJsonPath('estimated_damage', 1750000.75)
+        ->assertJsonPath('establishment_name', 'Lian Supermarket')
+        ->assertJsonPath('owner_name', 'Roberto Santos')
+        ->assertJsonPath('occupant_name', 'Santos Retail Corp');
+
+    $this->assertDatabaseHas('incident_record', [
+        'report_id' => $report->report_id,
+        'estimated_damage' => 1750000.75,
+        'establishment_name' => 'Lian Supermarket',
+    ]);
 
     $this->withHeader('Authorization', 'Bearer '.$bfpToken)
         ->postJson('/api/v1/incidents/manual', [
@@ -524,4 +552,76 @@ test('legacy .php endpoint aliases match behavior', function (): void {
     $this->withHeader('Authorization', 'Bearer '.$bfpToken)
         ->getJson('/api/dashboard/analytics.php')
         ->assertStatus(200);
+});
+
+test('reinforcement dispatch notifies active admins only and excludes resident and other personnel', function (): void {
+    $admin = User::create([
+        'role' => User::ROLE_BFP_ADMIN,
+        'status' => User::STATUS_ACTIVE,
+        'first_name' => 'Admin',
+        'last_name' => 'User',
+        'email' => 'admin@example.com',
+        'contact_number' => '09170000001',
+        'password' => bcrypt('password123'),
+    ]);
+
+    $inactiveAdmin = User::create([
+        'role' => User::ROLE_BFP_ADMIN,
+        'status' => User::STATUS_INACTIVE,
+        'first_name' => 'Inactive',
+        'last_name' => 'Admin',
+        'email' => 'inactive_admin@example.com',
+        'contact_number' => '09170000002',
+        'password' => bcrypt('password123'),
+    ]);
+
+    [$resident, $residentToken] = createTestResident('resident_reinforce@example.com');
+    [$actorBfp, $actorToken] = createTestBfpPersonnel('actor_bfp@example.com');
+    [$otherBfp, $otherToken] = createTestBfpPersonnel('other_bfp@example.com');
+
+    $actorBfp->update(['first_name' => 'Juan', 'last_name' => 'Luna']);
+    BfpPersonnelDetails::create([
+        'user_id' => $actorBfp->user_id,
+        'rank' => 'FO3',
+        'employee_number' => 'EMP-TEST-999',
+    ]);
+
+    $report = CommunityReport::create([
+        'user_id' => $resident->user_id,
+        'barangay_id' => 1,
+        'reporter_name' => 'Resident Submitter',
+        'contact_number' => '09171234567',
+        'latitude' => 14.0392,
+        'longitude' => 120.6389,
+        'status' => CommunityReport::STATUS_DISPATCHED,
+        'created_at' => now(),
+    ]);
+
+    // Clear notifications created during setup
+    Notification::query()->delete();
+
+    $response = $this->withHeader('Authorization', 'Bearer '.$actorToken)
+        ->postJson('/api/v1/incidents/'.$report->report_id.'/status', [
+            'status' => CommunityReport::STATUS_DISPATCHED,
+            'trucks' => ['Tanker 1'],
+        ]);
+
+    $response->assertStatus(200);
+
+    // Active admin received notification
+    $this->assertDatabaseHas('notification', [
+        'user_id' => $admin->user_id,
+        'title' => 'Reinforcements Deployed',
+        'message' => "FO3 Juan Luna deployed reinforcements for Report #{$report->report_id} in Barangay 1 (Poblacion): Tanker 1.",
+        'notification_type' => 'status_update',
+    ]);
+
+    // Inactive admin did not receive notification
+    $this->assertDatabaseMissing('notification', ['user_id' => $inactiveAdmin->user_id]);
+
+    // Resident reporter did not receive duplicate dispatch notification
+    $this->assertDatabaseMissing('notification', ['user_id' => $resident->user_id]);
+
+    // Unrelated personnel did not receive notification
+    $this->assertDatabaseMissing('notification', ['user_id' => $otherBfp->user_id]);
 });

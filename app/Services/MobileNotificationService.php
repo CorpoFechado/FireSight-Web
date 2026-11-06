@@ -106,6 +106,56 @@ class MobileNotificationService
     }
 
     /**
+     * Notifies active BFP Admins when reinforcements (subsequent dispatches) are deployed.
+     * Does NOT notify the resident or other off-duty personnel.
+     */
+    public function notifyReinforcementDispatched(int $reportId, ?int $actorUserId = null, ?string $summary = null): void
+    {
+        $report = CommunityReport::with('barangay')->find($reportId);
+        if (! $report) {
+            return;
+        }
+
+        $actor = $actorUserId ? User::with('personnelDetails')->find($actorUserId) : null;
+        $actorName = 'BFP personnel';
+        if ($actor) {
+            $rank = $actor->personnelDetails?->rank;
+            $actorName = trim(($rank ? "{$rank} " : '').$actor->name) ?: 'BFP personnel';
+        }
+
+        $barangaySuffix = $report->barangay?->barangay_name ? " in {$report->barangay->barangay_name}" : '';
+        $title = 'Reinforcements Deployed';
+        $message = $summary
+            ? "{$actorName} deployed reinforcements for Report #{$reportId}{$barangaySuffix}: {$summary}."
+            : "{$actorName} deployed reinforcements for Report #{$reportId}{$barangaySuffix}.";
+
+        $adminUsers = User::query()
+            ->where('role', User::ROLE_BFP_ADMIN)
+            ->where('status', User::STATUS_ACTIVE)
+            ->when($actorUserId !== null, fn ($query) => $query->whereKeyNot($actorUserId))
+            ->get();
+
+        if ($adminUsers->isNotEmpty()) {
+            Notification::insert($adminUsers->map(fn (User $admin) => [
+                'user_id' => $admin->user_id,
+                'report_id' => $reportId,
+                'title' => $title,
+                'message' => $message,
+                'notification_type' => 'status_update',
+                'is_read' => false,
+                'created_at' => now(),
+            ])->all());
+
+            $this->pushService->sendToUsers(
+                $adminUsers->pluck('user_id')->all(),
+                $title,
+                $message,
+                ['report_id' => $reportId, 'type' => 'status_update']
+            );
+        }
+    }
+
+    /**
      * Creates a confirmation notification for the resident when their report is submitted.
      */
     public function notifyResidentReportSubmitted(int $userId, ?int $reportId = null): void

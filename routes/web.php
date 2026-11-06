@@ -13,6 +13,7 @@ use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\ResidentController;
+use App\Http\Controllers\ResponseTrackingController;
 use App\Http\Controllers\RiskAnalyticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,38 +37,7 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
 
     Route::get('map', [FireMapController::class, 'index'])->name('map');
     Route::get('fire-prone', [RiskAnalyticsController::class, 'index'])->name('fireProne');
-    // Static stand-in until the actual Dijkstra routing + dispatch selection
-    // logic is implemented; see resources/js/pages/response-tracking/index.tsx.
-    // Incident location is community_report #44's real coordinates (barangay
-    // Prenza, via incident_record #36); distance/ETA below are a straight-line
-    // estimate, not computed by a real routing engine yet.
-    Route::inertia('response', 'response-tracking/index', [
-        'incident' => [
-            'reference' => 'INC-2026-0036',
-            'type' => 'Other (Open Burning)',
-            'barangay' => 'Prenza',
-            'alarm_level' => AlarmLevel::Verification->value,
-            'reporter' => 'Juan Corpuz',
-            'latitude' => 13.99796296,
-            'longitude' => 120.65501697,
-        ],
-        'routeSummary' => [
-            'distanceKm' => 5.1,
-            'etaMinutes' => 8,
-            'routeType' => 'Optimal',
-            'algorithm' => 'Dijkstra',
-        ],
-        'directions' => [
-            'Head north on BFP Lian Station access road',
-            'Turn right onto Lian-Nasugbu National Highway',
-            'Continue on National Highway',
-            'Turn left onto Prenza Barangay Road',
-            'Arrive at incident location on the right',
-        ],
-        'station' => [
-            'name' => 'BFP Lian Station',
-        ],
-    ])->name('response');
+    Route::get('response', [ResponseTrackingController::class, 'index'])->name('response');
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::patch('notifications/{notification}/read', [NotificationController::class, 'markRead'])
         ->name('notifications.read');

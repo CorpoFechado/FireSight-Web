@@ -34,13 +34,13 @@ class AdminNotifier
     ];
 
     /**
-     * A new community report came in. Notifies active BFP admins.
+     * A new fire report came in. Notifies active BFP admins.
      * (BFP personnel and resident confirmation are notified directly by the mobile submission endpoint).
      */
     public function reportSubmitted(CommunityReport $report, ?CarbonInterface $at = null): void
     {
         $this->sendToRoles(
-            'New Community Report',
+            'New Fire Report',
             "Report #{$report->report_id} from {$this->reporterName($report)}{$this->locationSuffix($report)} is awaiting verification.",
             'incident_alert',
             [User::ROLE_BFP_ADMIN],

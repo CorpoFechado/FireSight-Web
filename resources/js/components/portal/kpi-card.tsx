@@ -22,7 +22,9 @@ export function KPICard({
         <>
             <div className="flex items-center gap-3.5">
                 <div
-                    className="flex size-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:scale-105"
+                    className={`flex size-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-200 ${
+                        href ? 'group-hover:scale-105' : ''
+                    }`}
                     style={{
                         backgroundColor: bgAccent || `${accent}18`,
                         color: accent,
@@ -46,11 +48,14 @@ export function KPICard({
     );
 
     const baseClasses =
-        'group surface-glass animate-fade-up flex flex-col justify-between rounded-2xl p-5 md:p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-lg)]';
+        'surface-glass animate-fade-up flex flex-col justify-between rounded-2xl p-5 md:p-6';
 
     if (href) {
         return (
-            <Link href={href} className={baseClasses}>
+            <Link
+                href={href}
+                className={`group ${baseClasses} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-lg)] cursor-pointer`}
+            >
                 {content}
             </Link>
         );

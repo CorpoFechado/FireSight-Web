@@ -7,12 +7,12 @@ import {
     FileText,
     MapPin,
     Phone,
-    ShieldCheck,
+    Truck,
     UserCheck,
     ZoomIn,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AiVerificationCard } from '@/components/incidents/ai-verification-card';
 import { EditDetailsModal } from '@/components/incidents/edit-details-modal';
 import { IncidentActions } from '@/components/incidents/incident-actions';
@@ -24,7 +24,7 @@ import {
     StatusBadge,
 } from '@/components/portal/status-badge';
 import PortalLayout from '@/layouts/portal-layout';
-import { STATUS_CFG } from '@/lib/fire-status';
+import { ALARM_LEVEL_CFG, STATUS_CFG } from '@/lib/fire-status';
 import type { AlarmLevel, ReportStatus } from '@/lib/fire-status';
 import type { StatusHistoryEntry } from '@/lib/status-history';
 import {
@@ -60,6 +60,7 @@ type ReportDetail = {
     casualties: number | null;
     injuries?: number | null;
     fatalities?: number | null;
+    estimated_damage?: number | null;
     establishment_name?: string | null;
     owner_name?: string | null;
     occupant_name?: string | null;
@@ -88,25 +89,6 @@ type Dispatch = {
     trucks: string[];
     personnel: { user_id: number; name: string; rank: string | null }[];
 };
-
-const SAMPLE_DISPATCHES: Dispatch[] = [
-    {
-        dispatch_id: 0,
-        dispatched_at: 'Sample time',
-        dispatched_by: 'Maria Santos',
-        is_reinforcement: false,
-        trucks: ['Engine 1', 'Tanker 2'],
-        personnel: [
-            {
-                user_id: 1,
-                name: 'Juan Dela Cruz',
-                rank: 'Senior Fire Officer 1',
-            },
-            { user_id: 2, name: 'Ana Reyes', rank: 'Fire Officer 3' },
-            { user_id: 3, name: 'Jose Ramos', rank: 'Fire Officer 1' },
-        ],
-    },
-];
 
 type LinkedReport = {
     report_id: number;
@@ -270,6 +252,7 @@ export default function IncidentShow({
         cause_of_fire: report.cause_of_fire,
         injuries: report.injuries ?? 0,
         fatalities: report.fatalities ?? 0,
+        estimated_damage: report.estimated_damage,
         establishment_name: report.establishment_name,
         owner_name: report.owner_name,
         occupant_name: report.occupant_name,
@@ -292,6 +275,103 @@ export default function IncidentShow({
                       personnel: null,
                   },
               ];
+
+    type TimelineGroup = {
+        id: string | number;
+        status: ReportStatus;
+        changed_at: string;
+        changed_by: string;
+        notes: string | null;
+        dispatchesList?: Dispatch[];
+        latestDetailUpdate?: StatusHistoryEntry | null;
+    };
+
+    const groupedTimeline = useMemo(() => {
+        const groups: TimelineGroup[] = [];
+        let hasDispatchedGroup = false;
+        let hasResolvedGroup = false;
+
+        const latestDetailUpdate = timeline
+            .slice()
+            .reverse()
+            .find(
+                (item) =>
+                    item.status === 'resolved' &&
+                    item.notes?.toLowerCase().includes('updated'),
+            );
+
+        const initialResolution =
+            timeline.find(
+                (item) =>
+                    item.status === 'resolved' &&
+                    !item.notes?.toLowerCase().includes('updated'),
+            ) || timeline.find((item) => item.status === 'resolved');
+
+        const initialDispatchEntry = timeline.find(
+            (item) => item.status === 'dispatched',
+        );
+
+        timeline.forEach((item) => {
+            // Assessment edits are stored in the DB audit log, but hidden from the visible timeline milestones
+            if (
+                item.status === 'resolved' &&
+                item.notes?.toLowerCase().includes('updated')
+            ) {
+                return;
+            }
+
+            if (item.status === 'dispatched') {
+                if (!hasDispatchedGroup) {
+                    hasDispatchedGroup = true;
+                    groups.push({
+                        id: initialDispatchEntry?.id ?? item.id,
+                        status: 'dispatched',
+                        changed_at:
+                            dispatches[0]?.dispatched_at ||
+                            initialDispatchEntry?.changed_at ||
+                            item.changed_at,
+                        changed_by:
+                            dispatches[0]?.dispatched_by ||
+                            initialDispatchEntry?.changed_by ||
+                            item.changed_by,
+                        notes: (initialDispatchEntry?.notes ?? item.notes) ?? null,
+                        dispatchesList: dispatches,
+                    });
+                }
+                return;
+            }
+
+            if (item.status === 'resolved') {
+                if (!hasResolvedGroup) {
+                    hasResolvedGroup = true;
+                    groups.push({
+                        id: initialResolution?.id ?? item.id,
+                        status: 'resolved',
+                        changed_at:
+                            initialResolution?.changed_at ?? item.changed_at,
+                        changed_by:
+                            initialResolution?.changed_by ?? item.changed_by,
+                        notes:
+                            initialResolution?.notes ??
+                            'Fire extinguished and incident marked as resolved.',
+                        latestDetailUpdate: latestDetailUpdate ?? null,
+                    });
+                }
+                return;
+            }
+
+            groups.push({
+                id: item.id,
+                status: item.status,
+                changed_at: item.changed_at,
+                changed_by: item.changed_by,
+                notes: item.notes ?? null,
+            });
+        });
+
+        return groups;
+    }, [timeline, dispatches]);
+
     const hasAssessment = Boolean(
         report.raw_incident_type ||
         report.raw_alarm_level ||
@@ -303,6 +383,8 @@ export default function IncidentShow({
         (report.fatalities !== null &&
             report.fatalities !== undefined &&
             report.fatalities > 0) ||
+        (report.estimated_damage !== null &&
+            report.estimated_damage !== undefined) ||
         report.establishment_name ||
         report.owner_name,
     );
@@ -485,152 +567,26 @@ export default function IncidentShow({
                                 </p>
                             </div>
 
-                            {(report.status === 'dispatched' ||
-                                report.status === 'resolved') && (
-                                <div>
-                                    <div className="mb-3 flex items-center justify-between gap-2">
-                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                            Deployed Units
-                                        </p>
-                                        {dispatches.length === 0 && (
-                                            <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
-                                                Sample data
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="space-y-3 rounded-xl border border-[rgba(43,45,66,0.08)] bg-brand-bg/70 p-4">
-                                        {(dispatches.length > 0
-                                            ? dispatches
-                                            : SAMPLE_DISPATCHES
-                                        ).map((dispatch) => (
-                                            <div
-                                                key={dispatch.dispatch_id}
-                                                className="space-y-3 rounded-lg border border-neutral-200 bg-white p-3"
-                                            >
-                                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                                    <div className="flex items-center gap-2 text-sm font-semibold text-brand-navy">
-                                                        {dispatch.is_reinforcement
-                                                            ? 'Additional dispatch'
-                                                            : 'Initial dispatch'}
-                                                        {dispatch.is_reinforcement && (
-                                                            <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] text-orange-800">
-                                                                Reinforcement
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <span className="font-mono text-xs text-brand-muted">
-                                                        {dispatch.dispatched_at}
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-brand-muted">
-                                                    Dispatched by{' '}
-                                                    {dispatch.dispatched_by ??
-                                                        'Unknown'}
-                                                </p>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {dispatch.trucks.length ? (
-                                                        dispatch.trucks.map(
-                                                            (truck, index) => (
-                                                                <span
-                                                                    key={`${truck}-${index}`}
-                                                                    className="rounded-full bg-brand-navy/10 px-2 py-1 text-xs font-medium text-brand-navy"
-                                                                >
-                                                                    {truck}
-                                                                </span>
-                                                            ),
-                                                        )
-                                                    ) : (
-                                                        <span className="text-xs text-brand-muted">
-                                                            No trucks listed
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="space-y-2">
-                                                    {dispatch.personnel
-                                                        .length ? (
-                                                        dispatch.personnel.map(
-                                                            (person) => (
-                                                                <div
-                                                                    key={
-                                                                        person.user_id
-                                                                    }
-                                                                    className="flex items-center gap-2"
-                                                                >
-                                                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-navy/10 text-xs font-bold text-brand-navy">
-                                                                        {person.name
-                                                                            .split(
-                                                                                /\s+/,
-                                                                            )
-                                                                            .map(
-                                                                                (
-                                                                                    part,
-                                                                                ) =>
-                                                                                    part[0],
-                                                                            )
-                                                                            .slice(
-                                                                                0,
-                                                                                2,
-                                                                            )
-                                                                            .join(
-                                                                                '',
-                                                                            )
-                                                                            .toUpperCase()}
-                                                                    </span>
-                                                                    <div>
-                                                                        <p className="text-xs font-semibold text-brand-navy">
-                                                                            {
-                                                                                person.name
-                                                                            }
-                                                                        </p>
-                                                                        <p className="text-xs text-brand-muted">
-                                                                            {person.rank ??
-                                                                                'Firefighter'}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            ),
-                                                        )
-                                                    ) : (
-                                                        <p className="text-xs text-brand-muted">
-                                                            No crew listed
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Status Change History */}
                             <div>
-                                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                <div className="mb-3">
                                     <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
                                         Status History
                                     </p>
-                                    <span className="inline-flex items-center gap-1 rounded border border-[rgba(43,45,66,0.08)] bg-brand-bg px-2 py-0.5 text-[11px] font-medium text-brand-navy">
-                                        <ShieldCheck
-                                            size={11}
-                                            className="text-brand-blue"
-                                        />
-                                        Verified DB Audit Trail ·{' '}
-                                        {timeline.length}{' '}
-                                        {timeline.length === 1
-                                            ? 'entry'
-                                            : 'entries'}
-                                    </span>
                                 </div>
 
                                 <div className="rounded-xl border border-[rgba(43,45,66,0.08)] bg-brand-bg/70 p-4">
                                     <div className="space-y-1">
-                                        {timeline.map((item, index) => {
+                                        {groupedTimeline.map((item, index) => {
                                             const isLatest =
-                                                index === timeline.length - 1;
+                                                index === groupedTimeline.length - 1;
                                             const isLast =
-                                                index === timeline.length - 1;
+                                                index === groupedTimeline.length - 1;
                                             const dotColor =
                                                 STATUS_CFG[item.status]?.text ??
                                                 '#1d3557';
+                                            const isDispatch =
+                                                item.status === 'dispatched';
 
                                             return (
                                                 <div
@@ -657,31 +613,190 @@ export default function IncidentShow({
 
                                                     {/* Entry content */}
                                                     <div
-                                                        className={`flex-1 ${!isLast ? 'pb-2.5' : 'pb-0'}`}
+                                                        className={`flex-1 ${!isLast ? 'pb-3' : 'pb-0'}`}
                                                     >
                                                         <div className="flex flex-wrap items-center justify-between gap-2">
-                                                            <StatusBadge
-                                                                status={
-                                                                    item.status
-                                                                }
-                                                            />
+                                                            <div className="flex items-center gap-2">
+                                                                <StatusBadge
+                                                                    status={
+                                                                        item.status
+                                                                    }
+                                                                />
+                                                                {isDispatch && item.dispatchesList && item.dispatchesList.length > 1 && (
+                                                                    <span className="rounded-full bg-brand-navy/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-navy">
+                                                                        {item.dispatchesList.length} Waves
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                             <span className="font-mono text-xs text-brand-muted">
                                                                 {
                                                                     item.changed_at
                                                                 }
                                                             </span>
                                                         </div>
-                                                        <p className="mt-1 flex items-center gap-1.5 text-xs text-brand-muted">
-                                                            <UserCheck
-                                                                size={12}
-                                                                className="shrink-0 text-brand-blue"
-                                                            />
-                                                            <span className="font-medium text-brand-navy">
-                                                                {
-                                                                    item.changed_by
-                                                                }
-                                                            </span>
-                                                        </p>
+
+                                                        {!isDispatch && (
+                                                            <p className="mt-1 flex items-center gap-1.5 text-xs text-brand-muted">
+                                                                <UserCheck
+                                                                    size={12}
+                                                                    className="shrink-0 text-brand-blue"
+                                                                />
+                                                                <span className="font-medium text-brand-navy">
+                                                                    {
+                                                                        item.changed_by
+                                                                    }
+                                                                </span>
+                                                            </p>
+                                                        )}
+
+                                                        {/* Dispatches nested inside this single Dispatched timeline node */}
+                                                        {isDispatch && item.dispatchesList && item.dispatchesList.length > 0 ? (
+                                                            <div className="mt-2.5 space-y-2.5">
+                                                                {item.dispatchesList.map((dispatch, dIdx) => {
+                                                                    const isReinforcement = dIdx > 0;
+                                                                    const dispatchLabel =
+                                                                        dIdx === 0
+                                                                            ? 'Initial Dispatch'
+                                                                            : `Reinforcement #${dIdx}`;
+
+                                                                    return (
+                                                                        <div
+                                                                            key={dispatch.dispatch_id || dIdx}
+                                                                            className="space-y-2.5 rounded-lg border border-neutral-200/80 bg-white p-3 shadow-xs"
+                                                                        >
+                                                                            {/* Card Header: Wave Badge + Timestamp + Dispatched By */}
+                                                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-2">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="rounded-full border border-brand-navy/20 bg-brand-navy/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-navy">
+                                                                                        {dispatchLabel}
+                                                                                    </span>
+                                                                                    {dispatch.dispatched_by && (
+                                                                                        <span className="flex items-center gap-1 text-xs text-brand-muted">
+                                                                                            <UserCheck
+                                                                                                size={11}
+                                                                                                className="shrink-0 text-brand-blue"
+                                                                                            />
+                                                                                            <span className="font-medium text-brand-navy">
+                                                                                                {dispatch.dispatched_by}
+                                                                                            </span>
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                {dispatch.dispatched_at && (
+                                                                                    <span className="font-mono text-xs text-brand-muted">
+                                                                                        {dispatch.dispatched_at}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Trucks */}
+                                                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                                                <Truck
+                                                                                    size={13}
+                                                                                    className="mr-0.5 shrink-0 text-brand-muted"
+                                                                                />
+                                                                                {dispatch.trucks.length > 0 ? (
+                                                                                    dispatch.trucks.map(
+                                                                                        (
+                                                                                            truck,
+                                                                                            tIdx,
+                                                                                        ) => (
+                                                                                            <span
+                                                                                                key={`${truck}-${tIdx}`}
+                                                                                                className="rounded-full bg-brand-navy/10 px-2.5 py-0.5 text-xs font-medium text-brand-navy"
+                                                                                            >
+                                                                                                {truck}
+                                                                                            </span>
+                                                                                        ),
+                                                                                    )
+                                                                                ) : (
+                                                                                    <span className="text-xs text-brand-muted">
+                                                                                        No trucks listed
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Personnel */}
+                                                                            {dispatch.personnel.length > 0 ? (
+                                                                                <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-1.5">
+                                                                                    {dispatch.personnel.map(
+                                                                                        (person) => (
+                                                                                            <div
+                                                                                                key={person.user_id}
+                                                                                                className="flex items-center gap-2 rounded-md border border-[rgba(43,45,66,0.06)] bg-brand-bg px-2.5 py-1.5"
+                                                                                            >
+                                                                                                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-navy/10 text-[10px] font-bold text-brand-navy">
+                                                                                                    {person.name
+                                                                                                        .split(/\s+/)
+                                                                                                        .map((part) => part[0])
+                                                                                                        .slice(0, 2)
+                                                                                                        .join('')
+                                                                                                        .toUpperCase()}
+                                                                                                </span>
+                                                                                                <div>
+                                                                                                    <p className="text-xs font-semibold leading-tight text-brand-navy">
+                                                                                                        {person.name}
+                                                                                                    </p>
+                                                                                                    <p className="text-[11px] leading-tight text-brand-muted">
+                                                                                                        {person.rank ?? 'Firefighter'}
+                                                                                                    </p>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        ),
+                                                                                    )}
+                                                                                </div>
+                                                                            ) : (
+                                                                                <p className="border-t border-neutral-100 pt-1 text-xs text-brand-muted">
+                                                                                    No crew listed
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        ) : isDispatch ? (
+                                                            /* Fallback if no dispatches array is available */
+                                                            <div className="mt-1">
+                                                                <p className="flex items-center gap-1.5 text-xs text-brand-muted">
+                                                                    <UserCheck
+                                                                        size={12}
+                                                                        className="shrink-0 text-brand-blue"
+                                                                    />
+                                                                    <span className="font-medium text-brand-navy">
+                                                                        {item.changed_by}
+                                                                    </span>
+                                                                </p>
+                                                                {item.notes && (
+                                                                    <p className="mt-1 text-xs italic text-brand-muted">
+                                                                        {item.notes}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        ) : null}
+
+                                                        {!isDispatch && item.notes && (
+                                                            <p className="mt-1 text-xs italic text-brand-muted">
+                                                                {item.notes}
+                                                            </p>
+                                                        )}
+
+                                                        {item.status === 'resolved' && item.latestDetailUpdate && (
+                                                            <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-brand-muted">
+                                                                <Edit
+                                                                    size={11}
+                                                                    className="shrink-0 text-brand-blue"
+                                                                />
+                                                                <span>
+                                                                    Details updated{' '}
+                                                                    <span className="font-mono">
+                                                                        {item.latestDetailUpdate.changed_at}
+                                                                    </span>
+                                                                    {item.latestDetailUpdate.changed_by
+                                                                        ? ` by ${item.latestDetailUpdate.changed_by}`
+                                                                        : ''}
+                                                                </span>
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -819,27 +934,13 @@ export default function IncidentShow({
                             style={{ borderColor: 'rgba(43,45,66,0.1)' }}
                         >
                             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5">
-                                    <div
-                                        className="rounded-lg p-2"
-                                        style={{
-                                            background: 'rgba(29,53,87,0.08)',
-                                        }}
-                                    >
-                                        <ShieldCheck
-                                            size={18}
-                                            className="text-brand-navy"
-                                        />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-bold text-brand-navy">
-                                            BFP Assessment
-                                        </h3>
-                                        <p className="text-xs text-brand-muted">
-                                            Official investigation findings and
-                                            casualty report
-                                        </p>
-                                    </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-brand-navy">
+                                        BFP Assessment
+                                    </h3>
+                                    <p className="text-xs text-brand-muted">
+                                        Official investigation findings and casualty report
+                                    </p>
                                 </div>
                                 <button
                                     type="button"
@@ -858,7 +959,7 @@ export default function IncidentShow({
                                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
                                     <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
                                         <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                            Establishment
+                                            Name of Establishment
                                         </p>
                                         <p className="mt-1 font-semibold text-brand-navy">
                                             {report.establishment_name ||
@@ -866,17 +967,21 @@ export default function IncidentShow({
                                         </p>
                                     </div>
 
-                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
                                         <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                            Owner / Occupant
+                                            Owner
                                         </p>
                                         <p className="mt-1 font-semibold text-brand-navy">
-                                            {[
-                                                report.owner_name,
-                                                report.occupant_name,
-                                            ]
-                                                .filter(Boolean)
-                                                .join(' · ') || 'Unspecified'}
+                                            {report.owner_name || 'Unspecified'}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Occupant
+                                        </p>
+                                        <p className="mt-1 font-semibold text-brand-navy">
+                                            {report.occupant_name || 'Unspecified'}
                                         </p>
                                     </div>
 
@@ -903,6 +1008,29 @@ export default function IncidentShow({
                                         </p>
                                     </div>
 
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Incident Type
+                                        </p>
+                                        <p className="mt-1 font-semibold text-brand-navy">
+                                            {report.type || 'Unspecified'}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Alarm Level
+                                        </p>
+                                        <p className="mt-1 font-semibold text-brand-navy">
+                                            {(report.alarm_level &&
+                                                ALARM_LEVEL_CFG[
+                                                    report.alarm_level
+                                                ]?.label) ||
+                                                report.alarm_level ||
+                                                'Unspecified'}
+                                        </p>
+                                    </div>
+
                                     <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
                                         <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
                                             Cause of Fire
@@ -913,7 +1041,19 @@ export default function IncidentShow({
                                         </p>
                                     </div>
 
-                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
+                                        <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                            Estimated Damage
+                                        </p>
+                                        <p className="mt-1 font-mono text-base font-bold text-brand-navy">
+                                            {report.estimated_damage !== null &&
+                                            report.estimated_damage !== undefined
+                                                ? `₱${Number(report.estimated_damage).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                : 'Unspecified'}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
                                         <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
                                             Injuries
                                         </p>
@@ -922,7 +1062,7 @@ export default function IncidentShow({
                                         </p>
                                     </div>
 
-                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5">
+                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-3.5 sm:col-span-2">
                                         <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
                                             Fatalities
                                         </p>
@@ -934,17 +1074,20 @@ export default function IncidentShow({
                                     </div>
                                 </div>
 
-                                {report.notes && (
-                                    <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-4">
-                                        <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                            Investigation Notes & Officer
-                                            Remarks
-                                        </p>
+                                <div className="rounded-xl border border-[rgba(43,45,66,0.1)] bg-brand-bg p-4">
+                                    <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                        Notes
+                                    </p>
+                                    {report.notes ? (
                                         <p className="text-sm leading-relaxed whitespace-pre-line text-brand-navy">
                                             {report.notes}
                                         </p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <p className="text-sm italic text-brand-muted">
+                                            No additional notes
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}

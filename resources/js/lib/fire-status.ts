@@ -37,33 +37,33 @@ type AlarmLevelCfg = {
 
 export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
     pending: {
-        bg: '#FFF3E0',
-        text: '#B75E0A',
-        border: '#F4A261',
+        bg: 'rgba(232, 163, 61, 0.12)',
+        text: '#E8A33D',
+        border: 'rgba(232, 163, 61, 0.28)',
         label: 'Pending',
     },
     accepted: {
-        bg: '#E0F5F3',
-        text: '#1B7A72',
-        border: '#2A9D8F',
+        bg: 'rgba(59, 130, 196, 0.12)',
+        text: '#3B82C4',
+        border: 'rgba(59, 130, 196, 0.28)',
         label: 'Accepted',
     },
     dispatched: {
-        bg: '#E3EFF7',
-        text: '#2C5F82',
-        border: '#457B9D',
+        bg: 'rgba(244, 98, 43, 0.12)',
+        text: '#F4622B',
+        border: 'rgba(244, 98, 43, 0.28)',
         label: 'Dispatched',
     },
     resolved: {
-        bg: '#DCFCE7',
-        text: '#15803D',
-        border: '#22C55E',
+        bg: 'rgba(31, 163, 92, 0.12)',
+        text: '#1FA35C',
+        border: 'rgba(31, 163, 92, 0.28)',
         label: 'Resolved',
     },
     invalid: {
-        bg: '#FDE8EA',
-        text: '#B91C2C',
-        border: '#E63946',
+        bg: 'rgba(137, 146, 166, 0.12)',
+        text: '#8992A6',
+        border: 'rgba(137, 146, 166, 0.28)',
         label: 'Invalid',
     },
 };

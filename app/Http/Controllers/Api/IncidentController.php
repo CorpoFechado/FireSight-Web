@@ -63,6 +63,7 @@ class IncidentController extends ApiController
                 'incident_record.casualties',
                 'incident_record.injuries',
                 'incident_record.fatalities',
+                'incident_record.estimated_damage',
                 'incident_record.establishment_name',
                 'incident_record.owner_name',
                 'incident_record.occupant_name',
@@ -132,6 +133,7 @@ class IncidentController extends ApiController
                 'incident_record.casualties',
                 'incident_record.injuries',
                 'incident_record.fatalities',
+                'incident_record.estimated_damage',
                 'incident_record.establishment_name',
                 'incident_record.owner_name',
                 'incident_record.occupant_name',
@@ -329,6 +331,7 @@ class IncidentController extends ApiController
         }
 
         $previousStatus = $report->status;
+        $isReinforcement = false;
 
         if ($status === CommunityReport::STATUS_DISPATCHED) {
             $isReinforcement = ($previousStatus === CommunityReport::STATUS_DISPATCHED);
@@ -354,6 +357,9 @@ class IncidentController extends ApiController
             $report->status = $status;
             $report->save();
 
+            $truckNames = [];
+            $officerTitles = [];
+
             // When advancing to dispatched (or deploying additional units while dispatched), record the apparatus and personnel in dedicated relational tables
             if ($status === CommunityReport::STATUS_DISPATCHED && (! empty($trucks) || ! empty($personnelIds))) {
                 $dispatch = IncidentDispatch::create([
@@ -362,7 +368,6 @@ class IncidentController extends ApiController
                     'dispatched_at' => now(),
                 ]);
 
-                $truckNames = [];
                 if (is_array($trucks)) {
                     foreach ($trucks as $truckName) {
                         $cleaned = trim((string) $truckName);
@@ -376,7 +381,6 @@ class IncidentController extends ApiController
                     }
                 }
 
-                $officerTitles = [];
                 if (is_array($personnelIds) && ! empty($personnelIds)) {
                     $selectedUsers = User::with('personnelDetails')
                         ->whereIn('user_id', $personnelIds)
@@ -417,6 +421,10 @@ class IncidentController extends ApiController
             }
 
             if ($status === CommunityReport::STATUS_RESOLVED) {
+                if (empty($notes)) {
+                    $notes = 'Fire extinguished and incident marked as resolved.';
+                }
+
                 $incident = IncidentRecord::where('report_id', $reportId)->first();
                 if (! $incident) {
                     IncidentRecord::create([
@@ -439,7 +447,20 @@ class IncidentController extends ApiController
                 'created_at' => now(),
             ]);
 
-            $this->notificationService->notifyReportStatusChange($reportId, $status, $user->user_id);
+            if ($status === CommunityReport::STATUS_DISPATCHED && $isReinforcement) {
+                $reinforcementSummary = null;
+                if (! empty($truckNames) && ! empty($officerTitles)) {
+                    $reinforcementSummary = implode(', ', $truckNames).' with crew: '.implode(', ', $officerTitles);
+                } elseif (! empty($truckNames)) {
+                    $reinforcementSummary = implode(', ', $truckNames);
+                } elseif (! empty($officerTitles)) {
+                    $reinforcementSummary = 'crew: '.implode(', ', $officerTitles);
+                }
+
+                $this->notificationService->notifyReinforcementDispatched($reportId, $user->user_id, $reinforcementSummary);
+            } else {
+                $this->notificationService->notifyReportStatusChange($reportId, $status, $user->user_id);
+            }
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -496,6 +517,7 @@ class IncidentController extends ApiController
         $occupantName = $request->filled('occupant_name') ? trim((string) $request->input('occupant_name')) : null;
         $timeFireStarted = $request->filled('time_fire_started') ? $request->input('time_fire_started') : null;
         $timeFireOut = $request->filled('time_fire_out') ? $request->input('time_fire_out') : null;
+        $estimatedDamage = $request->filled('estimated_damage') ? (float) $request->input('estimated_damage') : null;
 
         $incident = IncidentRecord::where('report_id', $reportId)->first();
 
@@ -506,6 +528,7 @@ class IncidentController extends ApiController
             $incident->casualties = $casualties;
             $incident->injuries = $injuries;
             $incident->fatalities = $fatalities;
+            $incident->estimated_damage = $estimatedDamage;
             $incident->establishment_name = $establishmentName;
             $incident->owner_name = $ownerName;
             $incident->occupant_name = $occupantName;
@@ -528,6 +551,7 @@ class IncidentController extends ApiController
                 'casualties' => $casualties,
                 'injuries' => $injuries,
                 'fatalities' => $fatalities,
+                'estimated_damage' => $estimatedDamage,
                 'establishment_name' => $establishmentName,
                 'owner_name' => $ownerName,
                 'occupant_name' => $occupantName,
@@ -536,6 +560,16 @@ class IncidentController extends ApiController
                 'notes' => $request->input('notes'),
             ]);
         }
+
+        $user = $request->user();
+        $actorRole = $user && $user->role === User::ROLE_BFP_ADMIN ? 'BFP admin' : 'BFP personnel';
+        ReportStatusHistory::create([
+            'report_id' => $reportId,
+            'status' => $report->status,
+            'notes' => "Incident assessment details updated by {$actorRole}.",
+            'changed_by' => $user?->user_id,
+            'created_at' => now(),
+        ]);
 
         return $this->sendSuccess($this->fetchIncidentData($reportId));
     }

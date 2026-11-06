@@ -158,6 +158,7 @@ class IncidentController extends Controller
                 'casualties' => $report->incidentRecord?->casualties,
                 'injuries' => $report->incidentRecord?->injuries ?? 0,
                 'fatalities' => $report->incidentRecord?->fatalities ?? 0,
+                'estimated_damage' => $report->incidentRecord?->estimated_damage !== null ? (float) $report->incidentRecord->estimated_damage : null,
                 'establishment_name' => $report->incidentRecord?->establishment_name,
                 'owner_name' => $report->incidentRecord?->owner_name,
                 'occupant_name' => $report->incidentRecord?->occupant_name,

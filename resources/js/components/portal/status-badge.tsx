@@ -23,7 +23,11 @@ export function StatusBadge({ status }: { status: ReportStatus }) {
     return (
         <span
             className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-            style={{ background: cfg.bg, color: cfg.text }}
+            style={{
+                background: cfg.bg,
+                color: cfg.text,
+                border: cfg.border ? `1px solid ${cfg.border}` : undefined,
+            }}
         >
             <span
                 className="size-1.5 rounded-full"

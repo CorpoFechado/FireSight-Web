@@ -76,6 +76,7 @@ export function EditDetailsModal({
         occupant_name?: string | null;
         time_fire_started?: string | null;
         time_fire_out?: string | null;
+        estimated_damage?: number | null;
         notes: string | null;
     };
 }) {
@@ -118,6 +119,11 @@ export function EditDetailsModal({
             initialValues.fatalities !== undefined
                 ? initialValues.fatalities.toString()
                 : '0',
+        estimated_damage:
+            initialValues.estimated_damage !== null &&
+            initialValues.estimated_damage !== undefined
+                ? initialValues.estimated_damage.toString()
+                : '',
         notes: initialValues.notes ?? '',
     });
 
@@ -132,6 +138,11 @@ export function EditDetailsModal({
         data.cause_of_fire !== (initialValues.cause_of_fire ?? '') ||
         data.injuries !== ((initialValues.injuries ?? 0).toString()) ||
         data.fatalities !== ((initialValues.fatalities ?? 0).toString()) ||
+        data.estimated_damage !==
+            (initialValues.estimated_damage !== null &&
+            initialValues.estimated_damage !== undefined
+                ? initialValues.estimated_damage.toString()
+                : '') ||
         data.notes !== (initialValues.notes ?? '');
 
     useEffect(() => {
@@ -157,6 +168,11 @@ export function EditDetailsModal({
                     initialValues.fatalities !== undefined
                         ? initialValues.fatalities.toString()
                         : '0',
+                estimated_damage:
+                    initialValues.estimated_damage !== null &&
+                    initialValues.estimated_damage !== undefined
+                        ? initialValues.estimated_damage.toString()
+                        : '',
                 notes: initialValues.notes ?? '',
             });
         }
@@ -198,7 +214,7 @@ export function EditDetailsModal({
                     </p>
 
                     <div className="space-y-1.5">
-                        <Label>Establishment Name</Label>
+                        <Label>Name of Establishment</Label>
                         <input
                             value={data.establishment_name}
                             onChange={(e) =>
@@ -457,7 +473,28 @@ export function EditDetailsModal({
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label>Investigation Notes</Label>
+                        <Label>Estimated Damage (₱)</Label>
+                        <input
+                            type="number"
+                            min={0}
+                            step="any"
+                            value={data.estimated_damage}
+                            onChange={(e) =>
+                                setData('estimated_damage', e.target.value)
+                            }
+                            placeholder="e.g. 150000.00"
+                            className="h-9 w-full rounded-md border px-3 text-sm outline-none"
+                            style={{ borderColor: 'rgba(43,45,66,0.15)' }}
+                        />
+                        {errors.estimated_damage && (
+                            <p className="text-xs text-brand-red">
+                                {errors.estimated_damage}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label>Notes</Label>
                         <textarea
                             value={data.notes}
                             onChange={(e) => setData('notes', e.target.value)}

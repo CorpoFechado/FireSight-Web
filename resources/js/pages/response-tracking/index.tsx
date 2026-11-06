@@ -1,6 +1,7 @@
 import 'leaflet/dist/leaflet.css';
+import { Link, router } from '@inertiajs/react';
 import L from 'leaflet';
-import { AlertTriangle, CheckCircle2, Truck } from 'lucide-react';
+import { AlertTriangle, Navigation } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
     Marker,
@@ -20,6 +21,7 @@ import {
 } from '@/lib/map-constants';
 
 type Incident = {
+    id: number;
     reference: string;
     type: string;
     barangay: string;
@@ -29,11 +31,19 @@ type Incident = {
     longitude: number;
 };
 
+type DispatchedIncident = {
+    id: number;
+    reference: string;
+    barangay: string;
+    type: string;
+    alarm_level: AlarmLevel | null;
+};
+
 type RouteSummary = {
     distanceKm: number;
     etaMinutes: number;
     routeType: string;
-    algorithm: string;
+    algorithm?: string;
 };
 
 type Station = { name: string };
@@ -45,57 +55,49 @@ const stationIcon = L.divIcon({
     iconAnchor: [12, 12],
 });
 
-function incidentIcon(dispatched: boolean) {
+function incidentIcon() {
     return L.divIcon({
         className: '',
-        html: `<div style="width:26px;height:26px;border-radius:50%;background:${dispatched ? '#1D3557' : '#E63946'};border:3px solid white;box-shadow:0 1px 6px rgba(0,0,0,0.4)"></div>`,
+        html: `<div style="width:26px;height:26px;border-radius:50%;background:#E63946;border:3px solid white;box-shadow:0 1px 6px rgba(0,0,0,0.4)"></div>`,
         iconSize: [26, 26],
         iconAnchor: [13, 13],
     });
 }
 
-/**
- * This page is still a static stand-in for the real dispatch feature — there's
- * no in-house routing algorithm yet (see the `response` route comment in
- * routes/web.php). Station and incident positions are real (BFP Lian's actual
- * coordinates and community_report #44's location). The route line itself
- * now comes from OSRM's free public routing API (a real road-following path,
- * not a straight line), with distance/duration read from that response —
- * if the request fails (offline, rate-limited), it falls back to the static
- * two-point line and the demo distance/time passed in from the route. Turn-by-
- * turn directions remain fixed demo text either way. "Dispatch Unit" only
- * toggles local UI state.
- */
 export default function ResponseTracking({
     incident,
+    dispatchedIncidents = [],
     routeSummary,
-    directions,
     station,
 }: {
-    incident: Incident;
-    routeSummary: RouteSummary;
-    directions: string[];
+    incident: Incident | null;
+    dispatchedIncidents?: DispatchedIncident[];
+    routeSummary?: RouteSummary | null;
     station: Station;
 }) {
-    const [dispatched, setDispatched] = useState(false);
-    const [dispatchedAt, setDispatchedAt] = useState<string | null>(null);
     const [roadRoute, setRoadRoute] = useState<{
         path: [number, number][];
         distanceKm: number;
         etaMinutes: number;
     } | null>(null);
-    const [routeFailed, setRouteFailed] = useState(false);
 
-    const incidentPosition: [number, number] = [
-        incident.latitude,
-        incident.longitude,
-    ];
-    const midpoint: [number, number] = [
-        (LIAN_CENTER[0] + incidentPosition[0]) / 2 + 0.002,
-        (LIAN_CENTER[1] + incidentPosition[1]) / 2 - 0.0015,
-    ];
+    const incidentPosition: [number, number] | null = incident
+        ? [incident.latitude, incident.longitude]
+        : null;
+
+    const midpoint: [number, number] | null = incidentPosition
+        ? [
+              (LIAN_CENTER[0] + incidentPosition[0]) / 2 + 0.002,
+              (LIAN_CENTER[1] + incidentPosition[1]) / 2 - 0.0015,
+          ]
+        : null;
 
     useEffect(() => {
+        if (!incidentPosition) {
+            setRoadRoute(null);
+            return;
+        }
+
         let cancelled = false;
         const coords = `${LIAN_CENTER[1]},${LIAN_CENTER[0]};${incidentPosition[1]},${incidentPosition[0]}`;
 
@@ -117,8 +119,6 @@ export default function ResponseTracking({
                         data.code !== 'Ok' ||
                         !data.routes?.length
                     ) {
-                        setRouteFailed(true);
-
                         return;
                     }
 
@@ -138,40 +138,93 @@ export default function ResponseTracking({
                 },
             )
             .catch(() => {
-                if (!cancelled) {
-                    setRouteFailed(true);
-                }
+                // Keep null to fall back to straight line
             });
 
         return () => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [incident.latitude, incident.longitude]);
+    }, [incident?.latitude, incident?.longitude]);
+
+    if (!incident || !routeSummary || !incidentPosition || !midpoint) {
+        return (
+            <PortalLayout
+                title="Route to Incident — Dispatch View"
+                subtitle="Live response tracking and road routing for active dispatches"
+            >
+                <div className="flex h-[calc(100vh-140px)] min-h-[580px] items-center justify-center">
+                    <PortalCard className="flex max-w-md flex-col items-center justify-center p-8 text-center">
+                        <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-orange-50 text-brand-orange">
+                            <Navigation className="size-7" />
+                        </div>
+                        <h2 className="text-base font-bold text-brand-navy">
+                            No Active Dispatches
+                        </h2>
+                        <p className="mt-2 text-xs leading-relaxed text-brand-muted">
+                            There are currently no fire incidents in dispatched status. Live road routing and response tracking activate automatically once a response unit is dispatched.
+                        </p>
+                        <div className="mt-6 flex items-center gap-3">
+                            <Link
+                                href="/incidents"
+                                className="inline-flex items-center gap-2 rounded-lg bg-[#E63946] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#d62828] transition-colors"
+                            >
+                                View Incidents
+                            </Link>
+                            <Link
+                                href="/map"
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-brand-navy shadow-sm hover:bg-gray-50 transition-colors"
+                            >
+                                Open Incident Map
+                            </Link>
+                        </div>
+                    </PortalCard>
+                </div>
+            </PortalLayout>
+        );
+    }
 
     const displayDistanceKm = roadRoute?.distanceKm ?? routeSummary.distanceKm;
     const displayEtaMinutes = roadRoute?.etaMinutes ?? routeSummary.etaMinutes;
 
-    const handleDispatch = () => {
-        setDispatched(true);
-        setDispatchedAt(
-            new Date().toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-            }),
-        );
-    };
-
     return (
         <PortalLayout
             title="Route to Incident — Dispatch View"
-            subtitle="Dijkstra-computed shortest path from BFP Lian Station to incident location"
+            subtitle="Shortest path from BFP Lian Station to incident location"
         >
-            <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
-                {/* Left column */}
-                <div className="space-y-4">
+            <div className="grid h-[calc(100vh-140px)] min-h-[580px] gap-4 lg:grid-cols-[360px_1fr]">
+                {/* Left column: Actionable incident & route cards */}
+                <div className="flex flex-col gap-4 overflow-y-auto pr-1">
                     <PortalCard className="p-4">
+                        {dispatchedIncidents.length > 1 && (
+                            <div className="mb-3 border-b border-gray-100 pb-3">
+                                <label
+                                    htmlFor="select-dispatch-incident"
+                                    className="mb-1 block text-[11px] font-bold tracking-wider text-brand-muted uppercase"
+                                >
+                                    Active Dispatches ({dispatchedIncidents.length})
+                                </label>
+                                <select
+                                    id="select-dispatch-incident"
+                                    value={incident.id}
+                                    onChange={(e) => {
+                                        router.get(
+                                            '/response',
+                                            { incident: e.target.value },
+                                            { preserveState: true, replace: true },
+                                        );
+                                    }}
+                                    className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-brand-navy focus:border-brand-navy focus:outline-none"
+                                >
+                                    {dispatchedIncidents.map((d) => (
+                                        <option key={d.id} value={d.id}>
+                                            {d.reference} — {d.barangay} ({d.type})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         <div className="mb-3 flex items-center gap-3">
                             <div className="flex size-9 flex-shrink-0 items-center justify-center rounded-lg bg-orange-100">
                                 <AlertTriangle
@@ -227,7 +280,7 @@ export default function ResponseTracking({
                         <h3 className="mb-3 text-xs font-bold tracking-wider text-brand-muted uppercase">
                             Route Summary
                         </h3>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-3 gap-2.5">
                             {(
                                 [
                                     [
@@ -236,14 +289,13 @@ export default function ResponseTracking({
                                     ],
                                     ['Est. Time', `${displayEtaMinutes} min`],
                                     ['Route Type', routeSummary.routeType],
-                                    ['Algorithm', routeSummary.algorithm],
                                 ] as const
                             ).map(([label, value]) => (
                                 <div
                                     key={label}
-                                    className="rounded-lg bg-gray-50 px-3 py-2.5"
+                                    className="rounded-lg bg-gray-50 px-2.5 py-2"
                                 >
-                                    <p className="text-xs text-brand-muted">
+                                    <p className="text-[11px] text-brand-muted">
                                         {label}
                                     </p>
                                     <p className="font-mono text-sm font-bold text-brand-navy">
@@ -252,80 +304,48 @@ export default function ResponseTracking({
                                 </div>
                             ))}
                         </div>
-                        <p className="mt-2 text-[11px] text-brand-muted">
-                            {roadRoute
-                                ? 'Distance & time via OpenStreetMap road routing.'
-                                : routeFailed
-                                  ? 'Road routing unavailable — showing straight-line estimate.'
-                                  : 'Loading road route…'}
-                        </p>
                     </PortalCard>
 
                     <PortalCard className="p-4">
                         <h3 className="mb-3 text-xs font-bold tracking-wider text-brand-muted uppercase">
-                            Turn-by-Turn Directions
+                            Station & Target
                         </h3>
-                        <ol className="space-y-3">
-                            {directions.map((step, i) => {
-                                const isFirst = i === 0;
-                                const isLast = i === directions.length - 1;
-
-                                return (
-                                    <li
-                                        key={step}
-                                        className="flex items-start gap-3"
-                                    >
-                                        <span
-                                            className="flex size-5 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                                            style={{
-                                                background: isLast
-                                                    ? '#E63946'
-                                                    : isFirst
-                                                      ? '#2A9D8F'
-                                                      : '#457B9D',
-                                            }}
-                                        >
-                                            {i + 1}
-                                        </span>
-                                        <span className="text-xs text-brand-navy">
-                                            {step}
-                                        </span>
-                                    </li>
-                                );
-                            })}
-                        </ol>
-                    </PortalCard>
-
-                    {dispatched ? (
-                        <div className="flex flex-col items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4 text-center">
-                            <CheckCircle2
-                                size={20}
-                                className="text-emerald-600"
-                            />
-                            <p className="text-sm font-bold text-emerald-700">
-                                Unit Dispatched
-                            </p>
-                            <p className="text-xs text-emerald-700/80">
-                                En route at {dispatchedAt} — ETA{' '}
-                                {displayEtaMinutes} min
-                            </p>
+                        <div className="space-y-3 text-xs">
+                            <div className="flex items-start gap-2.5">
+                                <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#1D3557] text-[10px] font-bold text-white">
+                                    S
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-brand-navy">
+                                        {station.name}
+                                    </p>
+                                    <p className="text-[11px] text-brand-muted">
+                                        Poblacion, Lian, Batangas
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-2.5">
+                                <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#E63946] text-[10px] font-bold text-white">
+                                    !
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-brand-navy">
+                                        Incident in {incident.barangay}
+                                    </p>
+                                    <p className="font-mono text-[11px] text-brand-muted">
+                                        {incident.latitude.toFixed(5)},{' '}
+                                        {incident.longitude.toFixed(5)}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    ) : (
-                        <button
-                            onClick={handleDispatch}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90"
-                            style={{ background: '#1D3557' }}
-                        >
-                            <Truck size={16} />
-                            Dispatch Unit
-                        </button>
-                    )}
+                    </PortalCard>
                 </div>
 
-                {/* Route map */}
-                <PortalCard className="flex flex-col overflow-hidden">
+                {/* Route map: Expands to maximize available space */}
+                <PortalCard className="flex h-full flex-col overflow-hidden">
                     <div
-                        className="border-b px-4 py-3"
+                        className="shrink-0 border-b px-4 py-3"
                         style={{ borderColor: 'rgba(43,45,66,0.08)' }}
                     >
                         <h2 className="text-sm font-bold text-brand-navy">
@@ -333,7 +353,7 @@ export default function ResponseTracking({
                             {incident.barangay}
                         </h2>
                     </div>
-                    <div className="relative flex-1" style={{ minHeight: 520 }}>
+                    <div className="relative flex-1 w-full h-full min-h-[460px]">
                         <MapContainer
                             bounds={[LIAN_CENTER, incidentPosition]}
                             boundsOptions={{ padding: [60, 60] }}
@@ -366,7 +386,7 @@ export default function ResponseTracking({
                             <Marker position={LIAN_CENTER} icon={stationIcon} />
                             <Marker
                                 position={incidentPosition}
-                                icon={incidentIcon(dispatched)}
+                                icon={incidentIcon()}
                             />
                         </MapContainer>
 

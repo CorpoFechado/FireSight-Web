@@ -133,7 +133,14 @@ class MapController extends ApiController
                 DB::raw('COALESCE(i.incident_datetime, r.created_at) AS data_time'),
                 'i.cause_of_fire',
                 'i.casualties',
-                'i.notes',
+                'i.time_fire_started',
+                'i.time_fire_out',
+                'i.establishment_name',
+                'i.owner_name',
+                'i.occupant_name',
+                'i.injuries',
+                'i.fatalities',
+                'i.estimated_damage',
             ]);
 
         if ($status && in_array($status, ['accepted', 'dispatched', 'resolved'], true)) {
@@ -164,9 +171,16 @@ class MapController extends ApiController
                 'incident_type' => $row->incident_type,
                 'alarm_level' => $row->alarm_level,
                 'data_time' => (string) $row->data_time,
+                'time_fire_started' => $row->time_fire_started ? (string) $row->time_fire_started : null,
+                'time_fire_out' => $row->time_fire_out ? (string) $row->time_fire_out : null,
+                'establishment_name' => $row->establishment_name,
+                'owner_name' => $row->owner_name,
+                'occupant_name' => $row->occupant_name,
                 'cause_of_fire' => $row->cause_of_fire,
                 'casualties' => $row->casualties !== null ? (int) $row->casualties : null,
-                'notes' => $row->notes,
+                'injuries' => $row->injuries !== null ? (int) $row->injuries : null,
+                'fatalities' => $row->fatalities !== null ? (int) $row->fatalities : null,
+                'estimated_damage' => $row->estimated_damage !== null ? (float) $row->estimated_damage : null,
             ];
         });
 

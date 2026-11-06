@@ -168,6 +168,9 @@ class ApiController extends Controller
         $injuries = isset($row['injuries']) ? $row['injuries'] : ($row->injuries ?? null);
         $fatalities = isset($row['fatalities']) ? $row['fatalities'] : ($row->fatalities ?? null);
         $casualties = isset($row['casualties']) ? $row['casualties'] : ($row->casualties ?? (($injuries ?? 0) + ($fatalities ?? 0)));
+        $estimatedDamage = isset($row['estimated_damage']) && $row['estimated_damage'] !== null && $row['estimated_damage'] !== ''
+            ? (float) $row['estimated_damage']
+            : (isset($row->estimated_damage) && $row->estimated_damage !== null && $row->estimated_damage !== '' ? (float) $row->estimated_damage : null);
 
         $timeFireStarted = $row['time_fire_started'] ?? ($row->time_fire_started ?? null);
         if ($timeFireStarted instanceof \DateTimeInterface) {
@@ -202,6 +205,7 @@ class ApiController extends Controller
             'casualties' => $casualties !== null ? (int) $casualties : null,
             'injuries' => $injuries !== null ? (int) $injuries : 0,
             'fatalities' => $fatalities !== null ? (int) $fatalities : 0,
+            'estimated_damage' => $estimatedDamage,
             'establishment_name' => $row['establishment_name'] ?? $row->establishment_name ?? null,
             'owner_name' => $row['owner_name'] ?? $row->owner_name ?? null,
             'occupant_name' => $row['occupant_name'] ?? $row->occupant_name ?? null,

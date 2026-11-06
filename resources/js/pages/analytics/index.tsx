@@ -375,7 +375,8 @@ export default function Analytics({
                                         tick={{ fontSize: 11, fill: '#6B7A8D' }}
                                         axisLine={false}
                                         tickLine={false}
-                                        width={28}
+                                        width={38}
+                                        tickMargin={6}
                                     />
                                     <Tooltip
                                         contentStyle={{
@@ -539,7 +540,8 @@ export default function Analytics({
                                             }}
                                             axisLine={false}
                                             tickLine={false}
-                                            width={28}
+                                            width={38}
+                                            tickMargin={6}
                                         />
                                         <Tooltip
                                             contentStyle={{
