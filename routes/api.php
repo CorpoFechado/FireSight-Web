@@ -31,6 +31,9 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('api.v1.auth.verify_otp');
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('api.v1.auth.reset_password');
         Route::post('/google-login', [AuthController::class, 'googleLogin'])->name('api.v1.auth.google_login');
+        Route::post('/resend-verification', [AuthController::class, 'resendVerification'])->name('api.v1.auth.resend_verification');
+        Route::get('/verification-status', [AuthController::class, 'verificationStatus'])->name('api.v1.auth.verification_status');
+        Route::post('/cancel-registration', [AuthController::class, 'cancelRegistration'])->name('api.v1.auth.cancel_registration');
 
         Route::middleware('auth.mobile')->group(function (): void {
             Route::post('/logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
@@ -43,6 +46,9 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/verify_otp.php', [AuthController::class, 'verifyOtp']);
         Route::post('/reset_password.php', [AuthController::class, 'resetPassword']);
         Route::post('/google_login.php', [AuthController::class, 'googleLogin']);
+        Route::post('/resend_verification.php', [AuthController::class, 'resendVerification']);
+        Route::get('/verification_status.php', [AuthController::class, 'verificationStatus']);
+        Route::post('/cancel_registration.php', [AuthController::class, 'cancelRegistration']);
         Route::post('/logout.php', [AuthController::class, 'logout'])->middleware('auth.mobile');
     });
 
@@ -163,6 +169,12 @@ Route::prefix('auth')->group(function (): void {
     Route::post('/reset_password.php', [AuthController::class, 'resetPassword']);
     Route::post('/google-login', [AuthController::class, 'googleLogin']);
     Route::post('/google_login.php', [AuthController::class, 'googleLogin']);
+    Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
+    Route::post('/resend_verification.php', [AuthController::class, 'resendVerification']);
+    Route::get('/verification-status', [AuthController::class, 'verificationStatus']);
+    Route::get('/verification_status.php', [AuthController::class, 'verificationStatus']);
+    Route::post('/cancel-registration', [AuthController::class, 'cancelRegistration']);
+    Route::post('/cancel_registration.php', [AuthController::class, 'cancelRegistration']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth.mobile');
     Route::post('/logout.php', [AuthController::class, 'logout'])->middleware('auth.mobile');
 });

@@ -46,7 +46,7 @@ use Laravel\Passkeys\Passkeys;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['role', 'status', 'first_name', 'middle_name', 'last_name', 'suffix', 'name', 'email', 'contact_number', 'username', 'password', 'password_changed_at', 'details_updated_at', 'suspended_at', 'suspension_reason', 'google_id', 'profile_image', 'is_verified'])]
+#[Fillable(['role', 'status', 'first_name', 'middle_name', 'last_name', 'suffix', 'name', 'email', 'contact_number', 'username', 'password', 'password_changed_at', 'details_updated_at', 'suspended_at', 'suspension_reason', 'google_id', 'profile_image', 'is_verified', 'email_verified_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -79,6 +79,7 @@ class User extends Authenticatable implements PasskeyUser
     protected function casts(): array
     {
         return [
+            'is_verified' => 'boolean',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'password_changed_at' => 'datetime',

@@ -5,6 +5,7 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BarangayContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DutyScheduleController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\FireEducationController;
 use App\Http\Controllers\FireMapController;
 use App\Http\Controllers\IncidentActionController;
@@ -21,6 +22,11 @@ use Inertia\Response;
 Route::get('/', function (): Response {
     return Inertia::render('welcome');
 })->name('home');
+
+Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->name('firesight.verify_email');
+Route::get('/verify-registration/{token}', [EmailVerificationController::class, 'verifyRegistration'])
+    ->name('firesight.verify_registration');
 
 Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

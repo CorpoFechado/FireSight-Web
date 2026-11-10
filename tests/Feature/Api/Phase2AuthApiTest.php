@@ -1,5 +1,6 @@
 <?php
 
+use App\Mail\VerifyEmailMail;
 use App\Models\AuthToken;
 use App\Models\Barangay;
 use App\Models\ResidentAddress;
@@ -7,6 +8,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 uses(RefreshDatabase::class);
 
@@ -87,7 +90,7 @@ test('login succeeds with mobile number lookup', function (): void {
         'email' => 'maria@example.com',
         'contact_number' => '0918-123-4567',
         'password' => Hash::make('secretpass123'),
-        'is_verified' => false,
+        'is_verified' => true,
     ]);
 
     $response = $this->postJson('/api/v1/auth/login', [
@@ -127,6 +130,7 @@ test('login fails for suspended user returning 403', function (): void {
         'last_name' => 'User',
         'email' => 'banned@example.com',
         'password' => Hash::make('password123'),
+        'is_verified' => true,
     ]);
 
     $response = $this->postJson('/api/v1/auth/login', [
@@ -138,7 +142,9 @@ test('login fails for suspended user returning 403', function (): void {
         ->assertJson(['message' => 'This account has been suspended. Please contact BFP Lian.']);
 });
 
-test('register creates user address and token returning 201', function (): void {
+test('register stores pending registration in cache and sends verification email without creating database record', function (): void {
+    Mail::fake();
+
     $payload = [
         'first_name' => 'Pedro',
         'middle_name' => 'Cruz',
@@ -155,32 +161,48 @@ test('register creates user address and token returning 201', function (): void 
 
     $response = $this->postJson('/api/v1/auth/register', $payload);
 
-    $response->assertStatus(201)
-        ->assertJsonStructure([
-            'token',
-            'user' => [
-                'user_id',
-                'first_name',
-                'last_name',
-                'email',
-                'address' => [
-                    'house_no_street',
-                    'barangay_id',
-                    'barangay_name',
-                ],
-            ],
+    $response->assertStatus(200)
+        ->assertJson([
+            'pending' => true,
+            'requires_verification' => true,
+            'email' => 'pedro@example.com',
         ]);
 
-    $this->assertDatabaseHas('users', [
+    Mail::assertSent(VerifyEmailMail::class);
+
+    // Crucial requirement: No records exist in database until email is verified
+    $this->assertDatabaseMissing('users', [
         'email' => 'pedro@example.com',
-        'first_name' => 'Pedro',
-        'role' => 'resident',
-        'status' => 'active',
     ]);
 
-    $this->assertDatabaseHas('resident_address', [
+    $this->assertDatabaseMissing('resident_address', [
         'house_no_street' => 'Block 5 Lot 2',
+    ]);
+});
+
+test('cancelling registration clears pending cache without touching database', function (): void {
+    $payload = [
+        'first_name' => 'Pedro',
+        'last_name' => 'Penduko',
+        'mobile_number' => '09201234567',
         'barangay_id' => 1,
+        'municipality' => 'Lian',
+        'province' => 'Batangas',
+        'email' => 'pedrocancel@example.com',
+        'password' => 'password123',
+    ];
+
+    $this->postJson('/api/v1/auth/register', $payload)->assertStatus(200);
+
+    $response = $this->postJson('/api/v1/auth/cancel-registration', [
+        'email' => 'pedrocancel@example.com',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJson(['message' => 'Pending registration cancelled successfully.']);
+
+    $this->assertDatabaseMissing('users', [
+        'email' => 'pedrocancel@example.com',
     ]);
 });
 
@@ -322,6 +344,7 @@ test('legacy .php endpoints work for backwards compatibility', function (): void
         'last_name' => 'Tester',
         'email' => 'legacy@example.com',
         'password' => Hash::make('password123'),
+        'is_verified' => true,
     ]);
 
     $response = $this->postJson('/api/auth/login.php', [
@@ -426,4 +449,136 @@ test('legacy .php endpoints support full OTP forgot password flow', function ():
 
     $user->refresh();
     expect(Hash::check('newlegacypass456', $user->password))->toBeTrue();
+});
+
+test('email verification web link verifies user and activates account', function (): void {
+    Mail::fake();
+
+    $user = User::create([
+        'role' => User::ROLE_RESIDENT,
+        'status' => User::STATUS_ACTIVE,
+        'first_name' => 'Verify',
+        'last_name' => 'Me',
+        'email' => 'verifyme@example.com',
+        'password' => Hash::make('password123'),
+        'is_verified' => false,
+        'email_verified_at' => null,
+    ]);
+
+    // Resend verification
+    $resendRes = $this->postJson('/api/v1/auth/resend-verification', [
+        'email' => 'verifyme@example.com',
+    ]);
+    $resendRes->assertStatus(200);
+
+    Mail::assertSent(VerifyEmailMail::class);
+
+    // Initial status should be unverified
+    $statusRes = $this->getJson('/api/v1/auth/verification-status?email=verifyme@example.com');
+    $statusRes->assertStatus(200)
+        ->assertJsonPath('is_verified', false)
+        ->assertJsonPath('email_verified_at', null);
+
+    // Click signed verification URL
+    $signedUrl = URL::temporarySignedRoute(
+        'firesight.verify_email',
+        now()->addMinutes(60),
+        [
+            'id' => $user->user_id,
+            'hash' => sha1($user->getEmailForVerification()),
+        ]
+    );
+
+    $webRes = $this->get($signedUrl);
+    $webRes->assertStatus(200)
+        ->assertSee('Email Verified Successfully');
+
+    $user->refresh();
+    expect($user->is_verified)->toBeTrue()
+        ->and($user->email_verified_at)->not->toBeNull();
+
+    // Verification status endpoint now reflects verified state
+    $statusRes2 = $this->getJson('/api/v1/auth/verification-status?email=verifyme@example.com');
+    $statusRes2->assertStatus(200)
+        ->assertJsonPath('is_verified', true);
+});
+
+test('verify-registration signed route creates user and address atomically from cache', function (): void {
+    Mail::fake();
+
+    $payload = [
+        'first_name' => 'Ana',
+        'middle_name' => 'Santos',
+        'last_name' => 'Reyes',
+        'suffix' => null,
+        'mobile_number' => '09181234567',
+        'house_no_street' => 'Unit 402 Sunshine Bldg',
+        'barangay_id' => 1,
+        'municipality' => 'Lian',
+        'province' => 'Batangas',
+        'email' => 'anareyes@example.com',
+        'password' => 'password123',
+    ];
+
+    $regRes = $this->postJson('/api/v1/auth/register', $payload);
+    $regRes->assertStatus(200);
+
+    // Database still has NO user
+    $this->assertDatabaseMissing('users', ['email' => 'anareyes@example.com']);
+
+    // Capture sent mail verification URL
+    $sentMail = null;
+    Mail::assertSent(VerifyEmailMail::class, function ($mail) use (&$sentMail) {
+        $sentMail = $mail;
+
+        return true;
+    });
+
+    expect($sentMail)->not->toBeNull();
+    $verificationUrl = $sentMail->verificationUrl;
+    expect($verificationUrl)->toContain('/verify-registration/');
+
+    // User visits signed verification link
+    $verifyRes = $this->get($verificationUrl);
+    $verifyRes->assertStatus(200)
+        ->assertSee('Email Verified Successfully');
+
+    // Database NOW contains the user and resident address atomically
+    $user = User::where('email', 'anareyes@example.com')->first();
+    expect($user)->not->toBeNull()
+        ->and($user->is_verified)->toBeTrue()
+        ->and($user->first_name)->toBe('Ana')
+        ->and($user->email_verified_at)->not->toBeNull();
+
+    $this->assertDatabaseHas('resident_address', [
+        'user_id' => $user->user_id,
+        'house_no_street' => 'Unit 402 Sunshine Bldg',
+        'barangay_id' => 1,
+    ]);
+
+    // Pending cache key has been cleaned up
+    expect(\Illuminate\Support\Facades\Cache::has('pending_reg_email:'.md5('anareyes@example.com')))->toBeFalse();
+});
+
+test('login is blocked with 403 when resident email is unverified', function (): void {
+    User::create([
+        'role' => User::ROLE_RESIDENT,
+        'status' => User::STATUS_ACTIVE,
+        'first_name' => 'Unverified',
+        'last_name' => 'Resident',
+        'email' => 'unverified@example.com',
+        'password' => Hash::make('password123'),
+        'is_verified' => false,
+        'email_verified_at' => null,
+    ]);
+
+    $response = $this->postJson('/api/v1/auth/login', [
+        'email' => 'unverified@example.com',
+        'password' => 'password123',
+    ]);
+
+    $response->assertStatus(403)
+        ->assertJson([
+            'requires_verification' => true,
+        ]);
 });

@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Mail\PasswordResetOtpMail;
+use App\Mail\VerifyEmailMail;
 use App\Models\AuthToken;
 use App\Models\Barangay;
 use App\Models\ResidentAddress;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class AuthController extends ApiController
 {
@@ -51,6 +54,15 @@ class AuthController extends ApiController
 
         if (! $user || ! $user->password || ! Hash::check($password, $user->password)) {
             return $this->sendError('Incorrect credentials. Please check your email or mobile number.', 401);
+        }
+
+        if ($user->role === User::ROLE_RESIDENT && ! $user->is_verified && ! $user->email_verified_at) {
+            return response()->json([
+                'success' => false,
+                'requires_verification' => true,
+                'message' => 'Please verify your email address to activate your account. We sent a verification link to your email.',
+                'email' => $user->email,
+            ], 403);
         }
 
         if ($user->status === User::STATUS_INACTIVE) {
@@ -199,6 +211,48 @@ class AuthController extends ApiController
             return $this->sendError('Please select a valid barangay.', 422);
         }
 
+        if (! $isGoogle) {
+            $regToken = bin2hex(random_bytes(32));
+            $cacheKey = 'pending_reg:'.$regToken;
+            $emailCacheKey = 'pending_reg_email:'.md5($email);
+
+            $registrationData = [
+                'first_name' => $firstName,
+                'middle_name' => $middleName ?: null,
+                'last_name' => $lastName,
+                'suffix' => $suffix ?: null,
+                'contact_number' => $mobileNumber,
+                'house_no_street' => $houseNoStreet ?: null,
+                'barangay_id' => $barangayId,
+                'municipality' => $municipality,
+                'province' => $province,
+                'email' => $email,
+                'password' => Hash::make($password),
+            ];
+
+            Cache::put($cacheKey, $registrationData, now()->addMinutes(60));
+            Cache::put($emailCacheKey, $regToken, now()->addMinutes(60));
+
+            try {
+                $verificationUrl = URL::temporarySignedRoute(
+                    'firesight.verify_registration',
+                    now()->addMinutes(60),
+                    ['token' => $regToken]
+                );
+                Mail::to($email)->send(new VerifyEmailMail($firstName, $verificationUrl));
+            } catch (\Throwable $e) {
+                Log::error('[Register] Failed sending verification email: '.$e->getMessage());
+            }
+
+            return $this->sendSuccess([
+                'pending' => true,
+                'requires_verification' => true,
+                'email' => $email,
+                'message' => 'Please verify your email address. A verification link has been sent to your inbox.',
+            ], 200);
+        }
+
+        // Google sign-up: immediate insertion since Google already verifies ownership
         DB::beginTransaction();
         try {
             $user = User::create([
@@ -212,8 +266,8 @@ class AuthController extends ApiController
                 'email' => $email,
                 'password' => $password ? Hash::make($password) : null,
                 'google_id' => $googleId ?: null,
-                'is_verified' => $isGoogle,
-                'email_verified_at' => $isGoogle ? now() : null,
+                'is_verified' => true,
+                'email_verified_at' => now(),
             ]);
 
             ResidentAddress::create([
@@ -238,12 +292,13 @@ class AuthController extends ApiController
             return $this->sendSuccess([
                 'token' => $token,
                 'user' => $this->formatUserWithAddress($user),
+                'requires_verification' => false,
             ], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('API Registration error: '.$e->getMessage());
 
-            return $this->sendError('Unable to create your account right now. Please try again.', 500);
+            return $this->sendError('Unable to complete your registration right now. Please try again.', 500);
         }
     }
 
@@ -556,6 +611,137 @@ class AuthController extends ApiController
             'is_new_user' => true,
             'requires_completion' => true,
             'google_user' => $googleUser,
+        ]);
+    }
+
+    /**
+     * Resend verification email link to the resident.
+     * Supports both pending registrations in cache and unverified records in DB.
+     */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        if (empty($email) && $request->bearerToken()) {
+            $at = AuthToken::where('token', $request->bearerToken())->first();
+            $u = $at ? User::find($at->user_id) : null;
+            $email = $u?->email ?? '';
+        }
+
+        if (empty($email)) {
+            return $this->sendError('Please provide your email address.', 422);
+        }
+
+        // 1. If user already exists in DB:
+        $existing = User::where('email', $email)->first();
+        if ($existing) {
+            if ($existing->hasVerifiedEmail() || $existing->is_verified) {
+                return $this->sendSuccess([
+                    'already_verified' => true,
+                    'message' => 'Your email has already been verified.',
+                ]);
+            }
+
+            try {
+                $verificationUrl = URL::temporarySignedRoute(
+                    'firesight.verify_email',
+                    now()->addMinutes(60),
+                    [
+                        'id' => $existing->user_id,
+                        'hash' => sha1($existing->getEmailForVerification()),
+                    ]
+                );
+
+                Mail::to($existing->email)->send(new VerifyEmailMail($existing->first_name, $verificationUrl, $existing));
+            } catch (\Throwable $e) {
+                Log::error('[ResendVerification] Failed sending email to '.$existing->email.': '.$e->getMessage());
+
+                return $this->sendError('Unable to send verification email right now. Please try again later.', 500);
+            }
+
+            return $this->sendSuccess([
+                'message' => 'A new verification link has been sent to your email.',
+            ]);
+        }
+
+        // 2. Pending registration in Cache:
+        $token = Cache::get('pending_reg_email:'.md5($email));
+        $data = $token ? Cache::get('pending_reg:'.$token) : null;
+
+        if (! $data) {
+            return $this->sendError('Registration session expired or not found. Please register again.', 404);
+        }
+
+        try {
+            $verificationUrl = URL::temporarySignedRoute(
+                'firesight.verify_registration',
+                now()->addMinutes(60),
+                ['token' => $token]
+            );
+
+            Mail::to($email)->send(new VerifyEmailMail($data['first_name'], $verificationUrl));
+        } catch (\Throwable $e) {
+            Log::error('[ResendVerification] Failed sending email to '.$email.': '.$e->getMessage());
+
+            return $this->sendError('Unable to send verification email right now. Please try again later.', 500);
+        }
+
+        return $this->sendSuccess([
+            'message' => 'A new verification link has been sent to your email.',
+        ]);
+    }
+
+    /**
+     * Check if the email has completed verification.
+     */
+    public function verificationStatus(Request $request): JsonResponse
+    {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        if (empty($email) && $request->bearerToken()) {
+            $at = AuthToken::where('token', $request->bearerToken())->first();
+            $u = $at ? User::find($at->user_id) : null;
+            $email = $u?->email ?? '';
+        }
+
+        if (empty($email)) {
+            return $this->sendError('Email address is required.', 422);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if ($user && ($user->is_verified || $user->hasVerifiedEmail())) {
+            return $this->sendSuccess([
+                'is_verified' => true,
+                'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+                'user' => $this->formatUserWithAddress($user),
+            ]);
+        }
+
+        return $this->sendSuccess([
+            'is_verified' => false,
+            'email_verified_at' => null,
+            'user' => null,
+        ]);
+    }
+
+    /**
+     * Cancel pending registration and remove from cache.
+     */
+    public function cancelRegistration(Request $request): JsonResponse
+    {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        if ($email) {
+            $token = Cache::get('pending_reg_email:'.md5($email));
+            if ($token) {
+                Cache::forget('pending_reg:'.$token);
+            }
+            Cache::forget('pending_reg_email:'.md5($email));
+
+            // Also clean up if an unverified user row was left in DB
+            User::where('email', $email)->where('is_verified', false)->delete();
+        }
+
+        return $this->sendSuccess([
+            'message' => 'Pending registration cancelled successfully.',
         ]);
     }
 }
