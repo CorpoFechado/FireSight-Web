@@ -21,7 +21,6 @@ class DashboardController extends ApiController
         }
 
         $activeIncidents = CommunityReport::whereIn('status', [
-            CommunityReport::STATUS_PENDING,
             CommunityReport::STATUS_ACCEPTED,
             CommunityReport::STATUS_DISPATCHED,
         ])->count();

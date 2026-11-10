@@ -39,4 +39,8 @@ return [
         'url' => env('FIRE_VERIFICATION_URL', 'http://127.0.0.1:8001/predict'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+    ],
+
 ];

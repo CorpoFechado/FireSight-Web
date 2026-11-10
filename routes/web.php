@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\AlarmLevel;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BarangayContactController;

@@ -307,11 +307,11 @@ test('reset password updates user password and revokes all auth tokens', functio
     $this->assertDatabaseMissing('auth_token', ['user_id' => $user->user_id]);
 });
 
-test('google login returns 501 not implemented', function (): void {
+test('google login validates required token and user parameters', function (): void {
     $response = $this->postJson('/api/v1/auth/google-login');
 
-    $response->assertStatus(501)
-        ->assertJson(['message' => 'Google Sign-In is not yet configured on this server.']);
+    $response->assertStatus(422)
+        ->assertJson(['message' => 'Google token or user information is required.']);
 });
 
 test('legacy .php endpoints work for backwards compatibility', function (): void {

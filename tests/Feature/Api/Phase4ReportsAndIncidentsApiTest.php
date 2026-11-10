@@ -497,6 +497,17 @@ test('bfp dashboard analytics returns aggregated incident metrics', function ():
         'created_at' => now(),
     ]);
 
+    // Accepted incident (verified, awaiting dispatch)
+    CommunityReport::create([
+        'user_id' => $bfp->user_id,
+        'reporter_name' => 'Reporter',
+        'contact_number' => '09171234567',
+        'latitude' => 14.0392,
+        'longitude' => 120.6389,
+        'status' => 'accepted',
+        'created_at' => now(),
+    ]);
+
     // Dispatched incident
     CommunityReport::create([
         'user_id' => $bfp->user_id,

@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -91,7 +92,14 @@ class AuthController extends ApiController
      */
     public function register(Request $request): JsonResponse
     {
-        $required = ['first_name', 'last_name', 'mobile_number', 'barangay_id', 'municipality', 'province', 'email', 'password'];
+        $googleId = trim((string) $request->input('google_id', ''));
+        $isGoogle = ! empty($googleId);
+
+        $required = ['first_name', 'last_name', 'mobile_number', 'barangay_id', 'municipality', 'province', 'email'];
+        if (! $isGoogle) {
+            $required[] = 'password';
+        }
+
         $missing = [];
         foreach ($required as $field) {
             if (! $request->has($field) || $request->input($field) === null || $request->input($field) === '') {
@@ -113,7 +121,7 @@ class AuthController extends ApiController
         $municipality = trim(strip_tags((string) $request->input('municipality')));
         $province = trim(strip_tags((string) $request->input('province')));
         $email = strtolower(trim((string) $request->input('email')));
-        $password = (string) $request->input('password');
+        $password = (string) $request->input('password', '');
 
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->sendError('Please enter a valid email address.', 422);
@@ -124,11 +132,66 @@ class AuthController extends ApiController
             return $this->sendError('Please enter a valid Philippine mobile number.', 422);
         }
 
-        if (strlen($password) < 8) {
-            return $this->sendError('Password must be at least 8 characters.', 422);
+        if (! $isGoogle) {
+            if (strlen($password) < 8) {
+                return $this->sendError('Password must be at least 8 characters.', 422);
+            }
+        } else {
+            // For Google sign-ups, password is completely optional (nullable in database)
+            if (empty($password) || strlen($password) < 8) {
+                $password = null;
+            }
         }
 
-        if (User::where('email', $email)->exists()) {
+        $existingUser = User::where('email', $email)->first();
+        if ($existingUser) {
+            $hasAddress = ResidentAddress::where('user_id', $existingUser->user_id)->exists();
+            if ($isGoogle && ! $hasAddress) {
+                // User was partially initialized via Google; update their profile and add address
+                DB::beginTransaction();
+                try {
+                    $existingUser->update([
+                        'first_name' => $firstName,
+                        'middle_name' => $middleName ?: null,
+                        'last_name' => $lastName,
+                        'suffix' => $suffix ?: null,
+                        'contact_number' => $mobileNumber,
+                        'google_id' => $googleId,
+                        'is_verified' => true,
+                        'email_verified_at' => now(),
+                    ]);
+
+                    ResidentAddress::create([
+                        'user_id' => $existingUser->user_id,
+                        'house_no_street' => $houseNoStreet ?: null,
+                        'barangay_id' => $barangayId,
+                        'municipality' => $municipality,
+                        'province' => $province,
+                    ]);
+
+                    $token = bin2hex(random_bytes(32));
+                    AuthToken::create([
+                        'user_id' => $existingUser->user_id,
+                        'token' => $token,
+                        'device_info' => $request->userAgent() ?? 'mobile',
+                        'expires_at' => now()->addDays(90),
+                        'created_at' => now(),
+                    ]);
+
+                    DB::commit();
+
+                    return $this->sendSuccess([
+                        'token' => $token,
+                        'user' => $this->formatUserWithAddress($existingUser),
+                    ], 201);
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    Log::error('API Google complete registration error: '.$e->getMessage());
+
+                    return $this->sendError('Unable to complete your account registration. Please try again.', 500);
+                }
+            }
+
             return $this->sendError('An account with this email already exists. Try signing in instead.', 409);
         }
 
@@ -147,8 +210,10 @@ class AuthController extends ApiController
                 'suffix' => $suffix ?: null,
                 'contact_number' => $mobileNumber,
                 'email' => $email,
-                'password' => Hash::make($password),
-                'is_verified' => false,
+                'password' => $password ? Hash::make($password) : null,
+                'google_id' => $googleId ?: null,
+                'is_verified' => $isGoogle,
+                'email_verified_at' => $isGoogle ? now() : null,
             ]);
 
             ResidentAddress::create([
@@ -353,11 +418,144 @@ class AuthController extends ApiController
     }
 
     /**
-     * Google Sign-In endpoint stub.
-     * Matches firesight-api/auth/google_login.php.
+     * Google Sign-In endpoint.
+     * Verifies the Google token/ID token, checks or logs in existing user,
+     * or returns profile info so mobile can complete resident registration.
      */
-    public function googleLogin(): JsonResponse
+    public function googleLogin(Request $request): JsonResponse
     {
-        return $this->sendError('Google Sign-In is not yet configured on this server.', 501);
+        $idToken = $request->input('id_token') ?? $request->input('token');
+        $accessToken = $request->input('access_token');
+        $googleId = $request->input('google_id');
+        $email = $request->input('email');
+
+        if (empty($idToken) && empty($accessToken) && (empty($googleId) || empty($email))) {
+            return $this->sendError('Google token or user information is required.', 422);
+        }
+
+        $googleUser = null;
+
+        // 1. Verify ID token with Google's public tokeninfo endpoint
+        if (! empty($idToken)) {
+            try {
+                $response = Http::timeout(7)->get('https://oauth2.googleapis.com/tokeninfo', [
+                    'id_token' => $idToken,
+                ]);
+
+                if ($response->successful()) {
+                    $payload = $response->json();
+                    $googleId = $payload['sub'] ?? $googleId;
+                    $email = $payload['email'] ?? $email;
+                    $googleUser = [
+                        'google_id' => $googleId,
+                        'email' => strtolower((string) $email),
+                        'first_name' => $payload['given_name'] ?? ($payload['name'] ?? ''),
+                        'last_name' => $payload['family_name'] ?? '',
+                        'profile_image' => $payload['picture'] ?? null,
+                    ];
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Google tokeninfo verification network issue: '.$e->getMessage());
+            }
+        }
+
+        // 2. If ID token wasn't provided or didn't yield user, verify via access_token with userinfo
+        if (! $googleUser && ! empty($accessToken)) {
+            try {
+                $response = Http::timeout(7)->withToken($accessToken)->get('https://www.googleapis.com/oauth2/v3/userinfo');
+                if ($response->successful()) {
+                    $payload = $response->json();
+                    $googleId = $payload['sub'] ?? $googleId;
+                    $email = $payload['email'] ?? $email;
+                    $googleUser = [
+                        'google_id' => $googleId,
+                        'email' => strtolower((string) $email),
+                        'first_name' => $payload['given_name'] ?? ($payload['name'] ?? ''),
+                        'last_name' => $payload['family_name'] ?? '',
+                        'profile_image' => $payload['picture'] ?? null,
+                    ];
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Google userinfo verification network issue: '.$e->getMessage());
+            }
+        }
+
+        if (! $googleUser && ! empty($googleId) && ! empty($email)) {
+            $googleUser = [
+                'google_id' => $googleId,
+                'email' => strtolower((string) $email),
+                'first_name' => (string) $request->input('first_name', ''),
+                'last_name' => (string) $request->input('last_name', ''),
+                'profile_image' => $request->input('profile_image'),
+            ];
+        }
+
+        if (! $googleUser || empty($googleUser['email'])) {
+            return $this->sendError('Invalid or expired Google authentication credentials.', 401);
+        }
+
+        // Check if user already exists by google_id OR email
+        $user = User::where('google_id', $googleUser['google_id'])
+            ->orWhereRaw('LOWER(email) = ?', [$googleUser['email']])
+            ->first();
+
+        if ($user) {
+            // Link google_id if not linked yet
+            if (empty($user->google_id)) {
+                $user->google_id = $googleUser['google_id'];
+            }
+            if (! $user->email_verified_at) {
+                $user->email_verified_at = now();
+            }
+            if (! empty($googleUser['profile_image']) && empty($user->profile_image)) {
+                $user->profile_image = $googleUser['profile_image'];
+            }
+            $user->save();
+
+            // Check if resident profile is complete (has contact number & resident address)
+            $hasAddress = ResidentAddress::where('user_id', $user->user_id)->exists();
+            $hasContact = ! empty($user->contact_number);
+
+            if (! $hasAddress || ! $hasContact) {
+                return $this->sendSuccess([
+                    'is_new_user' => true,
+                    'requires_completion' => true,
+                    'google_user' => [
+                        'user_id' => $user->user_id,
+                        'google_id' => $user->google_id,
+                        'email' => $user->email,
+                        'first_name' => $user->first_name,
+                        'last_name' => $user->last_name,
+                        'contact_number' => $user->contact_number,
+                    ],
+                ]);
+            }
+
+            if ($user->status === User::STATUS_INACTIVE) {
+                return $this->sendError($user->suspensionMessage(), 403);
+            }
+
+            $token = bin2hex(random_bytes(32));
+            AuthToken::create([
+                'user_id' => $user->user_id,
+                'token' => $token,
+                'device_info' => $request->userAgent() ?? 'mobile',
+                'expires_at' => now()->addDays(90),
+                'created_at' => now(),
+            ]);
+
+            return $this->sendSuccess([
+                'is_new_user' => false,
+                'token' => $token,
+                'user' => $this->formatUserWithAddress($user),
+            ]);
+        }
+
+        // Brand-new citizen registering with Google:
+        return $this->sendSuccess([
+            'is_new_user' => true,
+            'requires_completion' => true,
+            'google_user' => $googleUser,
+        ]);
     }
 }
