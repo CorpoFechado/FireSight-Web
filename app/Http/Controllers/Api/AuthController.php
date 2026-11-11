@@ -143,6 +143,12 @@ class AuthController extends ApiController
         if (! preg_match('/^(09\d{9}|639\d{9})$/', $mobileDigits)) {
             return $this->sendError('Please enter a valid Philippine mobile number.', 422);
         }
+        $mobileNumber = str_starts_with($mobileDigits, '63') ? '0'.substr($mobileDigits, 2) : $mobileDigits;
+
+        $existingPhone = User::where('contact_number', $mobileNumber)->first();
+        if ($existingPhone && (! $isGoogle || $existingPhone->email !== $email)) {
+            return $this->sendError('This mobile number is already registered to another account.', 409);
+        }
 
         if (! $isGoogle) {
             if (strlen($password) < 8) {
@@ -230,13 +236,13 @@ class AuthController extends ApiController
                 'password' => Hash::make($password),
             ];
 
-            Cache::put($cacheKey, $registrationData, now()->addMinutes(60));
-            Cache::put($emailCacheKey, $regToken, now()->addMinutes(60));
+            Cache::put($cacheKey, $registrationData, now()->addHours(4));
+            Cache::put($emailCacheKey, $regToken, now()->addHours(4));
 
             try {
                 $verificationUrl = URL::temporarySignedRoute(
                     'firesight.verify_registration',
-                    now()->addMinutes(60),
+                    now()->addHours(4),
                     ['token' => $regToken]
                 );
                 Mail::to($email)->send(new VerifyEmailMail($firstName, $verificationUrl));
@@ -644,7 +650,7 @@ class AuthController extends ApiController
             try {
                 $verificationUrl = URL::temporarySignedRoute(
                     'firesight.verify_email',
-                    now()->addMinutes(60),
+                    now()->addHours(4),
                     [
                         'id' => $existing->user_id,
                         'hash' => sha1($existing->getEmailForVerification()),
@@ -674,7 +680,7 @@ class AuthController extends ApiController
         try {
             $verificationUrl = URL::temporarySignedRoute(
                 'firesight.verify_registration',
-                now()->addMinutes(60),
+                now()->addHours(4),
                 ['token' => $token]
             );
 
@@ -721,6 +727,37 @@ class AuthController extends ApiController
             'email_verified_at' => null,
             'user' => null,
         ]);
+    }
+
+    /**
+     * Check if a mobile number is available for registration.
+     */
+    public function checkMobile(Request $request): JsonResponse
+    {
+        $mobileNumber = trim(strip_tags((string) $request->input('mobile_number', '')));
+        if (empty($mobileNumber)) {
+            return $this->sendError('Mobile number is required.', 422);
+        }
+
+        $mobileDigits = preg_replace('/\D/', '', $mobileNumber);
+        if (! preg_match('/^(09\d{9}|639\d{9})$/', $mobileDigits)) {
+            return $this->sendError('Please enter a valid Philippine mobile number.', 422);
+        }
+
+        $normalizedMobile = str_starts_with($mobileDigits, '63') ? '0'.substr($mobileDigits, 2) : $mobileDigits;
+
+        $exists = User::where('contact_number', $normalizedMobile)
+            ->orWhere('contact_number', $mobileNumber)
+            ->exists();
+
+        if ($exists) {
+            return $this->sendError('This mobile number is already registered to another account.', 409);
+        }
+
+        return $this->sendSuccess([
+            'available' => true,
+            'mobile_number' => $normalizedMobile,
+        ], 200);
     }
 
     /**

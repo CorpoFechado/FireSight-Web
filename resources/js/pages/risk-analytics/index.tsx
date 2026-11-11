@@ -157,10 +157,7 @@ export default function RiskAnalytics({
     const maxCount = Math.max(1, ...ranking.map((r) => r.incidentCount));
 
     return (
-        <PortalLayout
-            title="Fire-Prone Areas — Risk Analytics"
-            subtitle="Barangay-level risk assessment based on recorded incident history"
-        >
+        <PortalLayout title="Risk Analytics">
             <div className="space-y-4">
                 <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
                     {/* Heatmap */}

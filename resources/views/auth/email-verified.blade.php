@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email Verification - FireSight</title>
-  <link rel="icon" type="image/png" href="/favicon.png">
+  <title>Email Verification</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=3">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+  <link rel="icon" href="/favicon.ico?v=3" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
   <style>
     body {
       margin: 0;

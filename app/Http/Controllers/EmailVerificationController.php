@@ -33,7 +33,7 @@ class EmailVerificationController extends Controller
             return view('auth.email-verified', [
                 'status' => 'already_verified',
                 'message' => 'This registration has already been completed or expired. You can return to the FireSight mobile app to sign in.',
-                'deepLink' => 'firesightmobile://',
+                'deepLink' => 'firesightmobile://login',
             ]);
         }
 
@@ -45,7 +45,7 @@ class EmailVerificationController extends Controller
             return view('auth.email-verified', [
                 'status' => 'already_verified',
                 'message' => 'An account with this email already exists and is verified. You can return to the FireSight mobile app to sign in.',
-                'deepLink' => 'firesightmobile://',
+                'deepLink' => 'firesightmobile://login?email='.urlencode($data['email']).'&verified=1',
             ]);
         }
 
@@ -81,7 +81,7 @@ class EmailVerificationController extends Controller
             return view('auth.email-verified', [
                 'status' => 'success',
                 'message' => 'Your email has been verified and your FireSight account is now created! You can now sign in to the mobile app.',
-                'deepLink' => 'firesightmobile://',
+                'deepLink' => 'firesightmobile://login?email='.urlencode($data['email']).'&verified=1',
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -130,7 +130,7 @@ class EmailVerificationController extends Controller
             return view('auth.email-verified', [
                 'status' => 'already_verified',
                 'message' => 'Your email has already been verified! You can return to the FireSight mobile app.',
-                'deepLink' => 'firesightmobile://',
+                'deepLink' => 'firesightmobile://login?email='.urlencode($user->email).'&verified=1',
             ]);
         }
 
@@ -141,7 +141,7 @@ class EmailVerificationController extends Controller
         return view('auth.email-verified', [
             'status' => 'success',
             'message' => 'Your email has been successfully verified! Your FireSight account is now activated. You can return to the mobile app to continue.',
-            'deepLink' => 'firesightmobile://',
+            'deepLink' => 'firesightmobile://login?email='.urlencode($user->email).'&verified=1',
         ]);
     }
 }

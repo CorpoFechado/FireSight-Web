@@ -9,6 +9,7 @@ import {
     Polyline,
     ScaleControl,
     TileLayer,
+    useMap,
 } from 'react-leaflet';
 import { PortalCard } from '@/components/portal/portal-card';
 import { AlarmLevelBadge } from '@/components/portal/status-badge';
@@ -62,6 +63,48 @@ function incidentIcon() {
         iconSize: [26, 26],
         iconAnchor: [13, 13],
     });
+}
+
+/**
+ * Handles map container size invalidation when window is resized or minimized,
+ * and ensures bounds are fitted cleanly across all viewports.
+ */
+function MapResizeHandler({
+    bounds,
+}: {
+    bounds: [[number, number], [number, number]];
+}) {
+    const map = useMap();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            map.invalidateSize();
+            map.fitBounds(bounds, { padding: [40, 40] });
+        }, 250);
+
+        const handleResize = () => {
+            map.invalidateSize();
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        let observer: ResizeObserver | null = null;
+        const container = map.getContainer();
+        if (typeof ResizeObserver !== 'undefined' && container) {
+            observer = new ResizeObserver(() => {
+                map.invalidateSize();
+            });
+            observer.observe(container);
+        }
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', handleResize);
+            observer?.disconnect();
+        };
+    }, [map, bounds]);
+
+    return null;
 }
 
 export default function ResponseTracking({
@@ -149,12 +192,9 @@ export default function ResponseTracking({
 
     if (!incident || !routeSummary || !incidentPosition || !midpoint) {
         return (
-            <PortalLayout
-                title="Route to Incident — Dispatch View"
-                subtitle="Live response tracking and road routing for active dispatches"
-            >
-                <div className="flex h-[calc(100vh-140px)] min-h-[580px] items-center justify-center">
-                    <PortalCard className="flex max-w-md flex-col items-center justify-center p-8 text-center">
+            <PortalLayout title="Response Tracking">
+                <div className="flex min-h-[380px] sm:min-h-[480px] flex-1 items-center justify-center py-8">
+                    <PortalCard className="flex w-full max-w-md flex-col items-center justify-center p-6 sm:p-8 text-center">
                         <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-orange-50 text-brand-orange">
                             <Navigation className="size-7" />
                         </div>
@@ -164,7 +204,7 @@ export default function ResponseTracking({
                         <p className="mt-2 text-xs leading-relaxed text-brand-muted">
                             There are currently no fire incidents in dispatched status. Live road routing and response tracking activate automatically once a response unit is dispatched.
                         </p>
-                        <div className="mt-6 flex items-center gap-3">
+                        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                             <Link
                                 href="/incidents"
                                 className="inline-flex items-center gap-2 rounded-lg bg-[#E63946] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#d62828] transition-colors"
@@ -188,13 +228,96 @@ export default function ResponseTracking({
     const displayEtaMinutes = roadRoute?.etaMinutes ?? routeSummary.etaMinutes;
 
     return (
-        <PortalLayout
-            title="Route to Incident — Dispatch View"
-            subtitle="Shortest path from BFP Lian Station to incident location"
-        >
-            <div className="grid h-[calc(100vh-140px)] min-h-[580px] gap-4 lg:grid-cols-[360px_1fr]">
-                {/* Left column: Actionable incident & route cards */}
-                <div className="flex flex-col gap-4 overflow-y-auto pr-1">
+        <PortalLayout title="Response Tracking">
+            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[360px_1fr] lg:h-[calc(100vh-140px)] lg:min-h-[580px] pb-6 lg:pb-0">
+                {/* Route map: Shows prominently on mobile, expands on desktop */}
+                <PortalCard className="order-1 flex flex-col overflow-hidden lg:order-2 lg:h-full">
+                    <div
+                        className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b px-4 py-3"
+                        style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                    >
+                        <div className="min-w-0">
+                            <h2 className="truncate text-xs sm:text-sm font-bold text-brand-navy">
+                                Route Map — {station.name.replace(' Station', '')} →{' '}
+                                {incident.barangay}
+                            </h2>
+                            <p className="text-[11px] text-brand-muted truncate sm:hidden">
+                                {displayDistanceKm} km · {displayEtaMinutes} min est.
+                            </p>
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-emerald-700">
+                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Live Route
+                        </span>
+                    </div>
+
+                    <div className="relative flex-1 w-full h-[360px] sm:h-[460px] lg:h-full min-h-[320px] sm:min-h-[420px]">
+                        <MapContainer
+                            bounds={[LIAN_CENTER, incidentPosition]}
+                            boundsOptions={{ padding: [50, 50] }}
+                            style={{ height: '100%', width: '100%' }}
+                            scrollWheelZoom={true}
+                        >
+                            <MapResizeHandler
+                                bounds={[LIAN_CENTER, incidentPosition]}
+                            />
+                            <TileLayer
+                                url={OSM_TILE_URL}
+                                attribution={OSM_ATTRIBUTION}
+                            />
+                            <ScaleControl
+                                position="bottomleft"
+                                imperial={false}
+                            />
+
+                            <Polyline
+                                positions={
+                                    roadRoute?.path ?? [
+                                        LIAN_CENTER,
+                                        midpoint,
+                                        incidentPosition,
+                                    ]
+                                }
+                                pathOptions={{
+                                    color: '#F4A261',
+                                    weight: 4,
+                                    dashArray: roadRoute ? undefined : '10 8',
+                                }}
+                            />
+
+                            <Marker position={LIAN_CENTER} icon={stationIcon} />
+                            <Marker
+                                position={incidentPosition}
+                                icon={incidentIcon()}
+                            />
+                        </MapContainer>
+
+                        {/* Legend */}
+                        <div className="absolute bottom-3 left-3 sm:left-14 z-[1000] space-y-1 rounded-lg bg-white/95 px-2.5 py-1.5 shadow-md backdrop-blur-xs text-[11px]">
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className="inline-block h-0.5 w-4 border-t-2 border-dashed"
+                                    style={{ borderColor: '#F4A261' }}
+                                />
+                                <span className="text-brand-muted text-[11px]">
+                                    Optimal route
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className="flex size-3 rounded-xs"
+                                    style={{ background: '#1D3557' }}
+                                />
+                                <span className="text-brand-muted text-[11px]">
+                                    {station.name}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </PortalCard>
+
+                {/* Left/Bottom column: Actionable incident & route cards */}
+                <div className="order-2 flex flex-col gap-4 lg:order-1 lg:overflow-y-auto lg:pr-1">
                     <PortalCard className="p-4">
                         {dispatchedIncidents.length > 1 && (
                             <div className="mb-3 border-b border-gray-100 pb-3">
@@ -232,16 +355,16 @@ export default function ResponseTracking({
                                     className="text-brand-orange"
                                 />
                             </div>
-                            <div>
-                                <h2 className="text-sm font-bold text-brand-navy">
+                            <div className="min-w-0 flex-1">
+                                <h2 className="text-sm font-bold text-brand-navy truncate">
                                     Target Incident
                                 </h2>
-                                <p className="font-mono text-xs text-brand-muted">
+                                <p className="font-mono text-xs text-brand-muted truncate">
                                     {incident.reference}
                                 </p>
                             </div>
                         </div>
-                        <dl className="space-y-2 text-sm">
+                        <dl className="space-y-2 text-xs sm:text-sm">
                             {(
                                 [
                                     ['Type', incident.type],
@@ -251,19 +374,19 @@ export default function ResponseTracking({
                             ).map(([label, value]) => (
                                 <div
                                     key={label}
-                                    className="flex items-center justify-between"
+                                    className="flex items-center justify-between gap-2"
                                 >
-                                    <dt className="text-brand-muted">
+                                    <dt className="text-brand-muted shrink-0">
                                         {label}
                                     </dt>
-                                    <dd className="font-semibold text-brand-navy">
+                                    <dd className="font-semibold text-brand-navy text-right truncate">
                                         {value}
                                     </dd>
                                 </div>
                             ))}
                             {incident.alarm_level && (
-                                <div className="flex items-center justify-between">
-                                    <dt className="text-brand-muted">
+                                <div className="flex items-center justify-between gap-2">
+                                    <dt className="text-brand-muted shrink-0">
                                         Alarm Level
                                     </dt>
                                     <dd>
@@ -280,7 +403,7 @@ export default function ResponseTracking({
                         <h3 className="mb-3 text-xs font-bold tracking-wider text-brand-muted uppercase">
                             Route Summary
                         </h3>
-                        <div className="grid grid-cols-3 gap-2.5">
+                        <div className="grid grid-cols-3 gap-2">
                             {(
                                 [
                                     [
@@ -293,12 +416,12 @@ export default function ResponseTracking({
                             ).map(([label, value]) => (
                                 <div
                                     key={label}
-                                    className="rounded-lg bg-gray-50 px-2.5 py-2"
+                                    className="rounded-lg bg-gray-50 px-2 py-2 min-w-0 text-center sm:text-left"
                                 >
-                                    <p className="text-[11px] text-brand-muted">
+                                    <p className="text-[10px] sm:text-[11px] text-brand-muted truncate">
                                         {label}
                                     </p>
-                                    <p className="font-mono text-sm font-bold text-brand-navy">
+                                    <p className="font-mono text-xs sm:text-sm font-bold text-brand-navy truncate">
                                         {value}
                                     </p>
                                 </div>
@@ -315,11 +438,11 @@ export default function ResponseTracking({
                                 <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#1D3557] text-[10px] font-bold text-white">
                                     S
                                 </div>
-                                <div>
-                                    <p className="font-semibold text-brand-navy">
+                                <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-brand-navy truncate">
                                         {station.name}
                                     </p>
-                                    <p className="text-[11px] text-brand-muted">
+                                    <p className="text-[11px] text-brand-muted truncate">
                                         Poblacion, Lian, Batangas
                                     </p>
                                 </div>
@@ -328,11 +451,11 @@ export default function ResponseTracking({
                                 <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#E63946] text-[10px] font-bold text-white">
                                     !
                                 </div>
-                                <div>
-                                    <p className="font-semibold text-brand-navy">
+                                <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-brand-navy truncate">
                                         Incident in {incident.barangay}
                                     </p>
-                                    <p className="font-mono text-[11px] text-brand-muted">
+                                    <p className="font-mono text-[11px] text-brand-muted truncate">
                                         {incident.latitude.toFixed(5)},{' '}
                                         {incident.longitude.toFixed(5)}
                                     </p>
@@ -341,78 +464,6 @@ export default function ResponseTracking({
                         </div>
                     </PortalCard>
                 </div>
-
-                {/* Route map: Expands to maximize available space */}
-                <PortalCard className="flex h-full flex-col overflow-hidden">
-                    <div
-                        className="shrink-0 border-b px-4 py-3"
-                        style={{ borderColor: 'rgba(43,45,66,0.08)' }}
-                    >
-                        <h2 className="text-sm font-bold text-brand-navy">
-                            Route Map — {station.name.replace(' Station', '')} →{' '}
-                            {incident.barangay}
-                        </h2>
-                    </div>
-                    <div className="relative flex-1 w-full h-full min-h-[460px]">
-                        <MapContainer
-                            bounds={[LIAN_CENTER, incidentPosition]}
-                            boundsOptions={{ padding: [60, 60] }}
-                            style={{ height: '100%', width: '100%' }}
-                        >
-                            <TileLayer
-                                url={OSM_TILE_URL}
-                                attribution={OSM_ATTRIBUTION}
-                            />
-                            <ScaleControl
-                                position="bottomleft"
-                                imperial={false}
-                            />
-
-                            <Polyline
-                                positions={
-                                    roadRoute?.path ?? [
-                                        LIAN_CENTER,
-                                        midpoint,
-                                        incidentPosition,
-                                    ]
-                                }
-                                pathOptions={{
-                                    color: '#F4A261',
-                                    weight: 4,
-                                    dashArray: roadRoute ? undefined : '10 8',
-                                }}
-                            />
-
-                            <Marker position={LIAN_CENTER} icon={stationIcon} />
-                            <Marker
-                                position={incidentPosition}
-                                icon={incidentIcon()}
-                            />
-                        </MapContainer>
-
-                        {/* Legend */}
-                        <div className="absolute bottom-3 left-14 z-[1000] space-y-1.5 rounded-lg bg-white/95 px-3 py-2 shadow">
-                            <div className="flex items-center gap-2">
-                                <span
-                                    className="inline-block h-0.5 w-5 border-t-2 border-dashed"
-                                    style={{ borderColor: '#F4A261' }}
-                                />
-                                <span className="text-xs text-brand-muted">
-                                    Optimal route
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span
-                                    className="flex size-3.5 rounded-sm"
-                                    style={{ background: '#1D3557' }}
-                                />
-                                <span className="text-xs text-brand-muted">
-                                    {station.name}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </PortalCard>
             </div>
         </PortalLayout>
     );

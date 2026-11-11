@@ -19,7 +19,7 @@ export default function Welcome() {
 
     return (
         <div className="min-h-screen overflow-x-clip bg-white font-sans antialiased selection:bg-firesight-orange selection:text-white">
-            <Head title="FireSight — Detect. Alert. Protect. | Lian, Batangas" />
+            <Head title="FireSight" />
             <LandingHeader user={auth?.user} />
             <main>
                 <HeroSection />

@@ -33,10 +33,19 @@ class ProfileController extends ApiController
         $user = $request->user();
 
         // Contact number validation if present
+        $normalizedMobile = null;
         if ($request->filled('contact_number')) {
             $mobileDigits = preg_replace('/\D/', '', (string) $request->input('contact_number'));
             if (! preg_match('/^(09\d{9}|639\d{9})$/', $mobileDigits)) {
                 return $this->sendError('Please enter a valid Philippine mobile number.', 422);
+            }
+            $normalizedMobile = str_starts_with($mobileDigits, '63') ? '0'.substr($mobileDigits, 2) : $mobileDigits;
+
+            $duplicate = User::where('contact_number', $normalizedMobile)
+                ->where('user_id', '!=', $user->user_id)
+                ->exists();
+            if ($duplicate) {
+                return $this->sendError('This contact number is already in use by another account.', 422);
             }
         }
 
@@ -59,12 +68,16 @@ class ProfileController extends ApiController
 
         DB::beginTransaction();
         try {
-            $userFields = ['first_name', 'middle_name', 'last_name', 'suffix', 'contact_number'];
+            $userFields = ['first_name', 'middle_name', 'last_name', 'suffix'];
             foreach ($userFields as $field) {
                 if ($request->has($field)) {
                     $val = $request->input($field);
                     $user->{$field} = $val !== null && trim((string) $val) !== '' ? trim(strip_tags((string) $val)) : null;
                 }
+            }
+
+            if ($request->has('contact_number')) {
+                $user->contact_number = $normalizedMobile;
             }
 
             if ($request->filled('password')) {

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, ChevronDown } from 'lucide-react';
+import { Bell, ChevronDown, Menu } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,27 +11,41 @@ import { notifications } from '@/routes';
 
 export function PortalTopbar({
     title,
-    subtitle = 'BFP Lian Municipal Fire Station',
+    subtitle,
     unreadCount = 0,
+    onToggleSidebar,
 }: {
     title: string;
     subtitle?: string;
     unreadCount?: number;
+    onToggleSidebar?: () => void;
 }) {
     const { auth } = usePage().props;
 
     return (
         <div
-            className="relative z-10 flex flex-shrink-0 items-center gap-4 border-b px-6 backdrop-blur-xl backdrop-saturate-150"
+            className="relative z-10 flex flex-shrink-0 items-center gap-2 sm:gap-4 border-b px-4 sm:px-6 backdrop-blur-xl backdrop-saturate-150"
             style={{
                 height: 64,
                 background: 'rgba(255,255,255,0.72)',
                 borderColor: 'rgba(29,53,87,0.07)',
             }}
         >
-            <div>
-                <p className="text-sm font-bold text-brand-navy">{title}</p>
-                <p className="text-xs text-brand-muted">{subtitle}</p>
+            {onToggleSidebar && (
+                <button
+                    type="button"
+                    onClick={onToggleSidebar}
+                    className="inline-flex lg:hidden -ml-1 p-2 rounded-lg text-brand-navy hover:bg-black/5 transition-colors cursor-pointer"
+                    aria-label="Toggle navigation menu"
+                >
+                    <Menu size={20} />
+                </button>
+            )}
+
+            <div className="min-w-0">
+                <h1 className="truncate text-base font-bold tracking-tight text-brand-navy leading-none">
+                    {title}
+                </h1>
             </div>
 
             <div className="flex-1" />

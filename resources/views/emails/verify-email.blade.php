@@ -133,12 +133,12 @@
         </p>
 
         <div class="action-container">
-          <a href="{{ $verificationUrl }}" class="btn-verify" target="_blank">Verify Email Address</a>
+          <a href="{{ $verificationUrl }}" class="btn-verify" target="_blank">Confirm & Activate Account</a>
         </div>
 
         <div class="info-card">
           <p>
-            <strong>Note:</strong> This verification link is valid for <strong>60 minutes</strong>. If you did not create a FireSight account, no further action is required and you can safely ignore this email.
+            <strong>Note:</strong> This verification link is valid for <strong>4 hours</strong>. If you did not create a FireSight account, no further action is required and you can safely ignore this email.
           </p>
         </div>
 

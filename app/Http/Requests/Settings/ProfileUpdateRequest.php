@@ -5,6 +5,7 @@ namespace App\Http\Requests\Settings;
 use App\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
@@ -24,7 +25,7 @@ class ProfileUpdateRequest extends FormRequest
         // never see these fields, so they stay out of profileRules().
         if ($this->user()->isBfpStaff()) {
             $rules['rank'] = ['required', 'string', 'max:100'];
-            $rules['contact_number'] = ['required', 'string', 'max:20'];
+            $rules['contact_number'] = ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')->ignore($this->user()->getKey())];
         }
 
         return $rules;

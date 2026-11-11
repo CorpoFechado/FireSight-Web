@@ -1,5 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { AuroraBackground } from '@/components/aurora-background';
 import { PortalSidebar } from '@/layouts/portal/portal-sidebar';
 import { PortalTopbar } from '@/layouts/portal/portal-topbar';
@@ -14,6 +14,7 @@ export default function PortalLayout({
     children: ReactNode;
 }) {
     const { auth, unreadNotificationCount } = usePage().props;
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Fortify's `verified`/`bfp.staff` middleware guarantee this on every
     // portal route, but the type is nullable — narrow it once here.
@@ -30,6 +31,8 @@ export default function PortalLayout({
             <PortalSidebar
                 role={auth.user.role}
                 unreadCount={unreadNotificationCount ?? 0}
+                isOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
             />
 
             <div className="relative flex min-w-0 flex-1 flex-col">
@@ -37,9 +40,10 @@ export default function PortalLayout({
                     title={title}
                     subtitle={subtitle}
                     unreadCount={unreadNotificationCount ?? 0}
+                    onToggleSidebar={() => setSidebarOpen((v) => !v)}
                 />
 
-                <main className="flex-1 overflow-y-auto p-6">{children}</main>
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
             </div>
         </div>
     );

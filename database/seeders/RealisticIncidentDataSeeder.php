@@ -15,445 +15,524 @@ class RealisticIncidentDataSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /** @var list<int> */
-    private const MONTHLY_VOLUMES = [14, 22, 20, 16, 70, 60, 55, 20, 12, 11, 18, 67];
+    /**
+     * 2 full years (24 months) of realistic incident volumes for Lian, Batangas.
+     * Enriched past history with distinct seasonal peaks (March-June dry months).
+     * Year 1 (months -23 to -12): 49 incidents
+     * Year 2 (months -11 to 0):   51 incidents
+     * Total = 100 incidents across 2 years.
+     *
+     * @var list<int>
+     */
+    private const MONTHLY_VOLUMES = [
+        // Year 1 (2025)
+        3, 3, 4, 6, 8, 7, 4, 3, 2, 2, 3, 4,
+        // Year 2 (2026 - current)
+        3, 3, 4, 7, 9, 8, 4, 3, 2, 2, 4, 2,
+    ];
 
     /** @var list<int> */
-    private const REPORTING_HOURS = [1, 6, 8, 10, 11, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 23];
+    private const REPORTING_HOURS = [7, 8, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+
+    /**
+     * The 3 verified community report photos available on the backend.
+     *
+     * @var list<string>
+     */
+    private const REPORT_IMAGES = [
+        'uploads/reports/report_44_1793446882_aca83633.jpg',
+        'uploads/reports/report_44_1794347202_72f2e635.jpg',
+        'uploads/reports/report_44_1793496551_6580dd19.jpg',
+    ];
+
+    /**
+     * Standard fire trucks stationed at BFP Lian.
+     *
+     * @var list<string>
+     */
+    private const TRUCKS = [
+        'Fire Truck 1',
+        'Fire Truck 2',
+        'Fire Truck 3',
+    ];
 
     /** @var list<string> */
     private const WALK_IN_NAMES = [
         'Aling Nena Santos', 'Mang Tony Reyes', 'Carlo Mendoza', 'Jessa Mae Cruz',
         'Ramon Villanueva', 'Liza Bautista', 'Paolo Garcia', 'Marites Navarro',
+        'Mang Lito Hernandez', 'Aling Tessie Dimaculangan', 'Vicente Castillo', 'Lorna Dalisay',
     ];
 
-    /** @var array<string, list<array{description: string, cause: string}>> */
+    /**
+     * Categorized, realistic fire scenarios with short, authentic causes and damages.
+     *
+     * @var array<string, list<array{desc: string, cause: string, est_min: int, est_max: int}>>
+     */
     private const SCENARIOS = [
         'residential_fire' => [
-            ['description' => 'May apoy at makapal na usok na lumalabas sa kusina ng bahay; mabilis kumalat sa kisame.', 'cause' => 'Unattended cooking oil ignited nearby cabinets'],
-            ['description' => 'Flames are visible from the second-floor bedroom of a light-material house.', 'cause' => 'Faulty electrical wiring inside the bedroom ceiling'],
-            ['description' => 'Naamoy ang tumatagas na LPG bago biglang nagliyab ang kusina ng bahay.', 'cause' => 'LPG hose leak ignited by the stove flame'],
-            ['description' => 'A candle left during a brownout ignited curtains and a wooden wall.', 'cause' => 'Unattended candle during a power interruption'],
-            ['description' => 'Nag-overheat ang extension cord at nasunog ang sofa sa sala.', 'cause' => 'Overloaded extension outlet beside upholstered furniture'],
-            ['description' => 'Smoke and fire spread from a plugged-in mosquito coil near a bamboo wall.', 'cause' => 'Unattended katol ignited combustible wall material'],
+            ['desc' => 'May apoy at makapal na usok na lumalabas sa kusina ng bahay; mabilis kumalat sa kisame.', 'cause' => 'Electrical short circuit', 'est_min' => 120000, 'est_max' => 450000],
+            ['desc' => 'Flames visible from the second-floor bedroom of a residential light-material house.', 'cause' => 'Overloaded power strip', 'est_min' => 150000, 'est_max' => 550000],
+            ['desc' => 'Naamoy ang tumatagas na LPG bago biglang nagliyab ang lutuan sa kusina.', 'cause' => 'LPG stove hose leak', 'est_min' => 80000, 'est_max' => 300000],
+            ['desc' => 'A candle left during brownout ignited curtains and a nearby wooden wall.', 'cause' => 'Unattended candle', 'est_min' => 100000, 'est_max' => 400000],
+            ['desc' => 'Naiwang nakasindi ang katol malapit sa kurtina at kumalat sa dingding.', 'cause' => 'Katol ember ignition', 'est_min' => 70000, 'est_max' => 250000],
+            ['desc' => 'Naiwang nakasalang na kawali sa kalan habang nagluluto, umapoy sa cabinet.', 'cause' => 'Unattended cooking', 'est_min' => 90000, 'est_max' => 350000],
+            ['desc' => 'Umusok ang lumang electric fan at nagliyab ang plastic casing nito sa kwarto.', 'cause' => 'Appliance motor burnout', 'est_min' => 60000, 'est_max' => 220000],
         ],
         'rubbish_fire' => [
-            ['description' => 'Sinisiga ang tuyong dahon sa bakanteng lote at kumalat ang apoy dahil sa hangin.', 'cause' => 'Unattended open burning of dry leaves'],
-            ['description' => 'Dry grass and roadside rubbish are burning close to several homes.', 'cause' => 'Discarded cigarette butt ignited dry vegetation'],
-            ['description' => 'May makapal na usok mula sa tambak na basura sa likod ng covered court.', 'cause' => 'Open burning of mixed household waste'],
-            ['description' => 'A small brush fire is spreading through cogon grass near a farm boundary.', 'cause' => 'Wind carried embers from agricultural burning'],
+            ['desc' => 'Sinisiga ang tuyong dahon sa bakanteng lote at kumalat ang apoy dahil sa malakas na hangin.', 'cause' => 'Open trash burning', 'est_min' => 2000, 'est_max' => 15000],
+            ['desc' => 'Dry grass and roadside rubbish are burning close to residential perimeter fences.', 'cause' => 'Discarded cigarette butt', 'est_min' => 3000, 'est_max' => 20000],
+            ['desc' => 'May makapal na usok mula sa tambak na tuyong basura sa likod ng covered court.', 'cause' => 'Open waste burning', 'est_min' => 2500, 'est_max' => 12000],
+            ['desc' => 'A small brush fire is spreading through cogon grass near a sugarcane boundary.', 'cause' => 'Agricultural waste burning', 'est_min' => 5000, 'est_max' => 25000],
+            ['desc' => 'Nag-apoy ang tuyong damo sa gilid ng pilapil dahil sa naiwang sigarilyo.', 'cause' => 'Grassland ember ignition', 'est_min' => 4000, 'est_max' => 18000],
+            ['desc' => 'Makapal na usok mula sa sinunog na dayami sa bukid na kumakalat sa kalsada.', 'cause' => 'Sugarcane field stubble fire', 'est_min' => 6000, 'est_max' => 30000],
         ],
         'commercial_fire' => [
-            ['description' => 'Heavy smoke is coming from the kitchen exhaust of a roadside eatery.', 'cause' => 'Grease buildup in the kitchen exhaust duct'],
-            ['description' => 'Nagliyab ang electrical panel sa loob ng sari-sari store malapit sa palengke.', 'cause' => 'Loose electrical connection in the main panel'],
-            ['description' => 'Cardboard stocks behind a bakery oven caught fire and spread to shelving.', 'cause' => 'Combustible packaging stored too close to an oven'],
-            ['description' => 'A repair shop caught fire while fuel was being drained from a motorcycle.', 'cause' => 'Gasoline vapor ignited by an electrical spark'],
+            ['desc' => 'Heavy smoke coming from the kitchen exhaust of a commercial eatery.', 'cause' => 'Kitchen exhaust duct grease', 'est_min' => 250000, 'est_max' => 850000],
+            ['desc' => 'Nagliyab ang electrical panel board sa loob ng sari-sari store malapit sa palengke.', 'cause' => 'Panel board overload', 'est_min' => 180000, 'est_max' => 650000],
+            ['desc' => 'Cardboard packaging inventory behind a bakery oven caught fire and spread to shelves.', 'cause' => 'Bakery oven ember', 'est_min' => 300000, 'est_max' => 950000],
+            ['desc' => 'Nagliyab ang kusina ng resort cottage dahil sa tumagas na tangke ng gasul.', 'cause' => 'Resort kitchen gas leak', 'est_min' => 350000, 'est_max' => 1100000],
         ],
         'vehicular_fire' => [
-            ['description' => 'Nasusunog ang engine bay ng van sa gilid ng highway; nakalabas na ang mga sakay.', 'cause' => 'Vehicle electrical short circuit in the battery cable'],
-            ['description' => 'A delivery truck rear tire and brake assembly caught fire while travelling.', 'cause' => 'Overheated binding brake ignited a rear tire'],
-            ['description' => 'Smoke and flames are coming from beneath a parked passenger jeepney.', 'cause' => 'Leaking fuel line reached the hot exhaust manifold'],
-            ['description' => 'A motorcycle caught fire after sparks appeared below the seat.', 'cause' => 'Improvised accessory wiring short circuit'],
+            ['desc' => 'Nasusunog ang engine bay ng delivery van sa gilid ng highway; nakalabas ang sakay.', 'cause' => 'Engine wiring short circuit', 'est_min' => 80000, 'est_max' => 300000],
+            ['desc' => 'A passenger jeepney rear tire and brake assembly caught fire while travelling.', 'cause' => 'Overheated brake lining', 'est_min' => 45000, 'est_max' => 180000],
+            ['desc' => 'Sparks and fire appeared underneath a parked motorcycle after starting.', 'cause' => 'Fuel line leak', 'est_min' => 30000, 'est_max' => 100000],
+            ['desc' => 'Nag-overheat ang radiator at nagliyab ang baterya ng isang pampasaherong tricycle.', 'cause' => 'Battery electrical fault', 'est_min' => 25000, 'est_max' => 90000],
         ],
         'storage_fire' => [
-            ['description' => 'A bodega containing cartons and wooden pallets has visible flames at the rear.', 'cause' => 'Faulty wiring above stacked combustible inventory'],
-            ['description' => 'Umuusok at nagliliyab ang imbakan ng feeds at tuyong copra.', 'cause' => 'Spontaneous heating in damp stored agricultural products'],
-            ['description' => 'Paint and solvent containers are burning inside a small storage shed.', 'cause' => 'Flammable vapor ignited by a light-switch spark'],
-            ['description' => 'A lumber stockpile caught fire near the warehouse loading area.', 'cause' => 'Welding sparks reached dry timber offcuts'],
+            ['desc' => 'Bodega containing dried copra and sacks has visible flames and heavy smoke at the rear.', 'cause' => 'Spontaneous copra heating', 'est_min' => 400000, 'est_max' => 1200000],
+            ['desc' => 'A small agricultural equipment shed caught fire from defective circuit wiring.', 'cause' => 'Defective warehouse wiring', 'est_min' => 150000, 'est_max' => 600000],
         ],
         'others' => [
-            ['description' => 'A downed electrical line is arcing against tree branches and a metal fence.', 'cause' => 'Fallen branch damaged an energized service line'],
-            ['description' => 'Nagliyab ang transformer sa poste at may tumutulong mainit na langis.', 'cause' => 'Distribution transformer electrical failure'],
-            ['description' => 'Fire is visible in a small farm equipment shed away from nearby houses.', 'cause' => 'Overheated portable generator beside fuel containers'],
-            ['description' => 'A fireworks remnant ignited a tarpaulin and nearby dry decorations.', 'cause' => 'Fireworks ember landed on combustible decorations'],
+            ['desc' => 'A downed electrical service drop wire sparked and ignited a wooden fence and tree.', 'cause' => 'Fallen service drop wire', 'est_min' => 15000, 'est_max' => 60000],
+            ['desc' => 'Nagliyab ang transformer sa poste malapit sa kanto at may tumulong mainit na langis.', 'cause' => 'Transformer dielectric breakdown', 'est_min' => 35000, 'est_max' => 120000],
         ],
     ];
 
-    /** @var list<string> */
+    /**
+     * Exactly 4 false alarm reports across the full 2-year period (< 5).
+     *
+     * @var list<string>
+     */
     private const INVALID_DESCRIPTIONS = [
-        'Akala namin sunog, pero usok lang pala mula sa iniihaw na pagkain sa bakuran.',
-        'Reported orange glow was confirmed as a controlled welding operation.',
-        'Makapal na singaw mula sa dryer ang napagkamalang usok ng sunog.',
-        'A distant bonfire was already contained inside a designated pit.',
-        'Reported smoke was dust illuminated by vehicle headlights.',
-        'Napagkamalang apoy ang maliwanag na ilaw at reflection sa bubong.',
-        'Steam from a commercial kitchen vent was mistaken for smoke.',
-        'The reported alarm came from a detector test; no smoke or heat was found.',
+        'Akala namin sunog, makapal na usok lang pala mula sa nag-iihaw ng pagkain sa bakuran.',
+        'Reported orange glow was confirmed as controlled welding repair work at night.',
+        'Singaw mula sa palayan at alikabok na may reflection ang napagkamalang usok.',
+        'Mausok na tambutso ng lumang traktora ang napagkamalang sumisiklab na sunog.',
+    ];
+
+    /**
+     * Standard street / purok names in Lian, Batangas.
+     *
+     * @var list<string>
+     */
+    private const LIAN_STREETS = [
+        'J.P. Rizal St., Purok 1',
+        'M.H. Del Pilar St., Purok 2',
+        'A. Bonifacio St., Purok 3',
+        'Zobel Highway, Sitio Centro',
+        'National Road, Sitio Aplaya',
+        'Purok Ilaya, Block 2',
+        'Purok Ibaba, Sitio Crossing',
+        'Purok Maligaya, Lot 5',
+        'Sitio Riverside, Purok 4',
+        'Sitio Balateros, Purok 1',
+        'Seaside Drive, Sitio Kanluran',
+        'Purok Silangan, Block 1',
+        'Sitio Central, Purok 5',
+        'Purok Sampaguita',
+        'Sitio Bukid, Purok 2',
     ];
 
     public function run(): void
     {
-        $residents = DB::table('users')->where('role', 'resident')->where('status', 'active')->orderBy('user_id')->get();
-        $responders = DB::table('users')
-            ->whereIn('role', ['bfp_personnel', 'bfp_admin'])
+        $residents = DB::table('users')->where('role', 'resident')->orderBy('user_id')->get();
+        $personnel = DB::table('users')
+            ->where('role', 'bfp_personnel')
             ->where('status', 'active')
             ->orderBy('user_id')
             ->pluck('user_id')
             ->map(fn (mixed $userId): int => (int) $userId)
             ->values()
             ->all();
+        $adminId = DB::table('users')
+            ->where('role', 'bfp_admin')
+            ->where('status', 'active')
+            ->orderBy('user_id')
+            ->value('user_id');
+
         $barangays = DB::table('barangay')->orderBy('barangay_id')->get();
 
-        if ($residents->isEmpty() || $responders === [] || $barangays->isEmpty()) {
-            throw new RuntimeException('RealisticIncidentDataSeeder requires existing residents, BFP users, and barangays.');
+        if ($residents->isEmpty() || $personnel === [] || $barangays->isEmpty()) {
+            throw new RuntimeException('RealisticIncidentDataSeeder requires existing residents, BFP personnel, and barangays.');
         }
 
         if (DB::table('afor_report')->count() > 0) {
             throw new RuntimeException('Cannot rebuild incident data while out-of-scope afor_report rows reference incident_record.');
         }
 
-        $residentBarangays = DB::table('resident_address')
-            ->whereNotNull('user_id')
-            ->whereNotNull('barangay_id')
-            ->pluck('barangay_id', 'user_id');
-        $reportImagePaths = DB::table('community_report')
-            ->whereNotNull('report_image')
-            ->distinct()
-            ->pluck('report_image')
-            ->filter()
-            ->values()
-            ->all();
-        $evidenceImagePaths = DB::table('report_evidence')
-            ->pluck('image_path')
-            ->merge($reportImagePaths)
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
         $now = Date::now();
 
-        DB::transaction(function () use ($barangays, $evidenceImagePaths, $now, $reportImagePaths, $residentBarangays, $residents, $responders): void {
+        DB::transaction(function () use ($adminId, $barangays, $now, $personnel, $residents): void {
             $this->clearScopedTables();
-            $this->seedReports($residents, $responders, $barangays, $residentBarangays, $reportImagePaths, $evidenceImagePaths, $now);
+            $this->seedResidentAddresses($residents, $barangays);
+            $this->seedReports($residents, $personnel, $adminId, $barangays, $now);
         });
+
+        // Automatically sync matching notifications for all active and recent reports
+        $this->call(AdminNotificationSeeder::class);
     }
 
     private function clearScopedTables(): void
     {
         DB::table('report_link')->delete();
         DB::table('report_evidence')->delete();
+        DB::table('incident_dispatch_personnel')->delete();
+        DB::table('incident_dispatch_truck')->delete();
+        DB::table('incident_dispatch')->delete();
         DB::table('report_status_history')->delete();
         DB::table('incident_record')->delete();
         DB::table('community_report')->delete();
+        DB::table('resident_address')->delete();
     }
 
     /**
+     * Ensures all resident users are active and assigned an address in Lian.
+     *
      * @param  Collection<int, object>  $residents
-     * @param  list<int>  $responders
      * @param  Collection<int, object>  $barangays
-     * @param  Collection<int|string, mixed>  $residentBarangays
-     * @param  list<string>  $reportImagePaths
-     * @param  list<string>  $evidenceImagePaths
+     */
+    private function seedResidentAddresses(Collection $residents, Collection $barangays): void
+    {
+        $bCount = $barangays->count();
+        $sCount = count(self::LIAN_STREETS);
+
+        foreach ($residents as $index => $resident) {
+            DB::table('users')
+                ->where('user_id', $resident->user_id)
+                ->update([
+                    'status' => 'active',
+                    'is_verified' => true,
+                    'email_verified_at' => now(),
+                ]);
+
+            $assignedBarangay = $barangays[$index % $bCount];
+            $street = self::LIAN_STREETS[$index % $sCount];
+
+            DB::table('resident_address')->insert([
+                'user_id' => $resident->user_id,
+                'house_no_street' => $street,
+                'barangay_id' => $assignedBarangay->barangay_id,
+                'municipality' => 'Lian',
+                'province' => 'Batangas',
+            ]);
+        }
+    }
+
+    /**
+     * Seeds 2 full years of authentic reports, official incident records, and normalized dispatches.
+     *
+     * @param  Collection<int, object>  $residents
+     * @param  list<int>  $personnel
+     * @param  Collection<int, object>  $barangays
      */
     private function seedReports(
         Collection $residents,
-        array $responders,
+        array $personnel,
+        ?int $adminId,
         Collection $barangays,
-        Collection $residentBarangays,
-        array $reportImagePaths,
-        array $evidenceImagePaths,
         CarbonInterface $now,
     ): void {
-        $historicalTotal = array_sum(array_slice(self::MONTHLY_VOLUMES, 0, -1));
         $barangayPool = $this->weightedBarangayPool($barangays);
         $globalIndex = 0;
-        $incidentIndex = 0;
-        $resolvedSinceDuplicate = 0;
-        $activeIndex = 0;
-        $lastResolvedContext = null;
+        $imageCount = count(self::REPORT_IMAGES);
+
+        // Dispatches are strictly handled by BFP Personnel (never the Admin)
+        $dispatcherIds = array_slice($personnel, 0, min(3, count($personnel)));
+        $fieldResponders = array_slice($personnel, min(3, count($personnel)));
+
+        $numMonths = count(self::MONTHLY_VOLUMES);
+        $lastResolvedReportId = null;
 
         foreach (self::MONTHLY_VOLUMES as $monthIndex => $volume) {
-            $monthsAgo = count(self::MONTHLY_VOLUMES) - 1 - $monthIndex;
+            $monthsAgo = $numMonths - 1 - $monthIndex;
             $monthStart = $now->copy()->subMonthsNoOverflow($monthsAgo)->startOfMonth();
 
             for ($monthlyIndex = 0; $monthlyIndex < $volume; $monthlyIndex++, $globalIndex++) {
-                $status = $this->statusFor($globalIndex, $historicalTotal, $monthsAgo, $monthlyIndex);
-                $isActive = in_array($status, ['pending', 'accepted', 'dispatched'], true);
-                $createdAt = $this->createdAt($now, $monthStart, $monthsAgo, $monthlyIndex, $isActive ? $activeIndex++ : null);
-                $reporter = $this->reporterFor($residents, $residentBarangays, $globalIndex);
-                $barangay = $barangayPool[($globalIndex * 17 + $monthIndex * 11) % count($barangayPool)];
+                // Exactly 4 invalid reports across 24 months (< 5 total)
+                $isInvalid = ($monthsAgo === 21 && $monthlyIndex === 1)
+                    || ($monthsAgo === 15 && $monthlyIndex === 2)
+                    || ($monthsAgo === 9 && $monthlyIndex === 1)
+                    || ($monthsAgo === 3 && $monthlyIndex === 1);
 
-                if ($reporter !== null && $residentBarangays->has($reporter->user_id)) {
-                    $residentBarangay = $barangays->firstWhere('barangay_id', (int) $residentBarangays->get($reporter->user_id));
-                    $barangay = $residentBarangay ?? $barangay;
+                // Current month: 1 active 'dispatched' report (happening now), 1 'resolved' report (6 days ago). 0 resolved today!
+                $isCurrentMonth = ($monthsAgo === 0);
+                if ($isCurrentMonth) {
+                    $status = ($monthlyIndex === 1) ? 'dispatched' : 'resolved';
+                } elseif ($isInvalid) {
+                    $status = 'invalid';
+                } else {
+                    $status = 'resolved';
                 }
 
-                $hasIncident = $status === 'resolved' || in_array($status, ['accepted', 'dispatched'], true);
-                $incidentType = $hasIncident ? $this->incidentTypeFor($incidentIndex) : $this->incidentTypeFor($globalIndex);
+                $isActive = ($status === 'dispatched');
+
+                // Timestamp distribution
+                if ($isActive) {
+                    $createdAt = $now->copy()->subMinutes(30);
+                } elseif ($isCurrentMonth) {
+                    // Resolved 6 days ago (0 resolved today)
+                    $createdAt = $now->copy()->subDays(6)->setHour(14)->setMinute(20);
+                } else {
+                    $reportingHour = self::REPORTING_HOURS[($globalIndex * 7) % count(self::REPORTING_HOURS)];
+                    $dayOffset = 1 + (int) floor(($monthlyIndex * 27) / max(1, $volume)) + ($globalIndex % 3);
+                    $createdAt = $monthStart->copy()->addDays(min(27, $dayOffset))->setHour($reportingHour)->setMinute(($globalIndex * 11) % 60);
+                }
+
+                // In peak dry months (March, April, May, June), weight heavily toward Binubusan, Bungahan, Matabungkay, Prenza
+                $isDryPeakMonth = in_array($monthStart->month, [3, 4, 5, 6], true);
+                if ($isDryPeakMonth && $globalIndex % 2 === 0) {
+                    $hotBarangayIds = [8, 9, 16, 17, 19]; // Binubusan, Bungahan, Matabungkay, Prenza, San Diego
+                    $chosenId = $hotBarangayIds[$globalIndex % count($hotBarangayIds)];
+                    $barangay = $barangays->firstWhere('barangay_id', $chosenId) ?? $barangayPool[$globalIndex % count($barangayPool)];
+                } else {
+                    $resident = $residents[$globalIndex % $residents->count()];
+                    $residentAddress = DB::table('resident_address')->where('user_id', $resident->user_id)->first();
+                    $barangay = $barangays->firstWhere('barangay_id', $residentAddress?->barangay_id)
+                        ?? $barangayPool[$globalIndex % count($barangayPool)];
+                }
+
+                $incidentType = $this->incidentTypeFor($globalIndex, $isDryPeakMonth);
                 $scenario = $this->scenarioFor($incidentType, $globalIndex);
-                $alarmLevel = $hasIncident ? $this->alarmLevelFor($incidentIndex) : '1st_alarm';
-                $coordinates = $this->pointWithinBarangay($barangay, $globalIndex + 1);
-                $isDuplicate = false;
 
-                if (
-                    $status === 'resolved'
-                    && $resolvedSinceDuplicate >= 44
-                    && is_array($lastResolvedContext)
-                    && $lastResolvedContext['created_at']->isSameMonth($createdAt)
-                ) {
-                    $isDuplicate = true;
-                    $createdAt = $lastResolvedContext['created_at']->copy()->addMinutes(2 + ($globalIndex % 4));
-                    $barangay = $lastResolvedContext['barangay'];
-                    $coordinates = $lastResolvedContext['coordinates'];
-                    $incidentType = $lastResolvedContext['incident_type'];
-                    $alarmLevel = $lastResolvedContext['alarm_level'];
-                    $scenario = $lastResolvedContext['scenario'];
+                // Alarm levels: ONLY 1st_alarm (majority) or 2nd_alarm (ceiling limit!)
+                $alarmLevel = ($incidentType === 'residential_fire' && $globalIndex % 8 === 0)
+                    || ($incidentType === 'commercial_fire' && $globalIndex % 5 === 0)
+                    ? '2nd_alarm'
+                    : '1st_alarm';
+
+                $coordinates = $this->pointWithinBarangay($barangay, $globalIndex + 1);
+                [$deviceLat, $deviceLng, $accuracy] = $this->deviceCoordinates($coordinates[0], $coordinates[1], $globalIndex);
+
+                // AI Detection: Invalid reports get "no_fire" (< 0.45); real fires get "fire" (high confidence)
+                if ($isInvalid) {
+                    $aiLabel = 'no_fire';
+                    $aiConfidence = round(0.24 + ($globalIndex % 15) * 0.01, 4); // 0.24 - 0.38
+                    $description = self::INVALID_DESCRIPTIONS[$globalIndex % count(self::INVALID_DESCRIPTIONS)];
+                    $reportImage = null;
+                } else {
+                    $aiLabel = 'fire';
+                    $aiConfidence = round(0.84 + ($globalIndex % 13) * 0.01, 4); // 0.84 - 0.96
+                    $description = $scenario['desc'];
+                    $reportImage = self::REPORT_IMAGES[$globalIndex % $imageCount];
                 }
 
-                $timeline = $this->timelineFor($status, $createdAt, $alarmLevel, $responders, $globalIndex);
+                $timeline = $this->timelineFor($status, $createdAt, $alarmLevel, $personnel, $adminId, $globalIndex);
                 $updatedAt = $timeline[array_key_last($timeline)]['created_at'];
-                [$deviceLatitude, $deviceLongitude, $accuracy] = $this->deviceCoordinates($coordinates[0], $coordinates[1], $globalIndex);
-                $isInvalid = $status === 'invalid';
-                $description = $isInvalid ? self::INVALID_DESCRIPTIONS[$globalIndex % count(self::INVALID_DESCRIPTIONS)] : $scenario['description'];
-                $reportingResidentId = $reporter?->user_id ?? $residents[$globalIndex % $residents->count()]->user_id;
+
+                $reportingUser = $residents[$globalIndex % $residents->count()];
 
                 $reportId = (int) DB::table('community_report')->insertGetId([
-                    'user_id' => $reportingResidentId,
-                    'reporter_name' => $reporter !== null ? trim($reporter->first_name.' '.$reporter->last_name) : self::WALK_IN_NAMES[$globalIndex % count(self::WALK_IN_NAMES)],
-                    'contact_number' => $reporter?->contact_number ?? sprintf('09%09d', 100000000 + (($globalIndex * 7919) % 899999999)),
+                    'user_id' => $reportingUser->user_id,
+                    'reporter_name' => trim($reportingUser->first_name.' '.$reportingUser->last_name),
+                    'contact_number' => $reportingUser->contact_number ?? sprintf('09%09d', 170000000 + (($globalIndex * 7919) % 89999999)),
                     'description' => $description,
-                    'report_image' => $reportImagePaths !== [] && $globalIndex % 3 === 0 ? $reportImagePaths[$globalIndex % count($reportImagePaths)] : null,
-                    'ai_fire_label' => 'fire',
-                    'ai_fire_confidence' => round(0.78 + $this->fraction($globalIndex, 2) * 0.20, 4),
-                    'ai_verified_at' => $createdAt->copy()->addMinutes(1 + ($globalIndex % 4)),
+                    'report_image' => $reportImage,
+                    'ai_fire_label' => $aiLabel,
+                    'ai_fire_confidence' => $aiConfidence,
+                    'ai_verified_at' => $createdAt->copy()->addMinutes(1 + ($globalIndex % 3)),
                     'latitude' => $coordinates[0],
                     'longitude' => $coordinates[1],
                     'barangay_id' => $barangay->barangay_id,
                     'location_accuracy_m' => $accuracy,
-                    'device_latitude' => $deviceLatitude,
-                    'device_longitude' => $deviceLongitude,
+                    'device_latitude' => $deviceLat,
+                    'device_longitude' => $deviceLng,
                     'status' => $status,
                     'created_at' => $createdAt,
                     'updated_at' => $updatedAt,
                 ]);
 
+                // Insert Status History
                 DB::table('report_status_history')->insert(array_map(
-                    fn (array $history): array => ['report_id' => $reportId, ...$history],
+                    fn (array $h): array => ['report_id' => $reportId, ...$h],
                     $timeline,
                 ));
 
-                if ($hasIncident) {
+                // Dispatches occur for both active dispatched reports and resolved reports
+                if (! $isInvalid) {
+                    $this->seedDispatchesForReport(
+                        $reportId,
+                        $createdAt,
+                        $incidentType,
+                        $alarmLevel,
+                        $dispatcherIds,
+                        $fieldResponders,
+                        $globalIndex,
+                    );
+                }
+
+                // RULE: ONLY 'resolved' community reports enter incident_record as official records!
+                // If status is pending, accepted, or dispatched, NO incident_record is created!
+                if ($status === 'resolved') {
+                    $injuries = ($incidentType === 'residential_fire' && $globalIndex % 11 === 0) ? 1 : 0;
+                    $fatalities = 0;
+                    $damage = (float) ($scenario['est_min'] + ($globalIndex * 1791) % ($scenario['est_max'] - $scenario['est_min']));
+                    if ($alarmLevel === '2nd_alarm') {
+                        $damage *= 1.75;
+                    }
+
+                    $fireStarted = $createdAt->copy()->subMinutes(6 + ($globalIndex % 8));
+                    $fireOut = $createdAt->copy()->addMinutes(35 + ($globalIndex % 30));
+
+                    $establishmentName = match ($incidentType) {
+                        'commercial_fire' => 'Lian Commercial Eatery & Groceries',
+                        'storage_fire' => 'Lian Copra & Grain Warehouse',
+                        default => null,
+                    };
+
                     DB::table('incident_record')->insert([
                         'report_id' => $reportId,
                         'barangay_id' => $barangay->barangay_id,
-                        'incident_datetime' => $createdAt->copy()->subMinutes($incidentIndex % 8),
+                        'incident_datetime' => $createdAt->copy()->subMinutes(2),
                         'incident_type' => $incidentType,
                         'alarm_level' => $alarmLevel,
                         'cause_of_fire' => $scenario['cause'],
-                        'casualties' => $this->casualtiesFor($alarmLevel, $incidentIndex),
-                        'notes' => $status === 'resolved'
-                            ? 'Scene secured after suppression and overhaul. Initial investigation documented.'
-                            : 'Response operations are ongoing; incident details are subject to final assessment.',
+                        'casualties' => $injuries + $fatalities,
+                        'injuries' => $injuries,
+                        'fatalities' => $fatalities,
+                        'time_fire_started' => $fireStarted,
+                        'time_fire_out' => $fireOut,
+                        'establishment_name' => $establishmentName,
+                        'owner_name' => self::WALK_IN_NAMES[$globalIndex % count(self::WALK_IN_NAMES)],
+                        'occupant_name' => $reportingUser->first_name.' '.$reportingUser->last_name,
+                        'estimated_damage' => round($damage, 2),
+                        'notes' => 'Scene secured after fire suppression and overhaul. Initial investigation completed.',
                     ]);
-                    $incidentIndex++;
-                }
 
-                if ($evidenceImagePaths !== [] && $globalIndex % 19 === 0) {
-                    DB::table('report_evidence')->insert([
-                        'report_id' => $reportId,
-                        'image_path' => $evidenceImagePaths[$globalIndex % count($evidenceImagePaths)],
-                        'uploaded_by' => $responders[$globalIndex % count($responders)],
-                        'caption' => $isInvalid ? 'Verification photo from the reported location' : 'Scene photo received during response',
-                        'created_at' => $createdAt->copy()->addMinutes(3),
-                    ]);
-                }
-
-                if ($status === 'resolved') {
-                    if ($isDuplicate) {
+                    // Occasional duplicate link
+                    if ($globalIndex === 35 && $lastResolvedReportId !== null) {
                         DB::table('report_link')->insert([
-                            'main_report_id' => $lastResolvedContext['report_id'],
+                            'main_report_id' => $lastResolvedReportId,
                             'related_report_id' => $reportId,
                         ]);
-                        $resolvedSinceDuplicate = 0;
-                    } else {
-                        $resolvedSinceDuplicate++;
                     }
-
-                    $lastResolvedContext = [
-                        'report_id' => $reportId,
-                        'created_at' => $createdAt,
-                        'barangay' => $barangay,
-                        'coordinates' => $coordinates,
-                        'incident_type' => $incidentType,
-                        'alarm_level' => $alarmLevel,
-                        'scenario' => $scenario,
-                    ];
+                    $lastResolvedReportId = $reportId;
                 }
             }
         }
     }
 
-    private function statusFor(int $globalIndex, int $historicalTotal, int $monthsAgo, int $monthlyIndex): string
-    {
-        if ($monthsAgo > 0) {
-            return (($globalIndex * 37) % $historicalTotal) < 36 ? 'invalid' : 'resolved';
-        }
+    /**
+     * Seeds normalized dispatch records, fire trucks, and personnel.
+     * Uses trucks: 'Fire Truck 1', 'Fire Truck 2', 'Fire Truck 3'.
+     *
+     * Enforces the rule:
+     * If a personnel or truck was deployed in the 1st dispatch,
+     * they CANNOT be re-deployed in the 2nd dispatch for the same report.
+     *
+     * @param  list<int>  $dispatcherIds
+     * @param  list<int>  $fieldResponders
+     */
+    private function seedDispatchesForReport(
+        int $reportId,
+        CarbonInterface $createdAt,
+        string $incidentType,
+        string $alarmLevel,
+        array $dispatcherIds,
+        array $fieldResponders,
+        int $seed,
+    ): void {
+        $dispatcher = $dispatcherIds[$seed % count($dispatcherIds)];
+        $firstDispatchedAt = $createdAt->copy()->addMinutes(3);
 
-        // Current month: Keep active fires realistic (1 pending, 1 accepted, 1 dispatched, 2 false alarms/invalid, rest resolved)
-        return match ($monthlyIndex) {
-            0 => 'pending',
-            1 => 'accepted',
-            2 => 'dispatched',
-            3, 4 => 'invalid',
-            default => 'resolved',
+        // Partition trucks:
+        // 1st Dispatch uses Fire Truck 1 (or Fire Truck 1 & 2)
+        // 2nd Dispatch uses Fire Truck 3 (NEVER overlapping)
+        $firstTrucks = match ($incidentType) {
+            'rubbish_fire' => [self::TRUCKS[0]], // Fire Truck 1
+            'vehicular_fire' => [self::TRUCKS[0]], // Fire Truck 1
+            default => ($alarmLevel === '2nd_alarm')
+                ? [self::TRUCKS[0]] // Fire Truck 1 for initial
+                : [self::TRUCKS[0], self::TRUCKS[1]], // Fire Truck 1 & 2 for 1st alarm structure
         };
-    }
 
-    private function createdAt(
-        CarbonInterface $now,
-        CarbonInterface $monthStart,
-        int $monthsAgo,
-        int $monthlyIndex,
-        ?int $activeIndex,
-    ): CarbonInterface {
-        if ($activeIndex !== null) {
-            return match ($activeIndex) {
-                0 => $now->copy()->subMinutes(22), // Pending: just reported 22 mins ago today
-                1 => $now->copy()->subMinutes(58), // Accepted: reported ~1 hr ago today
-                2 => $now->copy()->subHours(1)->subMinutes(35), // Dispatched: units responding today
-                default => $now->copy()->subHours(2 + ($activeIndex % 4)),
-            };
+        // Partition personnel into 2 non-overlapping pools
+        $halfCount = (int) ceil(count($fieldResponders) / 2);
+        $firstCrewPool = array_slice($fieldResponders, 0, $halfCount);
+        $secondCrewPool = array_slice($fieldResponders, $halfCount);
+
+        $firstCrew = array_slice($firstCrewPool, 0, min(3, count($firstCrewPool)));
+
+        // 1st Dispatch
+        $d1Id = (int) DB::table('incident_dispatch')->insertGetId([
+            'report_id' => $reportId,
+            'dispatched_by' => $dispatcher,
+            'dispatched_at' => $firstDispatchedAt,
+        ]);
+
+        foreach ($firstTrucks as $tName) {
+            DB::table('incident_dispatch_truck')->insert([
+                'dispatch_id' => $d1Id,
+                'truck_name' => $tName,
+            ]);
         }
 
-        if ($monthsAgo === 0 && $monthlyIndex === 3) {
-            return $now->copy()->subDays(1)->setTime(10, 15);
+        foreach ($firstCrew as $userId) {
+            DB::table('incident_dispatch_personnel')->insert([
+                'dispatch_id' => $d1Id,
+                'user_id' => $userId,
+            ]);
         }
 
-        if ($monthsAgo === 0 && $monthlyIndex === 4) {
-            return $now->copy()->subDays(2)->setTime(16, 40);
-        }
+        // 2nd Alarm Escalation Dispatch: Uses COMPLETELY DIFFERENT truck and personnel
+        if ($alarmLevel === '2nd_alarm') {
+            $secondDispatchedAt = $firstDispatchedAt->copy()->addMinutes(14);
+            $secondTrucks = [self::TRUCKS[2]]; // Fire Truck 3 (not in 1st dispatch!)
+            $secondCrew = array_slice($secondCrewPool, 0, min(3, count($secondCrewPool))); // Crew not in 1st dispatch!
 
-        $maximumDay = $monthsAgo === 1
-            ? min($monthStart->daysInMonth, $now->day)
-            : ($monthsAgo === 0 ? max(1, $now->day - 1) : $monthStart->daysInMonth);
-        $day = 1 + (($monthlyIndex * 7 + $monthsAgo * 3) % $maximumDay);
+            $d2Id = (int) DB::table('incident_dispatch')->insertGetId([
+                'report_id' => $reportId,
+                'dispatched_by' => $dispatcher,
+                'dispatched_at' => $secondDispatchedAt,
+            ]);
 
-        return $monthStart->copy()->setDay($day)->setTime(
-            self::REPORTING_HOURS[($monthlyIndex * 3 + $monthsAgo) % count(self::REPORTING_HOURS)],
-            ($monthlyIndex * 17 + $monthsAgo * 11) % 60,
-        );
-    }
+            foreach ($secondTrucks as $tName) {
+                DB::table('incident_dispatch_truck')->insert([
+                    'dispatch_id' => $d2Id,
+                    'truck_name' => $tName,
+                ]);
+            }
 
-    /**
-     * @param  Collection<int, object>  $residents
-     * @param  Collection<int|string, mixed>  $residentBarangays
-     */
-    private function reporterFor(Collection $residents, Collection $residentBarangays, int $index): ?object
-    {
-        if ($index % 7 === 0) {
-            return null;
-        }
-
-        if ($index % 10 === 0 && $residentBarangays->isNotEmpty()) {
-            $addressedUserId = (int) $residentBarangays->keys()->values()[$index % $residentBarangays->count()];
-
-            return $residents->firstWhere('user_id', $addressedUserId) ?? $residents[($index * 11) % $residents->count()];
-        }
-
-        return $residents[($index * 11) % $residents->count()];
-    }
-
-    /**
-     * @param  Collection<int, object>  $barangays
-     * @return list<object>
-     */
-    private function weightedBarangayPool(Collection $barangays): array
-    {
-        $hotspotWeights = [
-            'Barangay 1 (Poblacion)' => 10,
-            'Binubusan' => 9,
-            'Lumaniag' => 8,
-            'Matabungkay' => 7,
-            'Prenza' => 6,
-        ];
-        $pool = [];
-
-        foreach ($barangays->values() as $index => $barangay) {
-            $weight = $hotspotWeights[$barangay->barangay_name] ?? 1 + ($index % 3);
-
-            for ($repeat = 0; $repeat < $weight; $repeat++) {
-                $pool[] = $barangay;
+            foreach ($secondCrew as $userId) {
+                DB::table('incident_dispatch_personnel')->insert([
+                    'dispatch_id' => $d2Id,
+                    'user_id' => $userId,
+                ]);
             }
         }
-
-        return $pool;
-    }
-
-    /** @return array{description: string, cause: string} */
-    private function scenarioFor(string $incidentType, int $index): array
-    {
-        $scenarios = self::SCENARIOS[$incidentType];
-
-        return $scenarios[$index % count($scenarios)];
-    }
-
-    private function incidentTypeFor(int $index): string
-    {
-        $position = ($index * 37) % 100;
-
-        return match (true) {
-            $position < 40 => 'residential_fire',
-            $position < 60 => 'rubbish_fire',
-            $position < 75 => 'commercial_fire',
-            $position < 85 => 'vehicular_fire',
-            $position < 93 => 'storage_fire',
-            default => 'others',
-        };
-    }
-
-    private function alarmLevelFor(int $index): string
-    {
-        if ($index === 127) {
-            return 'task_force_alpha';
-        }
-
-        if ($index === 251) {
-            return 'general_alarm';
-        }
-
-        if ($index === 309) {
-            return 'task_force_bravo';
-        }
-
-        $position = ($index * 29) % 100;
-
-        return match (true) {
-            $position < 68 => '1st_alarm',
-            $position < 89 => '2nd_alarm',
-            $position < 95 => '3rd_alarm',
-            $position < 97 => '4th_alarm',
-            default => '5th_alarm',
-        };
-    }
-
-    private function casualtiesFor(string $alarmLevel, int $index): int
-    {
-        if (in_array($alarmLevel, ['task_force_alpha', 'task_force_bravo', 'general_alarm'], true)) {
-            return 1 + ($index % 3);
-        }
-
-        if (in_array($alarmLevel, ['4th_alarm', '5th_alarm'], true) && $index % 4 === 0) {
-            return 1 + ($index % 2);
-        }
-
-        return $index % 71 === 0 ? 1 : 0;
     }
 
     /**
-     * @param  list<int>  $responders
-     * @return list<array{status: string, notes: string, changed_by: int, created_at: CarbonInterface}>
+     * Builds realistic status transition timeline.
+     * Enforces the rule: Accepting and Dispatching are STRICTLY performed by BFP Personnel.
+     * The Admin NEVER accepts or dispatches, but can occasionally resolve incidents (~15% of the time).
+     *
+     * @param  list<int>  $personnel
+     * @return list<array{status: string, notes: string, changed_by: int|null, created_at: CarbonInterface}>
      */
     private function timelineFor(
         string $status,
         CarbonInterface $createdAt,
         string $alarmLevel,
-        array $responders,
+        array $personnel,
+        ?int $adminId,
         int $index,
     ): array {
+        $pCount = count($personnel);
+
         $timeline = [[
             'status' => 'pending',
-            'notes' => 'Report received; location and caller details logged by the duty desk.',
-            'changed_by' => $responders[$index % count($responders)],
+            'notes' => 'Initial community report received via mobile app.',
+            'changed_by' => null,
             'created_at' => $createdAt,
         ]];
 
@@ -462,33 +541,35 @@ class RealisticIncidentDataSeeder extends Seeder
         }
 
         if ($status === 'invalid') {
+            $closedBy = ($adminId !== null && $index % 2 === 0)
+                ? $adminId
+                : $personnel[($index + 1) % $pCount];
+
             $timeline[] = [
                 'status' => 'invalid',
-                'notes' => 'No active fire found after verification; report closed as invalid.',
-                'changed_by' => $responders[($index + 1) % count($responders)],
-                'created_at' => $createdAt->copy()->addMinutes(5 + ($index % 21)),
+                'notes' => 'Verified on scene as non-fire false alarm; report closed.',
+                'changed_by' => $closedBy,
+                'created_at' => $createdAt->copy()->addMinutes(8),
             ];
 
             return $timeline;
         }
 
-        $acceptedAt = $createdAt->copy()->addMinutes(2 + ($index % 9));
+        // Accepted: STRICTLY by BFP Personnel (never the Admin)
+        $acceptedAt = $createdAt->copy()->addMinutes(2);
         $timeline[] = [
             'status' => 'accepted',
-            'notes' => 'Visible fire indicators confirmed; incident accepted for response.',
-            'changed_by' => $responders[($index + 1) % count($responders)],
+            'notes' => 'Fire report verified and confirmed; response activated.',
+            'changed_by' => $personnel[($index + 1) % $pCount],
             'created_at' => $acceptedAt,
         ];
 
-        if ($status === 'accepted') {
-            return $timeline;
-        }
-
-        $dispatchedAt = $acceptedAt->copy()->addMinutes(1 + ($index % 5));
+        // Dispatched: STRICTLY by BFP Personnel (never the Admin)
+        $dispatchedAt = $acceptedAt->copy()->addMinutes(2);
         $timeline[] = [
             'status' => 'dispatched',
-            'notes' => $index % 2 === 0 ? 'Engine 1 en route with the duty crew.' : 'Engine unit and responders dispatched to the scene.',
-            'changed_by' => $responders[($index + 2) % count($responders)],
+            'notes' => 'BFP Lian fire apparatus and duty crew dispatched to the scene.',
+            'changed_by' => $personnel[($index + 2) % $pCount],
             'created_at' => $dispatchedAt,
         ];
 
@@ -496,34 +577,105 @@ class RealisticIncidentDataSeeder extends Seeder
             return $timeline;
         }
 
+        // Resolved: Mostly (~85%) by field personnel completing overhaul on scene;
+        // Occasionally (~15%) closed administratively by the Web Admin.
+        $resolvedBy = ($adminId !== null && $index % 7 === 0)
+            ? $adminId
+            : $personnel[($index + 3) % $pCount];
+
+        $resolutionMinutes = ($alarmLevel === '2nd_alarm') ? 70 : 40;
         $timeline[] = [
             'status' => 'resolved',
-            'notes' => $index % 2 === 0 ? 'Fire under control; overhaul completed and scene declared safe.' : 'Fire out, declared by the ground fire officer.',
-            'changed_by' => $responders[($index + 3) % count($responders)],
-            'created_at' => $createdAt->copy()->addMinutes($this->resolutionMinutes($alarmLevel, $index)),
+            'notes' => ($resolvedBy === $adminId)
+                ? 'Incident closed and finalized in administrative spot report records.'
+                : 'Fire completely suppressed, overhaul completed, and area secured.',
+            'changed_by' => $resolvedBy,
+            'created_at' => $dispatchedAt->copy()->addMinutes($resolutionMinutes),
         ];
 
         return $timeline;
     }
 
-    private function resolutionMinutes(string $alarmLevel, int $index): int
+    /**
+     * Weights barangays based on actual density, commercial activity, and vegetation risk factors in Lian.
+     *
+     * @param  Collection<int, object>  $barangays
+     * @return list<object>
+     */
+    private function weightedBarangayPool(Collection $barangays): array
     {
-        [$minimum, $maximum] = match ($alarmLevel) {
-            '1st_alarm' => [20, 80],
-            '2nd_alarm' => [45, 150],
-            '3rd_alarm' => [90, 240],
-            '4th_alarm' => [150, 300],
-            '5th_alarm' => [180, 340],
-            default => [240, 360],
-        };
+        $weights = [
+            1 => 4,  // Barangay 1 (Poblacion)
+            2 => 4,  // Barangay 2 (Poblacion)
+            3 => 3,  // Barangay 3 (Poblacion)
+            4 => 3,  // Barangay 4 (Poblacion)
+            5 => 3,  // Barangay 5 (Poblacion)
+            8 => 5,  // Binubusan (Extensive Sugarcane & Grasslands)
+            9 => 4,  // Bungahan (Sugarcane / Open burning)
+            14 => 3, // Luyahan (Farmlands)
+            16 => 6, // Matabungkay (Beach Resorts, Bamboo Cottages, Grills, Tourism)
+            17 => 4, // Prenza (Open Fields & Pasture)
+            19 => 3, // San Diego (Rice & Agricultural)
+        ];
 
-        return $minimum + ($index * 17) % ($maximum - $minimum + 1);
+        $pool = [];
+        foreach ($barangays as $b) {
+            $w = $weights[$b->barangay_id] ?? 2;
+            for ($i = 0; $i < $w; $i++) {
+                $pool[] = $b;
+            }
+        }
+
+        return $pool;
+    }
+
+    private function incidentTypeFor(int $index, bool $isDryPeakMonth = false): string
+    {
+        if ($isDryPeakMonth) {
+            $types = [
+                'rubbish_fire',
+                'rubbish_fire',
+                'residential_fire',
+                'rubbish_fire',
+                'commercial_fire',
+                'rubbish_fire',
+                'residential_fire',
+                'vehicular_fire',
+                'rubbish_fire',
+                'storage_fire',
+            ];
+        } else {
+            $types = [
+                'residential_fire',
+                'rubbish_fire',
+                'residential_fire',
+                'commercial_fire',
+                'residential_fire',
+                'vehicular_fire',
+                'rubbish_fire',
+                'residential_fire',
+                'storage_fire',
+                'others',
+            ];
+        }
+
+        return $types[$index % count($types)];
+    }
+
+    /**
+     * @return array{desc: string, cause: string, est_min: int, est_max: int}
+     */
+    private function scenarioFor(string $type, int $index): array
+    {
+        $list = self::SCENARIOS[$type] ?? self::SCENARIOS['others'];
+
+        return $list[$index % count($list)];
     }
 
     /** @return array{0: float, 1: float} */
     private function pointWithinBarangay(object $barangay, int $seed): array
     {
-        $boundary = json_decode((string) $barangay->boundary_geojson, true);
+        $boundary = json_decode((string) ($barangay->boundary_geojson ?? ''), true);
         $ring = $this->boundaryRing($boundary);
 
         if ($ring === []) {
@@ -532,17 +684,17 @@ class RealisticIncidentDataSeeder extends Seeder
 
         $longitudes = array_column($ring, 0);
         $latitudes = array_column($ring, 1);
-        $minimumLongitude = min($longitudes);
-        $maximumLongitude = max($longitudes);
-        $minimumLatitude = min($latitudes);
-        $maximumLatitude = max($latitudes);
+        $minLng = min($longitudes);
+        $maxLng = max($longitudes);
+        $minLat = min($latitudes);
+        $maxLat = max($latitudes);
 
-        for ($attempt = 0; $attempt < 500; $attempt++) {
-            $latitude = $minimumLatitude + ($maximumLatitude - $minimumLatitude) * $this->fraction($seed, $attempt * 2 + 7);
-            $longitude = $minimumLongitude + ($maximumLongitude - $minimumLongitude) * $this->fraction($seed, $attempt * 2 + 8);
+        for ($attempt = 0; $attempt < 300; $attempt++) {
+            $lat = $minLat + ($maxLat - $minLat) * $this->fraction($seed, $attempt * 2 + 7);
+            $lng = $minLng + ($maxLng - $minLng) * $this->fraction($seed, $attempt * 2 + 8);
 
-            if (Geo::pointInPolygon($latitude, $longitude, $ring)) {
-                return [round($latitude, 8), round($longitude, 8)];
+            if (Geo::pointInPolygon($lat, $lng, $ring)) {
+                return [round($lat, 8), round($lng, 8)];
             }
         }
 
@@ -570,7 +722,7 @@ class RealisticIncidentDataSeeder extends Seeder
     /** @return array{0: float, 1: float, 2: int} */
     private function deviceCoordinates(float $latitude, float $longitude, int $seed): array
     {
-        $distanceMeters = 5 + ($seed % 26);
+        $distanceMeters = 5 + ($seed % 20);
         $bearing = deg2rad(($seed * 47) % 360);
         $latitudeOffset = cos($bearing) * $distanceMeters / 111320;
         $longitudeScale = max(0.1, cos(deg2rad($latitude)));
@@ -579,7 +731,7 @@ class RealisticIncidentDataSeeder extends Seeder
         return [
             round($latitude + $latitudeOffset, 8),
             round($longitude + $longitudeOffset, 8),
-            5 + ($seed * 7) % 46,
+            5 + ($seed * 7) % 35,
         ];
     }
 

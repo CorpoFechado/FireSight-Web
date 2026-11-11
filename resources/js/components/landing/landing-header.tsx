@@ -89,8 +89,8 @@ export function LandingHeader({ user }: LandingHeaderProps) {
     return (
         <header
             className={`sticky top-0 z-50 -mb-20 w-full transition-all duration-300 ${
-                hasScrolled
-                    ? 'border-b border-white/10 bg-firesight-navy/95 shadow-lg shadow-black/10 backdrop-blur-xl'
+                hasScrolled || isMenuOpen
+                    ? 'border-b border-white/10 bg-firesight-navy shadow-lg shadow-black/20 backdrop-blur-xl'
                     : 'border-b border-transparent bg-transparent'
             }`}
         >

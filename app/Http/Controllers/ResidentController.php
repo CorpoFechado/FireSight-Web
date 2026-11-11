@@ -125,7 +125,7 @@ class ResidentController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'suffix' => ['nullable', 'string', 'max:10'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
-            'contact_number' => ['required', 'string', 'max:20'],
+            'contact_number' => ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')->ignore($user)],
             'username' => ['nullable', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user)],
             'house_no_street' => ['nullable', 'string', 'max:150'],
             'barangay_id' => ['required', 'integer', 'exists:barangay,barangay_id'],

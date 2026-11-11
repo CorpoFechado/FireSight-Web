@@ -34,6 +34,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/resend-verification', [AuthController::class, 'resendVerification'])->name('api.v1.auth.resend_verification');
         Route::get('/verification-status', [AuthController::class, 'verificationStatus'])->name('api.v1.auth.verification_status');
         Route::post('/cancel-registration', [AuthController::class, 'cancelRegistration'])->name('api.v1.auth.cancel_registration');
+        Route::post('/check-mobile', [AuthController::class, 'checkMobile'])->name('api.v1.auth.check_mobile');
+        Route::post('/check_mobile.php', [AuthController::class, 'checkMobile']);
 
         Route::middleware('auth.mobile')->group(function (): void {
             Route::post('/logout', [AuthController::class, 'logout'])->name('api.v1.auth.logout');
@@ -175,6 +177,8 @@ Route::prefix('auth')->group(function (): void {
     Route::get('/verification_status.php', [AuthController::class, 'verificationStatus']);
     Route::post('/cancel-registration', [AuthController::class, 'cancelRegistration']);
     Route::post('/cancel_registration.php', [AuthController::class, 'cancelRegistration']);
+    Route::post('/check-mobile', [AuthController::class, 'checkMobile']);
+    Route::post('/check_mobile.php', [AuthController::class, 'checkMobile']);
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth.mobile');
     Route::post('/logout.php', [AuthController::class, 'logout'])->middleware('auth.mobile');
 });

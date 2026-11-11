@@ -83,10 +83,7 @@ export default function Dashboard({
     incidentsByType: IncidentTypeSlice[];
 }) {
     return (
-        <PortalLayout
-            title="Dashboard"
-            subtitle="BFP Lian Municipal Fire Station"
-        >
+        <PortalLayout title="Dashboard">
             <div className="space-y-6">
                 {/* KPI Cards */}
                 <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
