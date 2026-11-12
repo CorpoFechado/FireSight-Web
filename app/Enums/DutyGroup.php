@@ -14,7 +14,7 @@ enum DutyGroup: string
         return match ($this) {
             self::A => 'Duty A',
             self::B => 'Duty B',
-            self::Regular => 'Always on Duty',
+            self::Regular => 'Office Hours',
             self::Detached => 'Detached',
         };
     }

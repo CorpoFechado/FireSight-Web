@@ -41,7 +41,7 @@ class DutyRotation
         $days = $anchorWeekStart->diffInDays($targetWeekStart, false);
         $weeks = (int) floor($days / 7);
 
-        $anchorGroupVal = (string) config('duty.rotation.anchor_group', 'A');
+        $anchorGroupVal = (string) config('duty.rotation.anchor_group', 'B');
         $anchorGroup = DutyGroup::from($anchorGroupVal);
         $otherGroup = $anchorGroup === DutyGroup::A ? DutyGroup::B : DutyGroup::A;
 
@@ -88,16 +88,18 @@ class DutyRotation
 
     /**
      * Determine whether the given user is currently on duty at the given moment.
-     * Regular members are always on duty; Detached or unassigned members are never on duty;
+     * Regular members are on duty during office hours; Detached or unassigned members are never on duty;
      * Platoon A/B members are on duty when their group is the active rotation group.
+     *
+     * @param  Collection<int, DutyOverride>|null  $overrides
      */
-    public static function isOnDuty(User $user, CarbonInterface $moment): bool
+    public static function isOnDuty(User $user, CarbonInterface $moment, ?Collection $overrides = null): bool
     {
         $weekStart = self::weekStartFor($moment);
-        $effectiveGroup = self::effectiveGroupFor($user, $weekStart);
+        $effectiveGroup = self::effectiveGroupFor($user, $weekStart, $overrides);
 
         if ($effectiveGroup === DutyGroup::Regular) {
-            return true;
+            return self::isWithinOfficeHours($moment);
         }
 
         if ($effectiveGroup === DutyGroup::Detached || $effectiveGroup === null) {
@@ -105,6 +107,17 @@ class DutyRotation
         }
 
         return $effectiveGroup === self::activeGroupFor($moment);
+    }
+
+    public static function isWithinOfficeHours(CarbonInterface $moment): bool
+    {
+        $localMoment = CarbonImmutable::instance($moment)->setTimezone(config('app.timezone'));
+        $start = $localMoment->startOfDay()->setTimeFromTimeString((string) config('duty.office_hours.start', '08:00'));
+        $end = $localMoment->startOfDay()->setTimeFromTimeString((string) config('duty.office_hours.end', '17:00'));
+
+        return in_array($localMoment->isoWeekday(), config('duty.office_hours.days', [1, 2, 3, 4, 5]), true)
+            && $localMoment->greaterThanOrEqualTo($start)
+            && $localMoment->lessThan($end);
     }
 
     /**

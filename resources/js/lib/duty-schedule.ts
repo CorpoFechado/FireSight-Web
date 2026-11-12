@@ -72,6 +72,7 @@ export type Roster = {
 
 export type DutySchedulePageProps = {
     week: WeekInfo;
+    officeHours: { isOnDuty: boolean; start: string; end: string };
     roster: Roster;
     overrides: Override[];
     upcoming: UpcomingWeek[];
@@ -183,7 +184,7 @@ export function groupLabel(group: string | null | undefined): string {
         case 'B':
             return 'Duty B';
         case 'regular':
-            return 'Always on Duty';
+            return 'Office Hours';
         case 'detached':
             return 'Detached';
         default:

@@ -51,6 +51,7 @@ class DutyScheduleController extends Controller
         $weekEnd = $weekStart->endOfWeek(CarbonInterface::SUNDAY)->startOfDay();
         $activeGroup = DutyRotation::activeGroupFor($date);
         $isCurrent = DutyRotation::weekStartFor(now())->toDateString() === $weekStart->toDateString();
+        $dutyMoment = $isCurrent ? now() : $date;
 
         $overrides = DutyOverride::query()
             ->with(['user.personnelDetails', 'creator'])
@@ -113,8 +114,7 @@ class DutyScheduleController extends Controller
             $override = $overridesByUser->get($user->getKey());
             $baseGroup = $user->personnelDetails?->duty_group;
             $effectiveGroup = $override?->duty_group ?? $baseGroup;
-            $isOnDuty = ($effectiveGroup === DutyGroup::Regular)
-                || ($effectiveGroup !== null && $effectiveGroup !== DutyGroup::Detached && $effectiveGroup === $activeGroup);
+            $isOnDuty = DutyRotation::isOnDuty($user, $dutyMoment, $overrides);
 
             $member = [
                 'user_id' => $user->getKey(),
@@ -182,6 +182,11 @@ class DutyScheduleController extends Controller
                 'isCurrent' => $isCurrent,
             ],
             'roster' => $roster,
+            'officeHours' => [
+                'isOnDuty' => DutyRotation::isWithinOfficeHours($dutyMoment),
+                'start' => Carbon::parse(config('duty.office_hours.start'))->format('g:i A'),
+                'end' => Carbon::parse(config('duty.office_hours.end'))->format('g:i A'),
+            ],
             'overrides' => $overrideRows,
             'upcoming' => DutyRotation::upcomingWeeks($weekStart, 8),
             'groups' => $groups,

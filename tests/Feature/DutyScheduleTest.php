@@ -6,6 +6,7 @@ use App\Models\CommunityReport;
 use App\Models\DutyOverride;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -61,6 +62,44 @@ test('bfp admin sees roster buckets by effective group and activeGroup', functio
         ->where('roster.B.0.user_id', $personnelB->getKey())
         ->where('roster.B.0.is_on_duty', false)
     );
+});
+
+test('current roster and upcoming weeks reflect office hours and the rotation', function () {
+    config(['duty.rotation.anchor_group' => 'B']);
+    $this->travelTo(Carbon::parse('2026-11-09 08:00', 'Asia/Manila'));
+    $admin = User::factory()->bfpAdmin()->create();
+    $personnel = User::factory()->bfpPersonnel()->create();
+    BfpPersonnelDetails::create([
+        'user_id' => $personnel->getKey(),
+        'rank' => 'Fire Officer 1',
+        'station_assigned' => 'BFP Lian Fire Station',
+        'employee_number' => 'EMP-OFFICE',
+        'duty_group' => DutyGroup::A,
+    ]);
+    DutyOverride::factory()->create([
+        'user_id' => $personnel->getKey(),
+        'duty_group' => DutyGroup::Regular,
+        'starts_on' => '2026-11-09',
+        'ends_on' => '2026-11-15',
+    ]);
+
+    $this->actingAs($admin)->get(route('dutySchedule', ['date' => '2026-11-09']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('week.activeGroup', 'B')
+            ->where('upcoming.0.group', 'B')
+            ->where('upcoming.1.group', 'A')
+            ->where('officeHours.isOnDuty', true)
+            ->where('officeHours.start', '8:00 AM')
+            ->where('officeHours.end', '5:00 PM')
+            ->where('roster.regular.0.is_on_duty', true)
+        );
+
+    $this->travelTo(Carbon::parse('2026-11-09 17:00', 'Asia/Manila'));
+    $this->get(route('dutySchedule'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('officeHours.isOnDuty', false)
+            ->where('roster.regular.0.is_on_duty', false)
+        );
 });
 
 test('non-admin gets 403 on every duty route', function () {

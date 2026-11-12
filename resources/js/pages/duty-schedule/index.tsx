@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePoll } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     ArrowRightLeft,
@@ -53,19 +53,21 @@ import { show as showIncident } from '@/routes/incidents';
 const PERMANENT_MOVE_OPTIONS: { value: string | null; label: string }[] = [
     { value: 'A', label: 'Duty A' },
     { value: 'B', label: 'Duty B' },
-    { value: 'regular', label: 'Always on Duty' },
+    { value: 'regular', label: 'Office Hours' },
     { value: 'detached', label: 'Detached' },
     { value: null, label: 'Unassigned' },
 ];
 
 export default function DutySchedulePage({
     week,
+    officeHours,
     roster,
     overrides,
     upcoming,
     groups,
 }: DutySchedulePageProps) {
     const getInitials = useInitials();
+    usePoll(60000);
 
     // Modal state for Reassign / Swap
     const [overrideModalOpen, setOverrideModalOpen] = useState(false);
@@ -567,35 +569,47 @@ export default function DutySchedulePage({
                             </div>
                         </div>
 
-                        {/* COLUMN 2: Always on Duty (Command Group / Regular) */}
+                        {/* COLUMN 2: Office Hours (Command Group / Regular) */}
                         <div className="flex flex-col rounded-2xl border border-emerald-200/90 bg-emerald-50/20 p-4 shadow-2xs">
                             <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="h-3 w-3 rounded-full bg-emerald-600" />
                                     <h2 className="text-base font-bold text-emerald-950">
-                                        Always on Duty
+                                        Office Hours
                                     </h2>
                                     <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
                                         {roster.regular.length}
                                     </span>
                                 </div>
-                                <span className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 shadow-2xs">
-                                    <span className="relative mr-1.5 flex h-2 w-2">
-                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                                {officeHours.isOnDuty ? (
+                                    <span className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 shadow-2xs">
+                                        <span className="relative mr-1.5 flex h-2 w-2">
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                                        </span>
+                                        On Duty
                                     </span>
-                                    On Duty
-                                </span>
+                                ) : (
+                                    <span className="rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-500">
+                                        Off Duty
+                                    </span>
+                                )}
                             </div>
+                            <p className="mt-2 text-xs text-brand-muted">
+                                Mon–Fri, {officeHours.start} – {officeHours.end}
+                            </p>
 
                             <div className="mt-3.5 flex-1 space-y-2.5">
                                 {roster.regular.length === 0 ? (
                                     <div className="rounded-xl border border-dashed border-emerald-200 bg-white/50 p-6 text-center text-xs text-brand-muted">
-                                        No personnel assigned to Always on Duty.
+                                        No personnel assigned to Office Hours.
                                     </div>
                                 ) : (
                                     roster.regular.map((member) =>
-                                        renderMemberCard(member, false),
+                                        renderMemberCard(
+                                            member,
+                                            !member.is_on_duty,
+                                        ),
                                     )
                                 )}
                             </div>

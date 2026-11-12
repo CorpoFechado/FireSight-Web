@@ -48,7 +48,7 @@ const DUTY_GROUP_OPTIONS: { value: string; label: string }[] = [
     { value: 'unassigned', label: 'Unassigned' },
     { value: 'A', label: 'Duty A' },
     { value: 'B', label: 'Duty B' },
-    { value: 'regular', label: 'Always on Duty' },
+    { value: 'regular', label: 'Office Hours' },
     { value: 'detached', label: 'Detached' },
 ];
 
@@ -214,7 +214,8 @@ export function PersonnelFormModal({
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="space-y-1.5">
                             <Label>
-                                First Name <span className="text-brand-red">*</span>
+                                First Name{' '}
+                                <span className="text-brand-red">*</span>
                             </Label>
                             <input
                                 value={data.first_name}
@@ -257,7 +258,8 @@ export function PersonnelFormModal({
 
                         <div className="space-y-1.5">
                             <Label>
-                                Last Name <span className="text-brand-red">*</span>
+                                Last Name{' '}
+                                <span className="text-brand-red">*</span>
                             </Label>
                             <input
                                 value={data.last_name}
@@ -299,7 +301,8 @@ export function PersonnelFormModal({
 
                         <div className="space-y-1.5">
                             <Label>
-                                Contact Number <span className="text-brand-red">*</span>
+                                Contact Number{' '}
+                                <span className="text-brand-red">*</span>
                             </Label>
                             <input
                                 value={data.contact_number}
@@ -325,9 +328,7 @@ export function PersonnelFormModal({
                         <input
                             type="email"
                             value={data.email}
-                            onChange={(e) =>
-                                setData('email', e.target.value)
-                            }
+                            onChange={(e) => setData('email', e.target.value)}
                             placeholder="Enter email"
                             className="h-9 w-full rounded-md border px-3 text-sm outline-none"
                             style={{ borderColor: 'rgba(43,45,66,0.15)' }}
