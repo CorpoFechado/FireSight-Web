@@ -193,7 +193,11 @@ class IncidentController extends Controller
             'suggestedBarangayId' => $report->status === CommunityReport::STATUS_PENDING
                 ? $this->suggestBarangayId($report)
                 : null,
-            'navigationSource' => $request->string('from')->value() === 'map' ? 'map' : 'incidents',
+            'navigationSource' => match ($request->string('from')->value()) {
+                'map' => 'map',
+                'notifications' => 'notifications',
+                default => 'incidents',
+            },
         ]);
     }
 

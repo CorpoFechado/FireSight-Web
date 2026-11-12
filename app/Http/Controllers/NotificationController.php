@@ -34,6 +34,24 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function open(Notification $notification): RedirectResponse
+    {
+        abort_unless($notification->user_id === request()->user()->getKey(), 404);
+
+        if (! $notification->is_read) {
+            $notification->update(['is_read' => true]);
+        }
+
+        if ($notification->report_id !== null && $notification->report()->exists()) {
+            return redirect()->route('incidents.show', ['report' => $notification->report_id, 'from' => 'notifications']);
+        }
+
+        return redirect()->route('notifications')->with('toast', [
+            'type' => 'error',
+            'message' => 'The related report is no longer available.',
+        ]);
+    }
+
     public function markRead(Notification $notification): RedirectResponse
     {
         abort_unless($notification->user_id === request()->user()->getKey(), 404);
@@ -60,6 +78,7 @@ class NotificationController extends Controller
     {
         return [
             'id' => $notification->notification_id,
+            'report_id' => $notification->report_id,
             'type' => $notification->notification_type,
             'title' => $notification->title,
             'message' => $notification->message,

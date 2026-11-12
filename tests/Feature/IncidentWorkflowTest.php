@@ -263,7 +263,7 @@ test('incidents show renders with actual statusHistory from database including p
         );
 });
 
-test('incidents show only identifies map navigation when explicitly requested', function () {
+test('incidents show identifies the navigation source', function () {
     $report = CommunityReport::create([
         'user_id' => $this->resident->getKey(),
         'reporter_name' => 'Map Reporter',
@@ -287,6 +287,13 @@ test('incidents show only identifies map navigation when explicitly requested', 
         ->assertInertia(fn ($page) => $page
             ->component('incidents/show')
             ->where('navigationSource', 'incidents')
+        );
+
+    $this->get(route('incidents.show', ['report' => $report, 'from' => 'notifications']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('incidents/show')
+            ->where('navigationSource', 'notifications')
         );
 
     $this->get(route('incidents.show', ['report' => $report, 'from' => 'dashboard']))

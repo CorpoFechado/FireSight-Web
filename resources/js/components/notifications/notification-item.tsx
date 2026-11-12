@@ -1,13 +1,14 @@
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     formatNotificationTime,
     getNotificationVisual,
 } from '@/lib/notification-visual';
 import type { NotificationType } from '@/lib/notification-visual';
-import { read } from '@/routes/notifications';
+import { open, read } from '@/routes/notifications';
 
 export type NotificationRow = {
     id: number;
+    report_id: number | null;
     type: NotificationType;
     title: string;
     message: string;
@@ -34,17 +35,8 @@ export function NotificationItem({
         router.patch(read(notification.id).url, {}, { preserveScroll: true });
     };
 
-    return (
-        <button
-            type="button"
-            onClick={handleClick}
-            className="flex w-full items-start gap-3 border-b px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-brand-bg/60"
-            style={{
-                borderColor: 'rgba(43,45,66,0.06)',
-                background: notification.is_read ? 'transparent' : '#F7FAFC',
-                cursor: notification.is_read ? 'default' : 'pointer',
-            }}
-        >
+    const content = (
+        <>
             <span
                 className="flex size-9 flex-shrink-0 items-center justify-center rounded-full"
                 style={{ background: bg }}
@@ -71,6 +63,38 @@ export function NotificationItem({
                     {formatNotificationTime(notification.created_at)}
                 </span>
             </div>
+        </>
+    );
+    const className =
+        'flex w-full items-start gap-3 border-b px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-brand-bg/60';
+    const style = {
+        borderColor: 'rgba(43,45,66,0.06)',
+        background: notification.is_read ? 'transparent' : '#F7FAFC',
+    };
+
+    if (notification.report_id !== null) {
+        return (
+            <Link
+                href={open(notification.id)}
+                className={className}
+                style={style}
+            >
+                {content}
+            </Link>
+        );
+    }
+
+    return (
+        <button
+            type="button"
+            onClick={handleClick}
+            className={className}
+            style={{
+                ...style,
+                cursor: notification.is_read ? 'default' : 'pointer',
+            }}
+        >
+            {content}
         </button>
     );
 }

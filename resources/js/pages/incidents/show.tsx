@@ -27,6 +27,7 @@ import PortalLayout from '@/layouts/portal-layout';
 import { ALARM_LEVEL_CFG, STATUS_CFG } from '@/lib/fire-status';
 import type { AlarmLevel, ReportStatus } from '@/lib/fire-status';
 import type { StatusHistoryEntry } from '@/lib/status-history';
+import { notifications } from '@/routes';
 import {
     index as incidentsIndex,
     show as showIncident,
@@ -243,7 +244,7 @@ export default function IncidentShow({
     barangays: Barangay[];
     suggestedBarangayId: number | null;
     statusHistory?: StatusHistoryEntry[];
-    navigationSource: 'incidents' | 'map';
+    navigationSource: 'incidents' | 'map' | 'notifications';
 }) {
     const [editOpen, setEditOpen] = useState(false);
     const assessmentValues = {
@@ -403,6 +404,13 @@ export default function IncidentShow({
                     >
                         <ArrowLeft size={13} /> Back to Fire Incidents Map
                     </button>
+                ) : navigationSource === 'notifications' ? (
+                    <Link
+                        href={notifications()}
+                        className="flex w-fit items-center gap-1.5 text-xs font-semibold text-brand-blue"
+                    >
+                        <ArrowLeft size={13} /> Back to Notifications
+                    </Link>
                 ) : (
                     <Link
                         href={incidentsIndex()}
