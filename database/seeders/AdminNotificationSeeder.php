@@ -11,9 +11,9 @@ use Illuminate\Database\Seeder;
 class AdminNotificationSeeder extends Seeder
 {
     /**
-     * Number of days (before the most recent report) to backfill.
+     * Number of months (before the most recent report) to backfill.
      */
-    private const BACKFILL_DAYS = 14;
+    private const BACKFILL_MONTHS = 4;
 
     /**
      * Backfills notifications across all three user roles (Resident, BFP Personnel, BFP Admin)
@@ -40,7 +40,7 @@ class AdminNotificationSeeder extends Seeder
             ->where('status', User::STATUS_ACTIVE)
             ->pluck('user_id');
 
-        $since = $latestReport->created_at->copy()->subDays(self::BACKFILL_DAYS);
+        $since = $latestReport->created_at->copy()->subMonths(self::BACKFILL_MONTHS);
 
         $statusLabels = [
             CommunityReport::STATUS_PENDING => 'Pending',
