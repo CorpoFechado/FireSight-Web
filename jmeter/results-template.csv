@@ -1,0 +1,13 @@
+Test Case ID,Run,Concurrent Users,Total Requests,Successful Requests,Failed Requests,Average Response Time (ms),Throughput (successful requests/sec),Error Rate (%),Availability (%),Notes
+PERF-001,1,50,,,,,,,,
+PERF-001,2,50,,,,,,,,
+PERF-001,3,50,,,,,,,,
+PERF-002,1,100,,,,,,,,
+PERF-002,2,100,,,,,,,,
+PERF-002,3,100,,,,,,,,
+PERF-003,1,200,,,,,,,,
+PERF-003,2,200,,,,,,,,
+PERF-003,3,200,,,,,,,,
+PERF-004,Summary,,,,,,,,,Report mean and range for each level
+PERF-005,Assertions,,,,,,,,,Record assertion failures and coverage
+REL-003,1,,,,,,,,,Record actual load and duration

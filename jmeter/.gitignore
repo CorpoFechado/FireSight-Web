@@ -1,0 +1,5 @@
+accounts.csv
+private/
+results/
+*.jtl
+*.log

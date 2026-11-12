@@ -17,7 +17,7 @@ async function signIn(page: import('@playwright/test').Page) {
                     response.url().endsWith('/login') &&
                     response.request().method() === 'POST',
             ),
-            page.getByRole('button', { name: 'Sign In' }).click(),
+            page.getByRole('button', { name: 'Sign In', exact: true }).click(),
         ]);
     } finally {
         if (await page.getByLabel('Password', { exact: true }).isVisible()) {
@@ -43,7 +43,7 @@ test('AUTH-004 Wrong password is rejected', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email address').fill(email!);
     await page.getByLabel('Password', { exact: true }).fill('WrongPass#1');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
     await expect(
         page.getByText(/credentials.*(match|incorrect)|invalid credentials/i),
     ).toBeVisible();

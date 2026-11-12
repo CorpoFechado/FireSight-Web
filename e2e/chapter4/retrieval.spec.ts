@@ -1,6 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { query } from './database';
-import { incidentDetails, verifyIncidentDetail } from './incident-detail';
+import {
+    incidentDetails,
+    verifyIncidentDetail,
+    verifyExtendedIncidentDetail,
+} from './incident-detail';
+
+// Detail pages can contain personal information and authenticated sessions.
+test.use({ trace: 'off', screenshot: 'off' });
 
 const email = process.env.FIRESIGHT_ADMIN_EMAIL;
 const password = process.env.FIRESIGHT_ADMIN_PASSWORD;
@@ -18,7 +25,7 @@ async function signIn(page: Page) {
                 response.url().endsWith('/login') &&
                 response.request().method() === 'POST',
         ),
-        page.getByRole('button', { name: 'Sign In' }).click(),
+        page.getByRole('button', { name: 'Sign In', exact: true }).click(),
     ]);
     if (await page.getByLabel('Password', { exact: true }).isVisible())
         await page.getByLabel('Password', { exact: true }).fill('');
@@ -63,7 +70,7 @@ test.beforeEach(async ({ context }) => {
 
 test('RET-002 Retrieve a specific incident and compare its contents with MySQL', async ({
     page,
-}) => {
+}, testInfo) => {
     const record = sample();
     await page.goto('/incidents');
     await page
@@ -85,6 +92,12 @@ test('RET-002 Retrieve a specific incident and compare its contents with MySQL',
         ).toBeVisible();
     const [detail] = incidentDetails([record.id]);
     await verifyIncidentDetail(page, detail);
+    const unavailable = await verifyExtendedIncidentDetail(page, detail.id);
+    if (unavailable.length && testInfo.errors.length === 0)
+        test.skip(
+            true,
+            `Blocked: local images unavailable for reports ${unavailable.join(', ')}`,
+        );
 });
 
 test('RET-011 Compare twenty incident detail pages with MySQL (web sample)', async ({
@@ -101,10 +114,19 @@ test('RET-011 Compare twenty incident detail pages with MySQL (web sample)', asy
     });
     const details = incidentDetails(ids);
     expect(details).toHaveLength(20);
+    const unavailable: number[] = [];
     for (const detail of details) {
         await page.goto(`/incidents/${detail.id}`);
         await verifyIncidentDetail(page, detail);
+        unavailable.push(
+            ...(await verifyExtendedIncidentDetail(page, detail.id)),
+        );
     }
+    if (unavailable.length && testInfo.errors.length === 0)
+        test.skip(
+            true,
+            `Blocked: local images unavailable for reports ${unavailable.join(', ')}`,
+        );
 });
 
 test('RET-003 Filter five populated barangays and compare all displayed records with SQL', async ({
@@ -212,10 +234,19 @@ test('RET-012 Invalid reference ID is safely rejected by reference lookup', asyn
     ).toBeVisible();
     await expect(page.locator('body')).not.toContainText('Server Error');
     await search.fill(reference);
-    await expect(
-        page.locator('tbody tr').filter({ hasText: record.name }),
-        'A reference lookup must also retrieve an existing reference',
-    ).toBeVisible();
+    await expect
+        .poll(
+            async () =>
+                page
+                    .locator('tbody tr')
+                    .filter({ hasText: record.name })
+                    .count(),
+            {
+                message:
+                    'A reference lookup must also retrieve an existing reference',
+            },
+        )
+        .toBe(1);
 });
 
 test('IA-006 Filter incident information by barangay and date', async ({
@@ -280,6 +311,67 @@ test('IA-005 Display selected incident details against stored data (web sample)'
     const [detail] = incidentDetails([ids[0].id]);
     await page.goto(`/incidents/${detail.id}`);
     await verifyIncidentDetail(page, detail);
+    const unavailable = await verifyExtendedIncidentDetail(page, detail.id);
+    if (unavailable.length && testInfo.errors.length === 0)
+        test.skip(
+            true,
+            `Blocked: local images unavailable for reports ${unavailable.join(', ')}`,
+        );
+});
+
+test('REL-001 Repeat fixed web subset three times (partial)', async ({
+    page,
+}, testInfo) => {
+    test.setTimeout(120_000);
+    const record = sample();
+    const [detail] = incidentDetails([record.id]);
+    const results: Array<{ run: number; test: string; result: string }> = [];
+    for (let run = 1; run <= 3; run++) {
+        for (const name of [
+            'incident-detail',
+            'barangay-filter',
+            'risk-layer',
+        ]) {
+            try {
+                if (name === 'incident-detail') {
+                    await page.goto(`/incidents/${record.id}`);
+                    await verifyIncidentDetail(page, detail);
+                } else if (name === 'barangay-filter') {
+                    await page.goto(
+                        `/incidents?status=pending&barangay_id=${record.barangayId}&date_from=${record.day}&date_to=${record.day}`,
+                    );
+                    await expect(
+                        page
+                            .locator('tbody tr')
+                            .filter({ hasText: record.name }),
+                    ).toBeVisible();
+                } else {
+                    await page.goto('/map');
+                    await page
+                        .getByRole('button', { name: 'Risk Map', exact: true })
+                        .click();
+                    await expect(
+                        page.getByText('Barangay Risk', { exact: true }),
+                    ).toBeVisible();
+                }
+                results.push({ run, test: name, result: 'Pass' });
+            } catch {
+                results.push({ run, test: name, result: 'Fail' });
+            }
+        }
+    }
+    const csv = [
+        'run_id,test_id,result',
+        ...results.map((item) => `${item.run},${item.test},${item.result}`),
+    ].join('\n');
+    await testInfo.attach('RUNS_Playwright_subset.csv', {
+        body: csv,
+        contentType: 'text/csv',
+    });
+    expect(
+        results.filter((item) => item.result !== 'Pass'),
+        'All three runs must pass to count as identical passing results',
+    ).toEqual([]);
 });
 
 test('IA-001 Analytics charts render on the web dashboard', async ({
@@ -323,12 +415,120 @@ test('IA-001 Analytics charts render on the web dashboard', async ({
             panel.getByText(labels[item.type], { exact: true }).locator('..'),
         ).toContainText(`${item.percentage}%`);
     }
+    const sectors = panel.locator('.recharts-pie-sector');
+    await expect(sectors).toHaveCount(totals.length);
+    for (let index = 0; index < totals.length; index++) {
+        await sectors.nth(index).dispatchEvent('mouseover');
+        const tooltip = panel.locator('.recharts-tooltip-wrapper');
+        await expect(tooltip).toContainText(labels[totals[index].type]);
+        await expect(tooltip).toContainText(String(totals[index].count));
+    }
+    const monthly = query<{ month: number; count: number }>(
+        `SELECT JSON_OBJECT('month', MONTH(incident_datetime), 'count', COUNT(*)) FROM incident_record WHERE incident_datetime >= '2026-01-01' AND incident_datetime < '2027-01-01' GROUP BY MONTH(incident_datetime)`,
+    );
+    await testInfo.attach('analytics-monthly-aggregates.json', {
+        body: JSON.stringify(monthly, null, 2),
+        contentType: 'application/json',
+    });
+    const monthlyPanel = page
+        .getByRole('heading', { name: 'Monthly Incident Trend' })
+        .locator('../..');
+    const dots = monthlyPanel.locator('circle.recharts-area-dot');
+    await expect(dots).toHaveCount(
+        new Date().getFullYear() === 2026 ? new Date().getMonth() + 1 : 12,
+    );
+    for (let month = 1; month <= (await dots.count()); month++) {
+        await dots.nth(month - 1).hover();
+        const expected = Number(
+            monthly.find((item) => Number(item.month) === month)?.count ?? 0,
+        );
+        await expect(
+            monthlyPanel.locator('.recharts-tooltip-wrapper'),
+        ).toContainText(`${expected} incident`);
+    }
+    const barangayTotals = query<{ name: string; count: number }>(
+        `SELECT JSON_OBJECT('name',b.barangay_name,'count',COUNT(i.incident_id)) FROM incident_record i JOIN barangay b ON b.barangay_id=i.barangay_id WHERE i.incident_datetime >= '2026-01-01' AND i.incident_datetime < '2027-01-01' GROUP BY b.barangay_id,b.barangay_name ORDER BY COUNT(i.incident_id) DESC,b.barangay_name LIMIT 5`,
+    );
+    await testInfo.attach('analytics-barangay-aggregates.json', {
+        body: JSON.stringify(barangayTotals, null, 2),
+        contentType: 'application/json',
+    });
+    const barangayPanel = page
+        .getByRole('heading', { name: 'Barangays with Most Incidents' })
+        .locator('../..');
+    const bars = barangayPanel.locator('.recharts-bar-rectangle path');
+    await expect(bars).toHaveCount(barangayTotals.length);
+    for (let index = 0; index < barangayTotals.length; index++) {
+        await bars.nth(index).hover();
+        const tooltip = barangayPanel.locator('.recharts-tooltip-wrapper');
+        await expect(tooltip).toContainText(barangayTotals[index].name);
+        await expect(tooltip).toContainText(
+            `${barangayTotals[index].count} incident`,
+        );
+    }
+    const alarmTotals = query<{ level: string; count: number }>(
+        `SELECT JSON_OBJECT('level',alarm_level,'count',COUNT(*)) FROM incident_record WHERE alarm_level IS NOT NULL AND incident_datetime >= '2026-01-01' AND incident_datetime < '2027-01-01' GROUP BY alarm_level`,
+    );
+    await testInfo.attach('analytics-alarm-aggregates.json', {
+        body: JSON.stringify(alarmTotals, null, 2),
+        contentType: 'application/json',
+    });
+    const levels = [
+        'verification',
+        '1st_alarm',
+        '2nd_alarm',
+        '3rd_alarm',
+        '4th_alarm',
+        '5th_alarm',
+        'task_force_alpha',
+        'task_force_bravo',
+        'task_force_charlie',
+        'task_force_delta',
+        'task_force_echo',
+        'task_force_hotel',
+        'task_force_india',
+        'general_alarm',
+    ];
+    const alarmPanel = page
+        .getByRole('heading', { name: 'Incidents by Alarm Level' })
+        .locator('../..');
+    const alarmBars = alarmPanel.locator('.recharts-bar-rectangle path');
+    const nonzeroAlarms = alarmTotals
+        .slice()
+        .sort((a, b) => levels.indexOf(a.level) - levels.indexOf(b.level));
+    await expect(alarmBars).toHaveCount(nonzeroAlarms.length);
+    for (let index = 0; index < nonzeroAlarms.length; index++) {
+        const item = nonzeroAlarms[index];
+        const bar = await alarmBars.nth(index).boundingBox();
+        const chart = await alarmPanel
+            .locator('.recharts-surface')
+            .boundingBox();
+        expect(bar).not.toBeNull();
+        expect(chart).not.toBeNull();
+        await page.mouse.move(
+            bar!.x + bar!.width / 2,
+            chart!.y + chart!.height / 2,
+        );
+        await expect(
+            alarmPanel.locator('.recharts-tooltip-wrapper'),
+        ).toContainText(String(item.count));
+    }
 });
 
-test('IA-003 Risk map displays the barangay layer and legend', async ({
+test('IA-003 GIS-005 Risk polygon colors and classifications match MySQL (web)', async ({
     page,
-}) => {
+}, testInfo) => {
+    test.setTimeout(90_000);
+    const expected = query<{ name: string; level: string | null }>(
+        `SELECT JSON_OBJECT('name', b.barangay_name, 'level', (SELECT r.risk_level FROM risk_assessment r WHERE r.barangay_id=b.barangay_id ORDER BY r.date DESC LIMIT 1)) FROM barangay b ORDER BY b.barangay_name`,
+    );
+    expect(expected.length).toBeGreaterThan(0);
+    await testInfo.attach('risk-assessments.json', {
+        body: JSON.stringify(expected, null, 2),
+        contentType: 'application/json',
+    });
     await page.goto('/map');
+    await page.getByRole('button', { name: 'Incidents', exact: true }).click();
     await page.getByRole('button', { name: 'Risk Map', exact: true }).click();
     await expect(
         page.getByText('Barangay Risk', { exact: true }),
@@ -338,25 +538,107 @@ test('IA-003 Risk map displays the barangay layer and legend', async ({
             page.getByText(label, { exact: true }).last(),
         ).toBeVisible();
     }
-    await expect
-        .poll(
-            async () =>
-                page
-                    .locator('.leaflet-overlay-pane path[fill-opacity="0.22"]')
-                    .count(),
-            { message: 'Risk polygons should be drawn on the map' },
-        )
-        .toBeGreaterThan(0);
+    const legend = page
+        .getByText('Barangay Risk', { exact: true })
+        .locator('..');
+    for (const [label, color] of [
+        ['High', 'rgb(220, 38, 38)'],
+        ['Moderate', 'rgb(249, 115, 22)'],
+        ['Mild', 'rgb(234, 179, 8)'],
+    ]) {
+        await expect(
+            legend
+                .getByText(label, { exact: true })
+                .locator('..')
+                .locator('span')
+                .first(),
+        ).toHaveCSS('background-color', color);
+    }
+    const polygons = page.locator(
+        '.leaflet-overlay-pane path.leaflet-interactive',
+    );
+    await expect.poll(async () => polygons.count()).toBeGreaterThan(0);
+    const observed = new Set<string>();
+    const colors: Record<string, string> = {
+        high: '#DC2626',
+        moderate: '#F97316',
+        mild: '#EAB308',
+    };
+    for (const polygon of await polygons.all()) {
+        await polygon.dispatchEvent('click');
+        const popup = page.locator('.leaflet-popup-content').last();
+        await expect(popup).toBeVisible();
+        const name = (await popup.locator('p').first().innerText()).trim();
+        const record = expected.find((item) => item.name === name);
+        expect(
+            record,
+            `Map polygon ${name} should have a barangay database record`,
+        ).toBeDefined();
+        if (!record) continue;
+        observed.add(name);
+        const label = record.level
+            ? record.level[0].toUpperCase() + record.level.slice(1)
+            : 'No risk data';
+        await expect(popup).toContainText(`${label} risk`);
+        await expect(polygon).toHaveAttribute(
+            'fill',
+            record.level ? colors[record.level] : '#6B7A8D',
+        );
+    }
+    expect(
+        [...observed].sort(),
+        'Every stored barangay must have a classified polygon',
+    ).toEqual(expected.map((item) => item.name).sort());
 });
 
-test('GIS-003 Barangay filter is available on the incident map', async ({
+test('GIS-003 Filter map markers for five barangays and compare with MySQL', async ({
     page,
-}) => {
-    await page.goto('/map');
-    await expect(
-        page.getByRole('combobox', { name: /barangay/i }),
-        'The GIS case requires filtering map markers by barangay',
-    ).toBeVisible();
+}, testInfo) => {
+    test.setTimeout(120_000);
+    const barangays = query<{ id: number; name: string; count: number }>(
+        `SELECT JSON_OBJECT('id', b.barangay_id, 'name', b.barangay_name, 'count', COUNT(DISTINCT r.report_id)) FROM barangay b JOIN community_report r ON r.barangay_id=b.barangay_id OR EXISTS (SELECT 1 FROM incident_record i WHERE i.report_id=r.report_id AND i.barangay_id=b.barangay_id) WHERE r.status='resolved' AND r.created_at >= '2000-01-01' AND r.created_at < '2101-01-01' GROUP BY b.barangay_id,b.barangay_name HAVING COUNT(DISTINCT r.report_id) BETWEEN 1 AND 15 ORDER BY COUNT(DISTINCT r.report_id),b.barangay_id LIMIT 5`,
+    );
+    expect(barangays.length, 'Five populated barangays are required').toBe(5);
+    await testInfo.attach('gis-barangays.json', {
+        body: JSON.stringify(barangays, null, 2),
+        contentType: 'application/json',
+    });
+    await page.goto(
+        '/map?period=custom&date_from=2000-01-01&date_to=2100-12-31',
+    );
+    const filter = page.locator('#map-barangay-filter');
+    await expect(filter).toBeVisible();
+    for (const barangay of barangays) {
+        const records = query<{
+            reference: string;
+            date: string;
+            barangay: string;
+        }>(
+            `SELECT JSON_OBJECT('reference',CONCAT('INC-',YEAR(r.created_at),'-',LPAD(r.report_id,4,'0')),'date',DATE_FORMAT(r.created_at,'%Y-%m-%d %H:%i'),'barangay',COALESCE(bi.barangay_name,b.barangay_name)) FROM community_report r LEFT JOIN incident_record i ON i.report_id=r.report_id LEFT JOIN barangay b ON b.barangay_id=r.barangay_id LEFT JOIN barangay bi ON bi.barangay_id=i.barangay_id WHERE r.status='resolved' AND r.created_at >= '2000-01-01' AND r.created_at < '2101-01-01' AND (r.barangay_id=${Number(barangay.id)} OR i.barangay_id=${Number(barangay.id)}) ORDER BY r.created_at DESC`,
+        );
+        await filter.selectOption(String(barangay.id));
+        await expect(page).toHaveURL(
+            new RegExp(`barangay_id=${barangay.id}(?:&|$)`),
+        );
+        const sidebar = page
+            .getByRole('heading', { name: 'Incidents', exact: true })
+            .locator('../..');
+        await expect(sidebar.locator('p.font-mono')).toHaveCount(
+            Number(barangay.count),
+        );
+        await expect(
+            page.locator('.leaflet-overlay-pane path[fill-opacity="0.9"]'),
+        ).toHaveCount(Number(barangay.count));
+        for (const record of records) {
+            await expect(record.barangay).toBe(barangay.name);
+            await sidebar.getByText(record.reference, { exact: true }).click();
+            const popup = page
+                .locator('.leaflet-popup-content')
+                .filter({ hasText: record.reference });
+            await expect(popup).toContainText(record.barangay);
+            await expect(popup).toContainText(record.date);
+        }
+    }
 });
 
 test('ADM-004 Compare barangay risk ranking with stored assessments', async ({
@@ -389,7 +671,7 @@ test('ADM-004 Compare barangay risk ranking with stored assessments', async ({
 
 test('GIS-006 Compare the densest barangay with the risk map (partial)', async ({
     page,
-}) => {
+}, testInfo) => {
     const rows = query<{ name: string; count: number; level: string }>(
         `SELECT JSON_OBJECT('name', b.barangay_name, 'count', COUNT(i.incident_id), 'level', (SELECT r.risk_level FROM risk_assessment r WHERE r.barangay_id=b.barangay_id ORDER BY r.date DESC LIMIT 1)) FROM barangay b JOIN incident_record i ON i.barangay_id=b.barangay_id GROUP BY b.barangay_id, b.barangay_name ORDER BY COUNT(i.incident_id) DESC LIMIT 1`,
     );
@@ -401,6 +683,25 @@ test('GIS-006 Compare the densest barangay with the risk map (partial)', async (
     const ranking = page
         .getByRole('heading', { name: 'Barangay Risk Ranking' })
         .locator('../..');
+    const distribution = query<{
+        name: string;
+        count: number;
+        level: string | null;
+    }>(
+        `SELECT JSON_OBJECT('name', b.barangay_name, 'count', COUNT(i.incident_id), 'level', (SELECT r.risk_level FROM risk_assessment r WHERE r.barangay_id=b.barangay_id ORDER BY r.date DESC LIMIT 1)) FROM barangay b LEFT JOIN incident_record i ON i.barangay_id=b.barangay_id GROUP BY b.barangay_id,b.barangay_name ORDER BY COUNT(i.incident_id) DESC,b.barangay_name`,
+    );
+    await testInfo.attach('barangay-incident-distribution.json', {
+        body: JSON.stringify(distribution, null, 2),
+        contentType: 'application/json',
+    });
+    for (const item of distribution) {
+        const itemRow = ranking
+            .getByText(item.name, { exact: true })
+            .locator('../..');
+        await expect(itemRow).toContainText(
+            `${item.count} incident${Number(item.count) === 1 ? '' : 's'}`,
+        );
+    }
     const row = ranking
         .getByText(rows[0].name, { exact: true })
         .locator('../..');
