@@ -15,6 +15,7 @@ import {
     GeoJSON,
     MapContainer,
     Marker,
+    Pane,
     Popup,
     TileLayer,
     useMap,
@@ -837,112 +838,123 @@ export default function FireIncidentsMap({
                                     attribution={OSM_ATTRIBUTION}
                                 />
 
-                                {(layers.risk || Boolean(selectedBarangay)) &&
-                                    barangayGeo && (
-                                        <GeoJSON
-                                            key={`barangay-layer-${filters.barangay_id || 'all'}-${layers.risk}`}
-                                            data={barangayGeo}
-                                            style={(feature) => {
-                                                const rawName = feature
-                                                    ? getFeatureBarangayName(
-                                                          feature.properties,
-                                                      )
-                                                    : '';
-                                                const dbName =
-                                                    resolveDbBarangayName(
-                                                        rawName,
-                                                    );
-                                                const risk = dbName
-                                                    ? riskByBarangayName.get(
-                                                          dbName,
-                                                      )
-                                                    : undefined;
-                                                const isSelected =
-                                                    selectedBarangay &&
-                                                    dbName ===
-                                                        selectedBarangay.barangay_name;
+                                <Pane
+                                    name="barangay-boundaries"
+                                    style={{ zIndex: 350 }}
+                                >
+                                    {(layers.risk ||
+                                        Boolean(selectedBarangay)) &&
+                                        barangayGeo && (
+                                            <GeoJSON
+                                                key={`barangay-layer-${filters.barangay_id || 'all'}-${layers.risk}`}
+                                                pane="barangay-boundaries"
+                                                data={barangayGeo}
+                                                style={(feature) => {
+                                                    const rawName = feature
+                                                        ? getFeatureBarangayName(
+                                                              feature.properties,
+                                                          )
+                                                        : '';
+                                                    const dbName =
+                                                        resolveDbBarangayName(
+                                                            rawName,
+                                                        );
+                                                    const risk = dbName
+                                                        ? riskByBarangayName.get(
+                                                              dbName,
+                                                          )
+                                                        : undefined;
+                                                    const isSelected =
+                                                        selectedBarangay &&
+                                                        dbName ===
+                                                            selectedBarangay.barangay_name;
 
-                                                if (selectedBarangay) {
-                                                    if (isSelected) {
+                                                    if (selectedBarangay) {
+                                                        if (isSelected) {
+                                                            return {
+                                                                color: '#1D3557',
+                                                                weight: 3.5,
+                                                                opacity: 1,
+                                                                fillColor:
+                                                                    layers.risk &&
+                                                                    risk?.risk_level
+                                                                        ? riskMapPolygonStyle(
+                                                                              risk.risk_level,
+                                                                          )
+                                                                              .fillColor
+                                                                        : '#1D3557',
+                                                                fillOpacity:
+                                                                    layers.risk
+                                                                        ? 0.35
+                                                                        : 0.15,
+                                                            };
+                                                        }
+
+                                                        if (layers.risk) {
+                                                            const baseStyle =
+                                                                riskMapPolygonStyle(
+                                                                    risk?.risk_level,
+                                                                );
+
+                                                            return {
+                                                                ...baseStyle,
+                                                                weight: 1,
+                                                                opacity: 0.25,
+                                                                fillOpacity: 0.05,
+                                                            };
+                                                        }
+
                                                         return {
-                                                            color: '#1D3557',
-                                                            weight: 3.5,
-                                                            opacity: 1,
-                                                            fillColor:
-                                                                layers.risk &&
-                                                                risk?.risk_level
-                                                                    ? riskMapPolygonStyle(
-                                                                          risk.risk_level,
-                                                                      )
-                                                                          .fillColor
-                                                                    : '#1D3557',
-                                                            fillOpacity:
-                                                                layers.risk
-                                                                    ? 0.35
-                                                                    : 0.15,
-                                                        };
-                                                    }
-
-                                                    if (layers.risk) {
-                                                        const baseStyle =
-                                                            riskMapPolygonStyle(
-                                                                risk?.risk_level,
-                                                            );
-
-                                                        return {
-                                                            ...baseStyle,
+                                                            color: '#6B7A8D',
                                                             weight: 1,
-                                                            opacity: 0.25,
-                                                            fillOpacity: 0.05,
+                                                            opacity: 0.2,
+                                                            fillColor:
+                                                                '#6B7A8D',
+                                                            fillOpacity: 0.02,
                                                         };
                                                     }
 
-                                                    return {
-                                                        color: '#6B7A8D',
-                                                        weight: 1,
-                                                        opacity: 0.2,
-                                                        fillColor: '#6B7A8D',
-                                                        fillOpacity: 0.02,
-                                                    };
-                                                }
-
-                                                return riskMapPolygonStyle(
-                                                    risk?.risk_level,
-                                                );
-                                            }}
-                                            onEachFeature={(
-                                                feature: BarangayFeature,
-                                                layer,
-                                            ) => {
-                                                const rawName =
-                                                    getFeatureBarangayName(
-                                                        feature.properties,
+                                                    return riskMapPolygonStyle(
+                                                        risk?.risk_level,
                                                     );
-                                                const dbName =
-                                                    resolveDbBarangayName(
-                                                        rawName,
+                                                }}
+                                                onEachFeature={(
+                                                    feature: BarangayFeature,
+                                                    layer,
+                                                ) => {
+                                                    const rawName =
+                                                        getFeatureBarangayName(
+                                                            feature.properties,
+                                                        );
+                                                    const dbName =
+                                                        resolveDbBarangayName(
+                                                            rawName,
+                                                        );
+                                                    const risk =
+                                                        riskByBarangayName.get(
+                                                            dbName,
+                                                        );
+                                                    const label =
+                                                        risk?.risk_level
+                                                            ? RISK_CFG[
+                                                                  risk
+                                                                      .risk_level
+                                                              ].label
+                                                            : 'No risk data';
+                                                    const displayName =
+                                                        dbName ||
+                                                        rawName ||
+                                                        'Unknown Barangay';
+                                                    const riskInfo = layers.risk
+                                                        ? `<p class="text-xs text-gray-500">${label} risk</p>`
+                                                        : '';
+                                                    layer.bindPopup(
+                                                        `<p class="text-sm font-semibold">${displayName}</p>${riskInfo}`,
                                                     );
-                                                const risk =
-                                                    riskByBarangayName.get(
-                                                        dbName,
-                                                    );
-                                                const label = risk?.risk_level
-                                                    ? RISK_CFG[risk.risk_level]
-                                                          .label
-                                                    : 'No risk data';
-                                                const displayName =
-                                                    dbName ||
-                                                    rawName ||
-                                                    'Unknown Barangay';
-                                                const riskInfo = layers.risk
-                                                    ? `<p class="text-xs text-gray-500">${label} risk</p>`
-                                                    : '';
-                                                layer.bindPopup(
-                                                    `<p class="text-sm font-semibold">${displayName}</p>${riskInfo}`,
-                                                );
-                                            }}
-                                        />
-                                    )}
+                                                }}
+                                            />
+                                        )}
+                                </Pane>
 
                                 {layers.station && (
                                     <Marker
@@ -957,106 +969,113 @@ export default function FireIncidentsMap({
                                     </Marker>
                                 )}
 
-                                {layers.pins &&
-                                    incidents.map((inc) => (
-                                        <CircleMarker
-                                            key={inc.report_id}
-                                            ref={(marker) => {
-                                                if (marker) {
-                                                    incidentMarkerRefs.current.set(
-                                                        inc.report_id,
-                                                        marker,
-                                                    );
-                                                } else {
-                                                    incidentMarkerRefs.current.delete(
-                                                        inc.report_id,
-                                                    );
-                                                }
-                                            }}
-                                            center={[
-                                                inc.latitude,
-                                                inc.longitude,
-                                            ]}
-                                            radius={
-                                                activeSelectedId ===
-                                                inc.report_id
-                                                    ? 11
-                                                    : 8
-                                            }
-                                            pathOptions={{
-                                                color: markerStrokeColor(
-                                                    inc,
-                                                    colorBy,
-                                                ),
-                                                weight:
+                                <Pane
+                                    name="incident-markers"
+                                    style={{ zIndex: 450 }}
+                                >
+                                    {layers.pins &&
+                                        incidents.map((inc) => (
+                                            <CircleMarker
+                                                key={inc.report_id}
+                                                pane="incident-markers"
+                                                ref={(marker) => {
+                                                    if (marker) {
+                                                        incidentMarkerRefs.current.set(
+                                                            inc.report_id,
+                                                            marker,
+                                                        );
+                                                    } else {
+                                                        incidentMarkerRefs.current.delete(
+                                                            inc.report_id,
+                                                        );
+                                                    }
+                                                }}
+                                                center={[
+                                                    inc.latitude,
+                                                    inc.longitude,
+                                                ]}
+                                                radius={
                                                     activeSelectedId ===
                                                     inc.report_id
-                                                        ? 3
-                                                        : 1.5,
-                                                fillColor: markerColor(
-                                                    inc,
-                                                    colorBy,
-                                                ),
-                                                fillOpacity: 0.9,
-                                            }}
-                                            eventHandlers={{
-                                                click: () =>
-                                                    setSelectedId(
-                                                        inc.report_id,
+                                                        ? 11
+                                                        : 8
+                                                }
+                                                pathOptions={{
+                                                    color: markerStrokeColor(
+                                                        inc,
+                                                        colorBy,
                                                     ),
-                                            }}
-                                        >
-                                            <Popup>
-                                                <div className="space-y-1">
-                                                    <p className="font-mono text-xs font-semibold text-blue-700">
-                                                        {inc.reference}
-                                                    </p>
-                                                    <p className="text-sm font-semibold">
-                                                        {inc.typeLabel ??
-                                                            'Unclassified'}
-                                                    </p>
-                                                    {inc.alarm_level && (
-                                                        <p className="text-xs text-gray-600 capitalize">
-                                                            Alarm Level:{' '}
-                                                            <span
-                                                                style={{
-                                                                    color: ALARM_LEVEL_CFG[
+                                                    weight:
+                                                        activeSelectedId ===
+                                                        inc.report_id
+                                                            ? 3
+                                                            : 1.5,
+                                                    fillColor: markerColor(
+                                                        inc,
+                                                        colorBy,
+                                                    ),
+                                                    fillOpacity: 0.9,
+                                                }}
+                                                eventHandlers={{
+                                                    click: () =>
+                                                        setSelectedId(
+                                                            inc.report_id,
+                                                        ),
+                                                }}
+                                            >
+                                                <Popup pane="popupPane">
+                                                    <div className="space-y-1">
+                                                        <p className="font-mono text-xs font-semibold text-blue-700">
+                                                            {inc.reference}
+                                                        </p>
+                                                        <p className="text-sm font-semibold">
+                                                            {inc.typeLabel ??
+                                                                'Unclassified'}
+                                                        </p>
+                                                        {inc.alarm_level && (
+                                                            <p className="text-xs text-gray-600 capitalize">
+                                                                Alarm Level:{' '}
+                                                                <span
+                                                                    style={{
+                                                                        color: ALARM_LEVEL_CFG[
+                                                                            inc
+                                                                                .alarm_level
+                                                                        ].color,
+                                                                    }}
+                                                                >
+                                                                    {ALARM_LEVEL_CFG[
                                                                         inc
                                                                             .alarm_level
-                                                                    ].color,
-                                                                }}
-                                                            >
-                                                                {ALARM_LEVEL_CFG[
-                                                                    inc
-                                                                        .alarm_level
-                                                                ]?.label ??
-                                                                    inc.alarm_level}
-                                                            </span>
-                                                        </p>
-                                                    )}
-                                                    <p className="text-xs text-gray-500">
-                                                        {inc.barangay ?? '—'}
-                                                    </p>
-                                                    <p className="text-xs text-gray-400">
-                                                        {inc.dateTime}
-                                                    </p>
-                                                    <Link
-                                                        href={showIncident(
-                                                            inc.report_id,
-                                                            {
-                                                                query: {
-                                                                    from: 'map',
-                                                                },
-                                                            },
+                                                                    ]?.label ??
+                                                                        inc.alarm_level}
+                                                                </span>
+                                                            </p>
                                                         )}
-                                                        className="text-xs font-semibold text-blue-600 underline"
-                                                    >
-                                                        View full report →
-                                                    </Link>
-                                                </div>
-                                            </Popup>
-                                        </CircleMarker>
-                                    ))}
+                                                        <p className="text-xs text-gray-500">
+                                                            {inc.barangay ??
+                                                                '—'}
+                                                        </p>
+                                                        <p className="text-xs text-gray-400">
+                                                            {inc.dateTime}
+                                                        </p>
+                                                        <Link
+                                                            href={showIncident(
+                                                                inc.report_id,
+                                                                {
+                                                                    query: {
+                                                                        from: 'map',
+                                                                    },
+                                                                },
+                                                            )}
+                                                            className="text-xs font-semibold text-blue-600 underline"
+                                                        >
+                                                            View full report →
+                                                        </Link>
+                                                    </div>
+                                                </Popup>
+                                            </CircleMarker>
+                                        ))}
+                                </Pane>
                             </MapContainer>
 
                             {/* Dynamic legend */}
