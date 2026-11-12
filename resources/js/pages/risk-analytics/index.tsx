@@ -71,24 +71,7 @@ type FrequencyRow = {
     risk_level: RiskLevel | null;
 };
 
-/**
- * Legend tiers for the Risk Map.
- */
-const LEGEND: {
-    level: RiskLevel;
-    label: string;
-    bfpRange: string;
-    scoreRange: string;
-}[] = [
-    { level: 'high', label: 'High', bfpRange: '11+', scoreRange: '70–100' },
-    {
-        level: 'moderate',
-        label: 'Moderate',
-        bfpRange: '6–10',
-        scoreRange: '40–69',
-    },
-    { level: 'mild', label: 'Mild', bfpRange: '1–5', scoreRange: '0–39' },
-];
+const RISK_LEVELS: RiskLevel[] = ['high', 'moderate', 'mild'];
 
 const stationIcon = L.divIcon({
     className: '',
@@ -111,6 +94,7 @@ export default function RiskAnalytics({
         BarangayGeoProperties
     > | null>(null);
     const [sortBy, setSortBy] = useState<'risk' | 'count'>('risk');
+    const [selectedLevel, setSelectedLevel] = useState<RiskLevel | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -143,6 +127,25 @@ export default function RiskAnalytics({
         return map;
     }, [barangayRisk]);
 
+    const filteredBarangayGeo = useMemo(() => {
+        if (!barangayGeo || selectedLevel === null) {
+            return barangayGeo;
+        }
+
+        return {
+            ...barangayGeo,
+            features: barangayGeo.features.filter((feature) => {
+                const name = resolveDbBarangayName(
+                    getFeatureBarangayName(feature.properties),
+                );
+
+                return (
+                    riskByBarangayName.get(name)?.risk_level === selectedLevel
+                );
+            }),
+        };
+    }, [barangayGeo, riskByBarangayName, selectedLevel]);
+
     const sortedRanking = useMemo(() => {
         const rows = [...ranking];
         rows.sort((a, b) =>
@@ -169,24 +172,48 @@ export default function RiskAnalytics({
                             <h2 className="text-sm font-bold text-brand-navy">
                                 Risk Heatmap — Lian, Batangas
                             </h2>
-                            <div className="flex flex-wrap items-center gap-3 lg:ml-auto">
-                                {LEGEND.map((item) => (
-                                    <div
-                                        key={item.level}
-                                        className="flex items-center gap-1.5"
+                            <div
+                                className="flex flex-wrap rounded-lg border p-0.5 lg:ml-auto"
+                                style={{ borderColor: 'rgba(43,45,66,0.13)' }}
+                            >
+                                {RISK_LEVELS.map((level) => (
+                                    <button
+                                        key={level}
+                                        type="button"
+                                        aria-pressed={selectedLevel === level}
+                                        onClick={() =>
+                                            setSelectedLevel((current) =>
+                                                current === level
+                                                    ? null
+                                                    : level,
+                                            )
+                                        }
+                                        className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold text-brand-muted transition-colors"
+                                        style={{
+                                            background:
+                                                selectedLevel === level
+                                                    ? `${RISK_CFG[level].color}20`
+                                                    : 'transparent',
+                                            color:
+                                                selectedLevel === level
+                                                    ? RISK_CFG[level].color
+                                                    : undefined,
+                                            opacity:
+                                                selectedLevel !== null &&
+                                                selectedLevel !== level
+                                                    ? 0.5
+                                                    : 1,
+                                        }}
                                     >
                                         <span
                                             className="size-2.5 rounded-full"
                                             style={{
                                                 background:
-                                                    RISK_CFG[item.level].color,
+                                                    RISK_CFG[level].color,
                                             }}
                                         />
-                                        <span className="text-xs text-brand-muted">
-                                            {item.label} · {item.bfpRange} (
-                                            {item.scoreRange})
-                                        </span>
-                                    </div>
+                                        {RISK_CFG[level].label}
+                                    </button>
                                 ))}
                             </div>
                         </div>
@@ -201,14 +228,14 @@ export default function RiskAnalytics({
                                     attribution={OSM_ATTRIBUTION}
                                 />
                                 <ScaleControl
-                                    position="bottomleft"
+                                    position="bottomright"
                                     imperial={false}
                                 />
 
-                                {barangayGeo && (
+                                {filteredBarangayGeo && (
                                     <GeoJSON
-                                        key="risk-analytics-layer"
-                                        data={barangayGeo}
+                                        key={`risk-analytics-layer-${selectedLevel ?? 'all'}`}
+                                        data={filteredBarangayGeo}
                                         style={(feature) => {
                                             const rawName = feature
                                                 ? getFeatureBarangayName(
@@ -235,7 +262,8 @@ export default function RiskAnalytics({
                                                 );
                                             const dbName =
                                                 resolveDbBarangayName(rawName);
-                                            const risk = riskByBarangayName.get(dbName);
+                                            const risk =
+                                                riskByBarangayName.get(dbName);
                                             const score =
                                                 risk?.prediction_score !==
                                                     null &&
@@ -248,7 +276,9 @@ export default function RiskAnalytics({
                                                     : null;
 
                                             const displayName =
-                                                dbName || rawName || 'Unknown Barangay';
+                                                dbName ||
+                                                rawName ||
+                                                'Unknown Barangay';
 
                                             layer.bindTooltip(
                                                 `<div style="text-align:center"><div style="font-weight:700">${displayName}</div>${
@@ -272,6 +302,30 @@ export default function RiskAnalytics({
                                     icon={stationIcon}
                                 />
                             </MapContainer>
+                            <div className="absolute bottom-3 left-3 z-[1000] rounded-lg bg-white/95 px-3 py-2 shadow">
+                                <p className="text-[10px] font-semibold tracking-wide text-brand-muted uppercase">
+                                    Barangay Risk
+                                </p>
+                                <div className="flex flex-col gap-1">
+                                    {RISK_LEVELS.map((level) => (
+                                        <div
+                                            key={level}
+                                            className="flex items-center gap-1.5"
+                                        >
+                                            <span
+                                                className="size-2 rounded-full"
+                                                style={{
+                                                    background:
+                                                        RISK_CFG[level].color,
+                                                }}
+                                            />
+                                            <span className="text-xs text-brand-muted">
+                                                {RISK_CFG[level].label}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </PortalCard>
 
