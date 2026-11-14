@@ -18,6 +18,10 @@ class CommunityReportObserver
 
     public function created(CommunityReport $report): void
     {
+        if ($report->status !== CommunityReport::STATUS_PENDING) {
+            return;
+        }
+
         $this->adminNotifier->reportSubmitted($report);
         $this->adminNotifier->possibleDuplicate($report, $this->adminNotifier->findNearbyActiveReports($report));
     }

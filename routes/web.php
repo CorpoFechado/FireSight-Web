@@ -15,6 +15,7 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\ResponseTrackingController;
 use App\Http\Controllers\RiskAnalyticsController;
+use App\Http\Controllers\SpotReportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,6 +40,12 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         ->name('incidents.resolve');
     Route::patch('incidents/{report}/details', [IncidentActionController::class, 'updateDetails'])
         ->name('incidents.updateDetails');
+    Route::post('incidents/{report}/evidence', [IncidentActionController::class, 'storeEvidence'])
+        ->name('incidents.storeEvidence');
+    Route::delete('incidents/{report}/evidence/{evidence}', [IncidentActionController::class, 'destroyEvidence'])
+        ->name('incidents.destroyEvidence');
+    Route::get('incidents/{report}/spot-report', SpotReportController::class)
+        ->name('incidents.spotReport');
 
     Route::get('map', [FireMapController::class, 'index'])->name('map');
     Route::get('fire-prone', [RiskAnalyticsController::class, 'index'])->name('fireProne');
@@ -51,6 +58,8 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
         ->name('notifications.readAll');
 
     Route::middleware('bfp.admin')->group(function () {
+        Route::post('incidents/manual', [IncidentActionController::class, 'storeManual'])
+            ->name('incidents.storeManual');
         Route::post('incidents/{report}/accept', [IncidentActionController::class, 'accept'])
             ->name('incidents.accept');
         Route::post('incidents/{report}/invalidate', [IncidentActionController::class, 'invalidate'])

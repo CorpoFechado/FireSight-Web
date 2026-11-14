@@ -72,6 +72,60 @@ class IncidentRecord extends Model
         };
     }
 
+    // ── Spot Investigation Report ─────────────────────────────────────────────
+
+    /**
+     * Incident types where the establishment, owner and occupant must be
+     * recorded before a Spot Investigation Report can be exported.
+     *
+     * @var list<string>
+     */
+    public const SPOT_REPORT_STRUCTURE_TYPES = ['residential_fire', 'commercial_fire', 'storage_fire'];
+
+    /**
+     * Human labels of the assessment fields still required for the SIR export.
+     *
+     * @return list<string>
+     */
+    public function missingSpotReportFields(): array
+    {
+        /** @var array<string, string> $required */
+        $required = [
+            'incident_type' => 'Incident type',
+            'alarm_level' => 'Alarm level',
+            'time_fire_started' => 'Time fire started',
+            'time_fire_out' => 'Time of fire out',
+            'estimated_damage' => 'Estimated damage',
+            'cause_of_fire' => 'Cause of fire',
+            'notes' => 'Details / notes',
+        ];
+
+        if (in_array($this->normalized_type, self::SPOT_REPORT_STRUCTURE_TYPES, true)) {
+            $required += [
+                'establishment_name' => 'Name of establishment',
+                'owner_name' => 'Owner',
+                'occupant_name' => 'Occupant',
+            ];
+        }
+
+        $missing = [];
+
+        foreach ($required as $attribute => $label) {
+            $value = $this->getAttribute($attribute);
+
+            if ($value === null || (is_string($value) && trim($value) === '')) {
+                $missing[] = $label;
+            }
+        }
+
+        return $missing;
+    }
+
+    public function isSpotReportReady(): bool
+    {
+        return $this->missingSpotReportFields() === [];
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────────
 
     public function report(): BelongsTo

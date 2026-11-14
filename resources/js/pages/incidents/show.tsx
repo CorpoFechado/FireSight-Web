@@ -1,18 +1,22 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
     Building2,
     Camera,
     Edit,
+    FileDown,
     FileText,
     MapPin,
     Phone,
+    Plus,
+    Trash2,
     Truck,
     UserCheck,
     ZoomIn,
     X,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { AiVerificationCard } from '@/components/incidents/ai-verification-card';
 import { EditDetailsModal } from '@/components/incidents/edit-details-modal';
 import { IncidentActions } from '@/components/incidents/incident-actions';
@@ -23,14 +27,23 @@ import {
     AlarmLevelBadge,
     StatusBadge,
 } from '@/components/portal/status-badge';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import PortalLayout from '@/layouts/portal-layout';
 import { ALARM_LEVEL_CFG, STATUS_CFG } from '@/lib/fire-status';
 import type { AlarmLevel, ReportStatus } from '@/lib/fire-status';
 import type { StatusHistoryEntry } from '@/lib/status-history';
 import { notifications } from '@/routes';
 import {
+    destroyEvidence,
     index as incidentsIndex,
     show as showIncident,
+    spotReport as spotReportRoute,
+    storeEvidence,
 } from '@/routes/incidents';
 
 type ReportDetail = {
@@ -97,6 +110,63 @@ type LinkedReport = {
     status: ReportStatus;
 };
 
+type SpotReportStatus = {
+    ready: boolean;
+    missing: string[];
+};
+
+const SPOT_REPORT_BUTTON_CLASS =
+    'flex items-center gap-1.5 rounded-lg border border-[rgba(43,45,66,0.18)] bg-white px-3 py-1.5 text-xs font-semibold text-brand-navy shadow-xs transition';
+
+function SpotReportButton({
+    reportId,
+    spotReport,
+}: {
+    reportId: number;
+    spotReport: SpotReportStatus;
+}) {
+    if (spotReport.ready) {
+        return (
+            <a
+                href={spotReportRoute.url(reportId)}
+                className={`${SPOT_REPORT_BUTTON_CLASS} hover:border-brand-navy/30 hover:bg-brand-bg`}
+            >
+                <FileDown size={13} className="text-brand-blue" />
+                Export Spot Report
+            </a>
+        );
+    }
+
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span tabIndex={0} className="inline-flex">
+                        <button
+                            type="button"
+                            disabled
+                            className={`${SPOT_REPORT_BUTTON_CLASS} pointer-events-none cursor-not-allowed opacity-50`}
+                        >
+                            <FileDown size={13} className="text-brand-blue" />
+                            Export Spot Report
+                        </button>
+                    </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p className="font-semibold">
+                        Complete the assessment to export:
+                    </p>
+                    <ul className="mt-1 list-disc pl-4">
+                        {spotReport.missing.map((field) => (
+                            <li key={field}>{field}</li>
+                        ))}
+                    </ul>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+}
+
 function resolveStorageUrl(path?: string | null): string {
     if (!path) {
         return '';
@@ -119,10 +189,12 @@ function ReportPhoto({
     path,
     label,
     caption,
+    onDelete,
 }: {
     path: string;
     label?: string;
     caption?: string | null;
+    onDelete?: () => void;
 }) {
     const [failed, setFailed] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -156,6 +228,19 @@ function ReportPhoto({
                     <span className="absolute top-2 left-2 rounded bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-xs backdrop-blur-xs">
                         {label}
                     </span>
+                )}
+                {onDelete && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete();
+                        }}
+                        className="absolute top-2 right-2 rounded bg-black/70 p-1 text-white shadow-xs backdrop-blur-xs transition hover:bg-brand-red"
+                        title="Delete photo"
+                    >
+                        <Trash2 size={13} />
+                    </button>
                 )}
                 <button
                     type="button"
@@ -236,6 +321,7 @@ export default function IncidentShow({
     linkedReports,
     dispatches,
     statusHistory = [],
+    spotReport,
     navigationSource,
 }: {
     report: ReportDetail;
@@ -244,9 +330,35 @@ export default function IncidentShow({
     barangays: Barangay[];
     suggestedBarangayId: number | null;
     statusHistory?: StatusHistoryEntry[];
+    spotReport: SpotReportStatus;
     navigationSource: 'incidents' | 'map' | 'notifications';
 }) {
     const [editOpen, setEditOpen] = useState(false);
+    const [uploadingPhotos, setUploadingPhotos] = useState(false);
+    const evidenceInputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleAddPhotos = (e: ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? []);
+        if (files.length === 0) {
+            return;
+        }
+
+        setUploadingPhotos(true);
+        router.post(
+            storeEvidence(report.report_id).url,
+            { photos: files },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                onFinish: () => {
+                    setUploadingPhotos(false);
+                    if (evidenceInputRef.current) {
+                        evidenceInputRef.current.value = '';
+                    }
+                },
+            },
+        );
+    };
     const assessmentValues = {
         incident_type: report.raw_incident_type,
         alarm_level: report.raw_alarm_level,
@@ -311,6 +423,7 @@ export default function IncidentShow({
         const initialDispatchEntry = timeline.find(
             (item) => item.status === 'dispatched',
         );
+        const hasDispatchedTimelineEntry = Boolean(initialDispatchEntry);
 
         timeline.forEach((item) => {
             // Assessment edits are stored in the DB audit log, but hidden from the visible timeline milestones
@@ -335,10 +448,12 @@ export default function IncidentShow({
                             dispatches[0]?.dispatched_by ||
                             initialDispatchEntry?.changed_by ||
                             item.changed_by,
-                        notes: (initialDispatchEntry?.notes ?? item.notes) ?? null,
+                        notes:
+                            initialDispatchEntry?.notes ?? item.notes ?? null,
                         dispatchesList: dispatches,
                     });
                 }
+
                 return;
             }
 
@@ -355,9 +470,15 @@ export default function IncidentShow({
                         notes:
                             initialResolution?.notes ??
                             'Fire extinguished and incident marked as resolved.',
+                        dispatchesList:
+                            !hasDispatchedTimelineEntry &&
+                            dispatches.length > 0
+                                ? dispatches
+                                : undefined,
                         latestDetailUpdate: latestDetailUpdate ?? null,
                     });
                 }
+
                 return;
             }
 
@@ -559,7 +680,7 @@ export default function IncidentShow({
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-brand-muted leading-relaxed">
+                                    <p className="text-xs leading-relaxed text-brand-muted">
                                         {report.barangay
                                             ? `No official contact details registered for Brgy. ${report.barangay}.`
                                             : 'This incident was reported outside the Municipality of Lian. Local Lian barangay contacts are not applicable.'}
@@ -589,9 +710,11 @@ export default function IncidentShow({
                                     <div className="space-y-1">
                                         {groupedTimeline.map((item, index) => {
                                             const isLatest =
-                                                index === groupedTimeline.length - 1;
+                                                index ===
+                                                groupedTimeline.length - 1;
                                             const isLast =
-                                                index === groupedTimeline.length - 1;
+                                                index ===
+                                                groupedTimeline.length - 1;
                                             const dotColor =
                                                 STATUS_CFG[item.status]?.text ??
                                                 '#1d3557';
@@ -632,11 +755,21 @@ export default function IncidentShow({
                                                                         item.status
                                                                     }
                                                                 />
-                                                                {isDispatch && item.dispatchesList && item.dispatchesList.length > 1 && (
-                                                                    <span className="rounded-full bg-brand-navy/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-navy">
-                                                                        {item.dispatchesList.length} Waves
-                                                                    </span>
-                                                                )}
+                                                                {isDispatch &&
+                                                                    item.dispatchesList &&
+                                                                    item
+                                                                        .dispatchesList
+                                                                        .length >
+                                                                        1 && (
+                                                                        <span className="rounded-full bg-brand-navy/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-brand-navy uppercase">
+                                                                            {
+                                                                                item
+                                                                                    .dispatchesList
+                                                                                    .length
+                                                                            }{' '}
+                                                                            Waves
+                                                                        </span>
+                                                                    )}
                                                             </div>
                                                             <span className="font-mono text-xs text-brand-muted">
                                                                 {
@@ -659,154 +792,223 @@ export default function IncidentShow({
                                                             </p>
                                                         )}
 
-                                                        {/* Dispatches nested inside this single Dispatched timeline node */}
-                                                        {isDispatch && item.dispatchesList && item.dispatchesList.length > 0 ? (
+                                                        {/* Dispatches nested inside this single Dispatched (or manual Resolved) timeline node */}
+                                                        {item.dispatchesList &&
+                                                        item.dispatchesList
+                                                            .length > 0 ? (
                                                             <div className="mt-2.5 space-y-2.5">
-                                                                {item.dispatchesList.map((dispatch, dIdx) => {
-                                                                    const isReinforcement = dIdx > 0;
-                                                                    const dispatchLabel =
-                                                                        dIdx === 0
-                                                                            ? 'Initial Dispatch'
-                                                                            : `Reinforcement #${dIdx}`;
+                                                                {item.dispatchesList.map(
+                                                                    (
+                                                                        dispatch,
+                                                                        dIdx,
+                                                                    ) => {
+                                                                        const dispatchLabel =
+                                                                            dIdx ===
+                                                                            0
+                                                                                ? 'Initial Dispatch'
+                                                                                : `Reinforcement #${dIdx}`;
 
-                                                                    return (
-                                                                        <div
-                                                                            key={dispatch.dispatch_id || dIdx}
-                                                                            className="space-y-2.5 rounded-lg border border-neutral-200/80 bg-white p-3 shadow-xs"
-                                                                        >
-                                                                            {/* Card Header: Wave Badge + Timestamp + Dispatched By */}
-                                                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-2">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <span className="rounded-full border border-brand-navy/20 bg-brand-navy/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-navy">
-                                                                                        {dispatchLabel}
-                                                                                    </span>
-                                                                                    {dispatch.dispatched_by && (
-                                                                                        <span className="flex items-center gap-1 text-xs text-brand-muted">
-                                                                                            <UserCheck
-                                                                                                size={11}
-                                                                                                className="shrink-0 text-brand-blue"
-                                                                                            />
-                                                                                            <span className="font-medium text-brand-navy">
-                                                                                                {dispatch.dispatched_by}
+                                                                        return (
+                                                                            <div
+                                                                                key={
+                                                                                    dispatch.dispatch_id ||
+                                                                                    dIdx
+                                                                                }
+                                                                                className="space-y-2.5 rounded-lg border border-neutral-200/80 bg-white p-3 shadow-xs"
+                                                                            >
+                                                                                {/* Card Header: Wave Badge + Timestamp + Dispatched By */}
+                                                                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-2">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="rounded-full border border-brand-navy/20 bg-brand-navy/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-brand-navy uppercase">
+                                                                                            {
+                                                                                                dispatchLabel
+                                                                                            }
+                                                                                        </span>
+                                                                                        {dispatch.dispatched_by && (
+                                                                                            <span className="flex items-center gap-1 text-xs text-brand-muted">
+                                                                                                <UserCheck
+                                                                                                    size={
+                                                                                                        11
+                                                                                                    }
+                                                                                                    className="shrink-0 text-brand-blue"
+                                                                                                />
+                                                                                                <span className="font-medium text-brand-navy">
+                                                                                                    {
+                                                                                                        dispatch.dispatched_by
+                                                                                                    }
+                                                                                                </span>
                                                                                             </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    {dispatch.dispatched_at && (
+                                                                                        <span className="font-mono text-xs text-brand-muted">
+                                                                                            {
+                                                                                                dispatch.dispatched_at
+                                                                                            }
                                                                                         </span>
                                                                                     )}
                                                                                 </div>
-                                                                                {dispatch.dispatched_at && (
-                                                                                    <span className="font-mono text-xs text-brand-muted">
-                                                                                        {dispatch.dispatched_at}
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
 
-                                                                            {/* Trucks */}
-                                                                            <div className="flex flex-wrap items-center gap-1.5">
-                                                                                <Truck
-                                                                                    size={13}
-                                                                                    className="mr-0.5 shrink-0 text-brand-muted"
-                                                                                />
-                                                                                {dispatch.trucks.length > 0 ? (
-                                                                                    dispatch.trucks.map(
-                                                                                        (
-                                                                                            truck,
-                                                                                            tIdx,
-                                                                                        ) => (
-                                                                                            <span
-                                                                                                key={`${truck}-${tIdx}`}
-                                                                                                className="rounded-full bg-brand-navy/10 px-2.5 py-0.5 text-xs font-medium text-brand-navy"
-                                                                                            >
-                                                                                                {truck}
-                                                                                            </span>
-                                                                                        ),
-                                                                                    )
-                                                                                ) : (
-                                                                                    <span className="text-xs text-brand-muted">
-                                                                                        No trucks listed
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
-
-                                                                            {/* Personnel */}
-                                                                            {dispatch.personnel.length > 0 ? (
-                                                                                <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-1.5">
-                                                                                    {dispatch.personnel.map(
-                                                                                        (person) => (
-                                                                                            <div
-                                                                                                key={person.user_id}
-                                                                                                className="flex items-center gap-2 rounded-md border border-[rgba(43,45,66,0.06)] bg-brand-bg px-2.5 py-1.5"
-                                                                                            >
-                                                                                                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-navy/10 text-[10px] font-bold text-brand-navy">
-                                                                                                    {person.name
-                                                                                                        .split(/\s+/)
-                                                                                                        .map((part) => part[0])
-                                                                                                        .slice(0, 2)
-                                                                                                        .join('')
-                                                                                                        .toUpperCase()}
+                                                                                {/* Trucks */}
+                                                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                                                    <Truck
+                                                                                        size={
+                                                                                            13
+                                                                                        }
+                                                                                        className="mr-0.5 shrink-0 text-brand-muted"
+                                                                                    />
+                                                                                    {dispatch
+                                                                                        .trucks
+                                                                                        .length >
+                                                                                    0 ? (
+                                                                                        dispatch.trucks.map(
+                                                                                            (
+                                                                                                truck,
+                                                                                                tIdx,
+                                                                                            ) => (
+                                                                                                <span
+                                                                                                    key={`${truck}-${tIdx}`}
+                                                                                                    className="rounded-full bg-brand-navy/10 px-2.5 py-0.5 text-xs font-medium text-brand-navy"
+                                                                                                >
+                                                                                                    {
+                                                                                                        truck
+                                                                                                    }
                                                                                                 </span>
-                                                                                                <div>
-                                                                                                    <p className="text-xs font-semibold leading-tight text-brand-navy">
-                                                                                                        {person.name}
-                                                                                                    </p>
-                                                                                                    <p className="text-[11px] leading-tight text-brand-muted">
-                                                                                                        {person.rank ?? 'Firefighter'}
-                                                                                                    </p>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        ),
+                                                                                            ),
+                                                                                        )
+                                                                                    ) : (
+                                                                                        <span className="text-xs text-brand-muted">
+                                                                                            No
+                                                                                            trucks
+                                                                                            listed
+                                                                                        </span>
                                                                                     )}
                                                                                 </div>
-                                                                            ) : (
-                                                                                <p className="border-t border-neutral-100 pt-1 text-xs text-brand-muted">
-                                                                                    No crew listed
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
-                                                                    );
-                                                                })}
+
+                                                                                {/* Personnel */}
+                                                                                {dispatch
+                                                                                    .personnel
+                                                                                    .length >
+                                                                                0 ? (
+                                                                                    <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-1.5">
+                                                                                        {dispatch.personnel.map(
+                                                                                            (
+                                                                                                person,
+                                                                                            ) => (
+                                                                                                <div
+                                                                                                    key={
+                                                                                                        person.user_id
+                                                                                                    }
+                                                                                                    className="flex items-center gap-2 rounded-md border border-[rgba(43,45,66,0.06)] bg-brand-bg px-2.5 py-1.5"
+                                                                                                >
+                                                                                                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-navy/10 text-[10px] font-bold text-brand-navy">
+                                                                                                        {person.name
+                                                                                                            .split(
+                                                                                                                /\s+/,
+                                                                                                            )
+                                                                                                            .map(
+                                                                                                                (
+                                                                                                                    part,
+                                                                                                                ) =>
+                                                                                                                    part[0],
+                                                                                                            )
+                                                                                                            .slice(
+                                                                                                                0,
+                                                                                                                2,
+                                                                                                            )
+                                                                                                            .join(
+                                                                                                                '',
+                                                                                                            )
+                                                                                                            .toUpperCase()}
+                                                                                                    </span>
+                                                                                                    <div>
+                                                                                                        <p className="text-xs leading-tight font-semibold text-brand-navy">
+                                                                                                            {
+                                                                                                                person.name
+                                                                                                            }
+                                                                                                        </p>
+                                                                                                        <p className="text-[11px] leading-tight text-brand-muted">
+                                                                                                            {person.rank ??
+                                                                                                                'Firefighter'}
+                                                                                                        </p>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            ),
+                                                                                        )}
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <p className="border-t border-neutral-100 pt-1 text-xs text-brand-muted">
+                                                                                        No
+                                                                                        crew
+                                                                                        listed
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+                                                                        );
+                                                                    },
+                                                                )}
                                                             </div>
                                                         ) : isDispatch ? (
                                                             /* Fallback if no dispatches array is available */
                                                             <div className="mt-1">
                                                                 <p className="flex items-center gap-1.5 text-xs text-brand-muted">
                                                                     <UserCheck
-                                                                        size={12}
+                                                                        size={
+                                                                            12
+                                                                        }
                                                                         className="shrink-0 text-brand-blue"
                                                                     />
                                                                     <span className="font-medium text-brand-navy">
-                                                                        {item.changed_by}
+                                                                        {
+                                                                            item.changed_by
+                                                                        }
                                                                     </span>
                                                                 </p>
                                                                 {item.notes && (
-                                                                    <p className="mt-1 text-xs italic text-brand-muted">
-                                                                        {item.notes}
+                                                                    <p className="mt-1 text-xs text-brand-muted italic">
+                                                                        {
+                                                                            item.notes
+                                                                        }
                                                                     </p>
                                                                 )}
                                                             </div>
                                                         ) : null}
 
-                                                        {!isDispatch && item.notes && (
-                                                            <p className="mt-1 text-xs italic text-brand-muted">
-                                                                {item.notes}
-                                                            </p>
-                                                        )}
+                                                        {!isDispatch &&
+                                                            item.notes && (
+                                                                <p className="mt-1 text-xs text-brand-muted italic">
+                                                                    {item.notes}
+                                                                </p>
+                                                            )}
 
-                                                        {item.status === 'resolved' && item.latestDetailUpdate && (
-                                                            <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-brand-muted">
-                                                                <Edit
-                                                                    size={11}
-                                                                    className="shrink-0 text-brand-blue"
-                                                                />
-                                                                <span>
-                                                                    Details updated{' '}
-                                                                    <span className="font-mono">
-                                                                        {item.latestDetailUpdate.changed_at}
+                                                        {item.status ===
+                                                            'resolved' &&
+                                                            item.latestDetailUpdate && (
+                                                                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-brand-muted">
+                                                                    <Edit
+                                                                        size={
+                                                                            11
+                                                                        }
+                                                                        className="shrink-0 text-brand-blue"
+                                                                    />
+                                                                    <span>
+                                                                        Details
+                                                                        updated{' '}
+                                                                        <span className="font-mono">
+                                                                            {
+                                                                                item
+                                                                                    .latestDetailUpdate
+                                                                                    .changed_at
+                                                                            }
+                                                                        </span>
+                                                                        {item
+                                                                            .latestDetailUpdate
+                                                                            .changed_by
+                                                                            ? ` by ${item.latestDetailUpdate.changed_by}`
+                                                                            : ''}
                                                                     </span>
-                                                                    {item.latestDetailUpdate.changed_by
-                                                                        ? ` by ${item.latestDetailUpdate.changed_by}`
-                                                                        : ''}
-                                                                </span>
-                                                            </p>
-                                                        )}
+                                                                </p>
+                                                            )}
                                                     </div>
                                                 </div>
                                             );
@@ -850,12 +1052,39 @@ export default function IncidentShow({
                                     <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
                                         Fire Scene Photos
                                     </p>
-                                    <span className="text-[11px] text-brand-muted">
-                                        {(report.report_image ? 1 : 0) +
-                                            (report.evidence_photos?.length ??
-                                                0)}{' '}
-                                        total
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[11px] text-brand-muted">
+                                            {(report.report_image ? 1 : 0) +
+                                                (report.evidence_photos
+                                                    ?.length ?? 0)}{' '}
+                                            total
+                                        </span>
+                                        {report.status === 'resolved' && (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    disabled={uploadingPhotos}
+                                                    onClick={() =>
+                                                        evidenceInputRef.current?.click()
+                                                    }
+                                                    className="flex items-center gap-1 rounded-md border border-[rgba(43,45,66,0.18)] bg-white px-2 py-1 text-[11px] font-semibold text-brand-navy shadow-xs transition hover:bg-brand-bg disabled:opacity-50"
+                                                >
+                                                    <Plus size={11} />
+                                                    {uploadingPhotos
+                                                        ? 'Uploading…'
+                                                        : 'Add Photos'}
+                                                </button>
+                                                <input
+                                                    ref={evidenceInputRef}
+                                                    type="file"
+                                                    multiple
+                                                    accept="image/jpeg,image/png,image/heic,image/heif"
+                                                    onChange={handleAddPhotos}
+                                                    className="hidden"
+                                                />
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                                 {report.report_image ||
                                 (report.evidence_photos &&
@@ -873,6 +1102,30 @@ export default function IncidentShow({
                                                 path={ev.image_path}
                                                 label="Fire Scene Photo"
                                                 caption={ev.caption}
+                                                onDelete={
+                                                    report.status === 'resolved'
+                                                        ? () => {
+                                                              if (
+                                                                  window.confirm(
+                                                                      'Delete this fire scene photo?',
+                                                                  )
+                                                              ) {
+                                                                  router.delete(
+                                                                      destroyEvidence(
+                                                                          {
+                                                                              report: report.report_id,
+                                                                              evidence:
+                                                                                  ev.evidence_id,
+                                                                          },
+                                                                      ).url,
+                                                                      {
+                                                                          preserveScroll: true,
+                                                                      },
+                                                                  );
+                                                              }
+                                                          }
+                                                        : undefined
+                                                }
                                             />
                                         ))}
                                     </div>
@@ -939,7 +1192,7 @@ export default function IncidentShow({
                     </div>
 
                     {/* BFP Assessment Section (Full Width) */}
-                    {hasAssessment && (
+                    {(hasAssessment || report.status === 'resolved') && (
                         <div
                             className="border-t px-6 py-6"
                             style={{ borderColor: 'rgba(43,45,66,0.1)' }}
@@ -950,20 +1203,29 @@ export default function IncidentShow({
                                         BFP Assessment
                                     </h3>
                                     <p className="text-xs text-brand-muted">
-                                        Official investigation findings and casualty report
+                                        Official investigation findings and
+                                        casualty report
                                     </p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setEditOpen(true)}
-                                    className="flex items-center gap-1.5 rounded-lg border border-[rgba(43,45,66,0.18)] bg-white px-3 py-1.5 text-xs font-semibold text-brand-navy shadow-xs transition hover:border-brand-navy/30 hover:bg-brand-bg"
-                                >
-                                    <Edit
-                                        size={13}
-                                        className="text-brand-blue"
-                                    />
-                                    Edit Details
-                                </button>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {report.status === 'resolved' && (
+                                        <SpotReportButton
+                                            reportId={report.report_id}
+                                            spotReport={spotReport}
+                                        />
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditOpen(true)}
+                                        className="flex items-center gap-1.5 rounded-lg border border-[rgba(43,45,66,0.18)] bg-white px-3 py-1.5 text-xs font-semibold text-brand-navy shadow-xs transition hover:border-brand-navy/30 hover:bg-brand-bg"
+                                    >
+                                        <Edit
+                                            size={13}
+                                            className="text-brand-blue"
+                                        />
+                                        Edit Details
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="space-y-4">
@@ -992,7 +1254,8 @@ export default function IncidentShow({
                                             Occupant
                                         </p>
                                         <p className="mt-1 font-semibold text-brand-navy">
-                                            {report.occupant_name || 'Unspecified'}
+                                            {report.occupant_name ||
+                                                'Unspecified'}
                                         </p>
                                     </div>
 
@@ -1058,7 +1321,8 @@ export default function IncidentShow({
                                         </p>
                                         <p className="mt-1 font-mono text-base font-bold text-brand-navy">
                                             {report.estimated_damage !== null &&
-                                            report.estimated_damage !== undefined
+                                            report.estimated_damage !==
+                                                undefined
                                                 ? `₱${Number(report.estimated_damage).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                 : 'Unspecified'}
                                         </p>
@@ -1094,7 +1358,7 @@ export default function IncidentShow({
                                             {report.notes}
                                         </p>
                                     ) : (
-                                        <p className="text-sm italic text-brand-muted">
+                                        <p className="text-sm text-brand-muted italic">
                                             No additional notes
                                         </p>
                                     )}
@@ -1104,7 +1368,7 @@ export default function IncidentShow({
                     )}
                 </PortalCard>
 
-                {hasAssessment && (
+                {(hasAssessment || report.status === 'resolved') && (
                     <EditDetailsModal
                         reportId={report.report_id}
                         open={editOpen}

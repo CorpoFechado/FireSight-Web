@@ -5,12 +5,20 @@ namespace App\Http\Controllers;
 use App\Enums\AlarmLevel;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
+use App\Models\IncidentDispatch;
+use App\Models\IncidentDispatchPersonnel;
+use App\Models\IncidentDispatchTruck;
 use App\Models\IncidentRecord;
+use App\Models\ReportEvidence;
 use App\Models\ReportStatusHistory;
 use App\Models\User;
+use App\Services\GeoBoundaryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -150,7 +158,200 @@ class IncidentActionController extends Controller
     {
         $this->assertStatus($report, [CommunityReport::STATUS_RESOLVED], 'update details for');
 
+        $data = $request->validate($this->assessmentValidationRules());
+
+        $record = IncidentRecord::firstOrNew(['report_id' => $report->report_id]);
+
+        DB::transaction(function () use ($record, $report, $data) {
+            if (! $record->exists) {
+                $record->fill([
+                    'barangay_id' => $report->barangay_id,
+                    'incident_datetime' => $data['time_fire_started'] ?? now(),
+                ]);
+            }
+
+            $this->fillAssessmentFields($record, $data)->save();
+
+            $actorRole = auth()->user()?->role === User::ROLE_BFP_ADMIN ? 'BFP admin' : 'BFP personnel';
+            $this->logStatusHistory(
+                $report,
+                $report->status,
+                "Incident assessment details updated by {$actorRole}."
+            );
+        });
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Incident assessment details updated successfully.',
+        ]);
+    }
+
+    /**
+     * Manually logs an already-resolved incident report on behalf of a caller.
+     * bfp_admin only — gated by the `bfp.admin` middleware on the route.
+     */
+    public function storeManual(Request $request, GeoBoundaryService $geoBoundaryService): RedirectResponse
+    {
         $data = $request->validate([
+            'reporter_name' => ['required', 'string', 'max:150'],
+            'contact_number' => ['required', 'string', 'max:30'],
+            'incident_date' => ['required', 'date'],
+            'description' => ['required', 'string', 'max:2000'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['file', 'mimes:jpg,jpeg,png,heic,heif', 'max:10240'],
+            'trucks' => ['required', 'array', 'min:1'],
+            'trucks.*' => ['required', 'string', 'max:50'],
+            'personnel_ids' => ['required', 'array', 'min:1'],
+            'personnel_ids.*' => ['required', 'integer', 'exists:users,user_id'],
+            ...$this->assessmentValidationRules(),
+        ]);
+
+        $latitude = (float) $data['latitude'];
+        $longitude = (float) $data['longitude'];
+        $barangayId = $geoBoundaryService->findBarangayByLocation($latitude, $longitude);
+
+        $incidentDate = Carbon::parse($data['incident_date']);
+        $createdAt = ! empty($data['time_fire_started'])
+            ? Carbon::parse($data['time_fire_started'])
+            : $incidentDate->copy()->setTimeFrom(now());
+        $resolvedAt = ! empty($data['time_fire_out'])
+            ? Carbon::parse($data['time_fire_out'])
+            : now();
+
+        $actor = auth()->user();
+        $rank = $actor?->personnelDetails?->rank;
+        $actorName = $actor
+            ? trim(($rank ? "{$rank} " : '').$actor->name)
+            : 'BFP admin';
+
+        $report = DB::transaction(function () use ($data, $latitude, $longitude, $barangayId, $createdAt, $resolvedAt, $actor, $actorName, $request) {
+            $report = new CommunityReport([
+                'user_id' => $actor?->getKey(),
+                'reporter_name' => trim($data['reporter_name']),
+                'contact_number' => trim($data['contact_number']),
+                'description' => trim($data['description']),
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'device_latitude' => null,
+                'device_longitude' => null,
+                'barangay_id' => $barangayId,
+                'status' => CommunityReport::STATUS_RESOLVED,
+                'ai_fire_label' => null,
+                'ai_fire_confidence' => null,
+                'ai_verified_at' => null,
+            ]);
+            $report->created_at = $createdAt;
+            $report->updated_at = $resolvedAt;
+            $report->save();
+
+            $record = new IncidentRecord([
+                'report_id' => $report->report_id,
+                'barangay_id' => $barangayId,
+                'incident_datetime' => $createdAt,
+            ]);
+            $this->fillAssessmentFields($record, $data)->save();
+
+            $dispatch = IncidentDispatch::create([
+                'report_id' => $report->report_id,
+                'dispatched_by' => $actor?->getKey(),
+                'dispatched_at' => $createdAt,
+            ]);
+
+            foreach ($data['trucks'] as $truckName) {
+                $cleaned = trim((string) $truckName);
+                if ($cleaned !== '') {
+                    IncidentDispatchTruck::create([
+                        'dispatch_id' => $dispatch->dispatch_id,
+                        'truck_name' => $cleaned,
+                    ]);
+                }
+            }
+
+            foreach (array_unique(array_map('intval', $data['personnel_ids'])) as $userId) {
+                IncidentDispatchPersonnel::create([
+                    'dispatch_id' => $dispatch->dispatch_id,
+                    'user_id' => $userId,
+                ]);
+            }
+
+            $photos = $request->file('photos', []);
+            if (is_array($photos) && $photos !== []) {
+                $this->storeEvidencePhotos($report, $photos, $actor?->getKey());
+            }
+
+            $this->logStatusHistory(
+                $report,
+                CommunityReport::STATUS_RESOLVED,
+                "Incident report manually added as resolved by {$actorName}."
+            );
+
+            return $report;
+        });
+
+        return redirect()
+            ->route('incidents.show', $report)
+            ->with('toast', [
+                'type' => 'success',
+                'message' => 'Manual incident report added as resolved.',
+            ]);
+    }
+
+    /**
+     * Uploads one or more fire scene evidence photos for an incident report.
+     * Open to any BFP staff / admin.
+     */
+    public function storeEvidence(Request $request, CommunityReport $report): RedirectResponse
+    {
+        $request->validate([
+            'photos' => ['required', 'array', 'min:1'],
+            'photos.*' => ['required', 'file', 'mimes:jpg,jpeg,png,heic,heif', 'max:10240'],
+        ]);
+
+        /** @var array<int, UploadedFile> $photos */
+        $photos = $request->file('photos', []);
+        $this->storeEvidencePhotos($report, $photos, auth()->user()?->getKey());
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Scene photos uploaded successfully.',
+        ]);
+    }
+
+    /**
+     * Deletes a fire scene evidence photo from an incident report.
+     * Open to any BFP staff / admin.
+     */
+    public function destroyEvidence(CommunityReport $report, ReportEvidence $evidence): RedirectResponse
+    {
+        if ((int) $evidence->report_id !== (int) $report->report_id) {
+            abort(404);
+        }
+
+        if ($evidence->image_path) {
+            $fullPath = storage_path('app/public/'.ltrim($evidence->image_path, '/'));
+            if (File::exists($fullPath)) {
+                File::delete($fullPath);
+            }
+        }
+
+        $evidence->delete();
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Scene photo deleted.',
+        ]);
+    }
+
+    /**
+     * Validation rules shared by manual report creation and assessment updates.
+     *
+     * @return array<string, mixed>
+     */
+    private function assessmentValidationRules(): array
+    {
+        return [
             'incident_type' => ['nullable', Rule::in([
                 'residential_fire',
                 'commercial_fire',
@@ -171,50 +372,66 @@ class IncidentActionController extends Controller
             'time_fire_started' => ['nullable', 'date'],
             'time_fire_out' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
-        ]);
+        ];
+    }
 
+    /**
+     * Populates BFP assessment attributes on an IncidentRecord instance.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function fillAssessmentFields(IncidentRecord $record, array $data): IncidentRecord
+    {
         $injuries = isset($data['injuries']) ? (int) $data['injuries'] : 0;
         $fatalities = isset($data['fatalities']) ? (int) $data['fatalities'] : 0;
         $casualties = isset($data['casualties']) ? (int) $data['casualties'] : ($injuries + $fatalities);
 
-        $record = IncidentRecord::firstOrNew(['report_id' => $report->report_id]);
+        return $record->fill([
+            'incident_type' => $data['incident_type'] ?? null,
+            'alarm_level' => $data['alarm_level'] ?? null,
+            'cause_of_fire' => $data['cause_of_fire'] ?? null,
+            'injuries' => $injuries,
+            'fatalities' => $fatalities,
+            'casualties' => $casualties,
+            'estimated_damage' => isset($data['estimated_damage']) && $data['estimated_damage'] !== '' ? (float) $data['estimated_damage'] : null,
+            'establishment_name' => $data['establishment_name'] ?? null,
+            'owner_name' => $data['owner_name'] ?? null,
+            'occupant_name' => $data['occupant_name'] ?? null,
+            'time_fire_started' => $data['time_fire_started'] ?? null,
+            'time_fire_out' => $data['time_fire_out'] ?? null,
+            'notes' => $data['notes'] ?? null,
+        ]);
+    }
 
-        DB::transaction(function () use ($record, $report, $data, $injuries, $fatalities, $casualties) {
-            if (! $record->exists) {
-                $record->fill([
-                    'barangay_id' => $report->barangay_id,
-                    'incident_datetime' => $data['time_fire_started'] ?? now(),
-                ]);
+    /**
+     * Stores uploaded scene photos in public storage and records them in `report_evidence`.
+     *
+     * @param  array<int, UploadedFile>  $photos
+     */
+    private function storeEvidencePhotos(CommunityReport $report, array $photos, ?int $uploadedBy): void
+    {
+        $destinationDir = storage_path('app/public/uploads/evidence');
+        if (! File::isDirectory($destinationDir)) {
+            File::makeDirectory($destinationDir, 0755, true);
+        }
+
+        foreach ($photos as $file) {
+            if (! $file instanceof UploadedFile || ! $file->isValid()) {
+                continue;
             }
 
-            $record->fill([
-                'incident_type' => $data['incident_type'],
-                'alarm_level' => $data['alarm_level'],
-                'cause_of_fire' => $data['cause_of_fire'] ?? null,
-                'injuries' => $injuries,
-                'fatalities' => $fatalities,
-                'casualties' => $casualties,
-                'estimated_damage' => isset($data['estimated_damage']) && $data['estimated_damage'] !== '' ? (float) $data['estimated_damage'] : null,
-                'establishment_name' => $data['establishment_name'] ?? null,
-                'owner_name' => $data['owner_name'] ?? null,
-                'occupant_name' => $data['occupant_name'] ?? null,
-                'time_fire_started' => $data['time_fire_started'] ?? null,
-                'time_fire_out' => $data['time_fire_out'] ?? null,
-                'notes' => $data['notes'] ?? null,
-            ])->save();
+            $extension = $file->getClientOriginalExtension() ?: 'jpg';
+            $fileName = 'evidence_'.$report->report_id.'_'.time().'_'.bin2hex(random_bytes(4)).'.'.$extension;
+            $file->move($destinationDir, $fileName);
 
-            $actorRole = auth()->user()?->role === User::ROLE_BFP_ADMIN ? 'BFP admin' : 'BFP personnel';
-            $this->logStatusHistory(
-                $report,
-                $report->status,
-                "Incident assessment details updated by {$actorRole}."
-            );
-        });
-
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => 'Incident assessment details updated successfully.',
-        ]);
+            ReportEvidence::create([
+                'report_id' => $report->report_id,
+                'image_path' => 'uploads/evidence/'.$fileName,
+                'uploaded_by' => $uploadedBy,
+                'caption' => null,
+                'created_at' => now(),
+            ]);
+        }
     }
 
     /**

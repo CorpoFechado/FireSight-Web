@@ -1,6 +1,10 @@
-import { Link, router } from '@inertiajs/react';
-import { Search, X } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Plus, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import {
+    CreateManualReportModal,
+    type PersonnelOption,
+} from '@/components/incidents/create-manual-report-modal';
 import { PaginationBar } from '@/components/portal/pagination-bar';
 import { PortalCard } from '@/components/portal/portal-card';
 import {
@@ -80,13 +84,21 @@ export default function IncidentsIndex({
     reports,
     filters,
     barangays,
+    personnel = [],
+    availableTrucks = [],
     totalCount,
 }: {
     reports: Paginated<IncidentRow>;
     filters: Filters;
     barangays: BarangayOption[];
+    personnel?: PersonnelOption[];
+    availableTrucks?: string[];
     totalCount: number;
 }) {
+    const { auth } = usePage<{ auth: { user: { role?: string } | null } }>()
+        .props;
+    const isBfpAdmin = auth?.user?.role === 'bfp_admin';
+    const [manualOpen, setManualOpen] = useState(false);
     const [search, setSearch] = useState(filters.search);
     const isFirstRender = useRef(true);
 
@@ -284,6 +296,18 @@ export default function IncidentsIndex({
                                 </button>
                             ))}
                         </div>
+
+                        {isBfpAdmin && (
+                            <button
+                                type="button"
+                                onClick={() => setManualOpen(true)}
+                                className="ml-auto flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
+                                style={{ background: '#1D3557' }}
+                            >
+                                <Plus size={14} />
+                                Add Manual Report
+                            </button>
+                        )}
                     </div>
                 </PortalCard>
 
@@ -392,6 +416,15 @@ export default function IncidentsIndex({
                     <PaginationBar paginated={reports} />
                 </PortalCard>
             </div>
+
+            {isBfpAdmin && (
+                <CreateManualReportModal
+                    open={manualOpen}
+                    onOpenChange={setManualOpen}
+                    personnel={personnel}
+                    availableTrucks={availableTrucks}
+                />
+            )}
         </PortalLayout>
     );
 }

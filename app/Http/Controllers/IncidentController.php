@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\ReportStatusHistory;
+use App\Models\User;
 use App\Services\GeoBoundaryService;
+use App\Support\SpotReport\SpotReportData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -66,6 +68,20 @@ class IncidentController extends Controller
                 'alarm_level' => $alarmLevel,
             ],
             'barangays' => Barangay::orderBy('barangay_name')->get(['barangay_id', 'barangay_name']),
+            'personnel' => User::query()
+                ->with('personnelDetails')
+                ->where('role', User::ROLE_BFP_PERSONNEL)
+                ->where('status', User::STATUS_ACTIVE)
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get()
+                ->map(fn (User $u) => [
+                    'user_id' => $u->getKey(),
+                    'name' => $u->name,
+                    'rank' => $u->personnelDetails?->rank,
+                ])
+                ->values(),
+            'availableTrucks' => ['Fire Truck 1', 'Fire Truck 2', 'Fire Truck 3'],
             'totalCount' => CommunityReport::count(),
         ]);
     }
@@ -142,6 +158,8 @@ class IncidentController extends Controller
             $resolvedAt = $report->updated_at;
         }
 
+        $spotReportMissing = SpotReportData::blockingReasons($report);
+
         return Inertia::render('incidents/show', [
             'report' => [
                 ...$this->toRow($report),
@@ -188,6 +206,10 @@ class IncidentController extends Controller
                 ])->values(),
             ])->all(),
             'statusHistory' => $statusHistory,
+            'spotReport' => [
+                'missing' => $spotReportMissing,
+                'ready' => $spotReportMissing === [],
+            ],
             'linkedReports' => $linked,
             'barangays' => Barangay::orderBy('barangay_name')->get(['barangay_id', 'barangay_name']),
             'suggestedBarangayId' => $report->status === CommunityReport::STATUS_PENDING
