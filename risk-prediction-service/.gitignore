@@ -1,0 +1,5 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+risk_assessment_upload.csv

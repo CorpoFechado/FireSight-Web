@@ -16,26 +16,25 @@ class RealisticIncidentDataSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * 2 full years (24 months) of realistic incident volumes for Lian, Batangas.
-     * Enriched past history with distinct seasonal peaks (March-June dry months).
-     * Year 1 (months -23 to -12): 49 incidents
-     * Year 2 (months -11 to 0):   51 incidents
-     * Total = 100 incidents across 2 years.
+     * 12 months (December 2025 - November 2026 / current date) of authentic incident volumes for Lian, Batangas.
+     * Continues seamlessly immediately after the 10-year historical archive (which ends November 2025).
+     * Enriched with distinct seasonal dry month peaks (March-June).
+     * Total = 51 realistic mobile reports and incidents across 12 months.
      *
      * @var list<int>
      */
     private const MONTHLY_VOLUMES = [
-        // Year 1 (2025)
-        3, 3, 4, 6, 8, 7, 4, 3, 2, 2, 3, 4,
-        // Year 2 (2026 - current)
-        3, 3, 4, 7, 9, 8, 4, 3, 2, 2, 4, 2,
+        // Dec 2025 (month -11, immediate continuation of historical archive)
+        3,
+        // Jan 2026 - Nov 2026 (months -10 to 0)
+        3, 4, 7, 9, 8, 4, 3, 2, 2, 4, 2,
     ];
 
     /** @var list<int> */
     private const REPORTING_HOURS = [7, 8, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
     /**
-     * The 3 verified community report photos available on the backend.
+     * Authentic fire photos available on the backend storage.
      *
      * @var list<string>
      */
@@ -43,6 +42,10 @@ class RealisticIncidentDataSeeder extends Seeder
         'uploads/reports/report_44_1793446882_aca83633.jpg',
         'uploads/reports/report_44_1794347202_72f2e635.jpg',
         'uploads/reports/report_44_1793496551_6580dd19.jpg',
+        'uploads/reports/report_44_1794350937_c647f3e7.jpg',
+        'uploads/reports/report_44_1794351335_ee5935e6.jpg',
+        'uploads/reports/report_44_1794351504_483d5dc9.jpg',
+        'uploads/reports/report_44_1794351670_2e0d54b3.jpg',
     ];
 
     /**
@@ -177,21 +180,35 @@ class RealisticIncidentDataSeeder extends Seeder
             $this->seedResidentAddresses($residents, $barangays);
             $this->seedReports($residents, $personnel, $adminId, $barangays, $now);
         });
-
-        // Automatically sync matching notifications for all active and recent reports
-        $this->call(AdminNotificationSeeder::class);
     }
 
     private function clearScopedTables(): void
     {
-        DB::table('report_link')->delete();
-        DB::table('report_evidence')->delete();
-        DB::table('incident_dispatch_personnel')->delete();
-        DB::table('incident_dispatch_truck')->delete();
-        DB::table('incident_dispatch')->delete();
-        DB::table('report_status_history')->delete();
-        DB::table('incident_record')->delete();
-        DB::table('community_report')->delete();
+        // Preserve historical BFP archives (seeded by HistoricalIncidentSeeder)
+        $scopedReportIds = DB::table('community_report')
+            ->where('reporter_name', '!=', 'BFP Station Archive')
+            ->pluck('report_id');
+
+        if ($scopedReportIds->isNotEmpty()) {
+            DB::table('report_link')
+                ->whereIn('main_report_id', $scopedReportIds)
+                ->orWhereIn('related_report_id', $scopedReportIds)
+                ->delete();
+
+            DB::table('report_evidence')->whereIn('report_id', $scopedReportIds)->delete();
+
+            $dispatchIds = DB::table('incident_dispatch')->whereIn('report_id', $scopedReportIds)->pluck('dispatch_id');
+            if ($dispatchIds->isNotEmpty()) {
+                DB::table('incident_dispatch_personnel')->whereIn('dispatch_id', $dispatchIds)->delete();
+                DB::table('incident_dispatch_truck')->whereIn('dispatch_id', $dispatchIds)->delete();
+                DB::table('incident_dispatch')->whereIn('dispatch_id', $dispatchIds)->delete();
+            }
+
+            DB::table('report_status_history')->whereIn('report_id', $scopedReportIds)->delete();
+            DB::table('incident_record')->whereIn('report_id', $scopedReportIds)->delete();
+            DB::table('community_report')->whereIn('report_id', $scopedReportIds)->delete();
+        }
+
         DB::table('resident_address')->delete();
     }
 
@@ -258,11 +275,10 @@ class RealisticIncidentDataSeeder extends Seeder
             $monthStart = $now->copy()->subMonthsNoOverflow($monthsAgo)->startOfMonth();
 
             for ($monthlyIndex = 0; $monthlyIndex < $volume; $monthlyIndex++, $globalIndex++) {
-                // Exactly 4 invalid reports across 24 months (< 5 total)
-                $isInvalid = ($monthsAgo === 21 && $monthlyIndex === 1)
-                    || ($monthsAgo === 15 && $monthlyIndex === 2)
-                    || ($monthsAgo === 9 && $monthlyIndex === 1)
-                    || ($monthsAgo === 3 && $monthlyIndex === 1);
+                // Exactly 3 invalid / false alarm reports across 12 months (< 5 total)
+                $isInvalid = ($monthsAgo === 9 && $monthlyIndex === 1)
+                    || ($monthsAgo === 5 && $monthlyIndex === 1)
+                    || ($monthsAgo === 2 && $monthlyIndex === 1);
 
                 // Current month: 1 active 'dispatched' report (happening now), 1 'resolved' report (6 days ago). 0 resolved today!
                 $isCurrentMonth = ($monthsAgo === 0);
@@ -350,6 +366,43 @@ class RealisticIncidentDataSeeder extends Seeder
                     'created_at' => $createdAt,
                     'updated_at' => $updatedAt,
                 ]);
+
+                // Insert into report_evidence so attachments are available across both Web and Mobile
+                if ($reportImage !== null) {
+                    DB::table('report_evidence')->insert([
+                        'report_id' => $reportId,
+                        'image_path' => $reportImage,
+                        'uploaded_by' => $reportingUser->user_id,
+                        'caption' => 'Initial photo from citizen report',
+                        'created_at' => $createdAt,
+                    ]);
+
+                    // For ~50% of real fires, add a secondary, different follow-up evidence photo
+                    // taken on-scene by responding BFP firefighters
+                    if ($globalIndex % 2 === 0 && ! $isActive) {
+                        $imgCount = count(self::REPORT_IMAGES);
+                        $secondImageIndex = ($globalIndex + 1 + ($globalIndex % ($imgCount - 1))) % $imgCount;
+                        if (self::REPORT_IMAGES[$secondImageIndex] === $reportImage) {
+                            $secondImageIndex = ($secondImageIndex + 1) % $imgCount;
+                        }
+                        $followUpImage = self::REPORT_IMAGES[$secondImageIndex];
+
+                        $responderId = $fieldResponders[$globalIndex % count($fieldResponders)] ?? $reportingUser->user_id;
+                        $caption = match ($globalIndex % 3) {
+                            0 => 'On-scene containment progress by responding BFP team',
+                            1 => 'Secondary vantage point photo from perimeter',
+                            default => 'Post-fire cooling and mop-up inspection photo',
+                        };
+
+                        DB::table('report_evidence')->insert([
+                            'report_id' => $reportId,
+                            'image_path' => $followUpImage,
+                            'uploaded_by' => $responderId,
+                            'caption' => $caption,
+                            'created_at' => $createdAt->copy()->addMinutes(15 + ($globalIndex % 20)),
+                        ]);
+                    }
+                }
 
                 // Insert Status History
                 DB::table('report_status_history')->insert(array_map(

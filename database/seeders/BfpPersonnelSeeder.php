@@ -257,6 +257,20 @@ class BfpPersonnelSeeder extends Seeder
             'duty_group' => DutyGroup::B->value,
             'key' => 'ellao',
         ],
+        [
+            'user_id' => 44,
+            'rank' => 'Fire Officer 1',
+            'first_name' => 'Andres',
+            'middle_name' => 'Cruz',
+            'last_name' => 'Panganiban',
+            'suffix' => null,
+            'email' => 'panganiban@gmail.com',
+            'username' => 'apanganiban',
+            'employee_number' => 'EMP-019',
+            'duty_group' => DutyGroup::A->value,
+            'key' => 'panganiban',
+            'contact_number' => '09181234567',
+        ],
     ];
 
     public function run(): void
@@ -265,7 +279,7 @@ class BfpPersonnelSeeder extends Seeder
         BfpPersonnelDetails::unguard();
 
         foreach (self::ROSTER as $item) {
-            $contactNumber = sprintf('0917%07d', 1000000 + $item['user_id']);
+            $contactNumber = $item['contact_number'] ?? sprintf('0917%07d', 1000000 + $item['user_id']);
 
             $user = User::updateOrCreate(
                 ['email' => $item['email']],
