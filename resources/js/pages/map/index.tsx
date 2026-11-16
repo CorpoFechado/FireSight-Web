@@ -8,6 +8,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Layers,
+    SlidersHorizontal,
+    X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -459,6 +461,25 @@ export default function FireIncidentsMap({
         });
     };
 
+    const hasActiveFilters =
+        filters.period !== 'this_year' ||
+        Boolean(filters.date_from) ||
+        Boolean(filters.date_to) ||
+        Boolean(filters.barangay_id) ||
+        filters.incident_type !== 'all' ||
+        filters.alarm_level !== 'all';
+
+    const resetFilters = () => {
+        navigate({
+            period: 'this_year',
+            date_from: '',
+            date_to: '',
+            barangay_id: '',
+            incident_type: 'all',
+            alarm_level: 'all',
+        });
+    };
+
     const focusIncident = (inc: MapIncident) => {
         setSelectedId(inc.report_id);
         incidentMarkerRefs.current.get(inc.report_id)?.openPopup();
@@ -479,209 +500,250 @@ export default function FireIncidentsMap({
             title="Fire Incidents Map"
             subtitle="Lian, Batangas — Resolved Incidents"
         >
-            <div className="space-y-3">
+            <div
+                className="flex flex-col gap-3"
+                style={{ height: 'calc(100vh - 64px - 48px)' }}
+            >
                 {/* ── Filter bar ─────────────────────────────────────────── */}
-                <PortalCard className="p-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* Period label */}
-                        <div className="flex items-center gap-1.5">
-                            <CalendarDays
-                                size={14}
-                                className="text-brand-muted"
-                            />
-                            <span className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
-                                Period
-                            </span>
+                <PortalCard className="flex-shrink-0 p-4">
+                    <div className="flex flex-col gap-3">
+                        {/* Row 1: Period + Custom date range + Color-by */}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
+                                {/* Period label */}
+                                <div className="flex items-center gap-1.5">
+                                    <CalendarDays
+                                        size={14}
+                                        className="text-brand-muted"
+                                    />
+                                    <span className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
+                                        Period
+                                    </span>
+                                </div>
+
+                                {/* Period segmented buttons */}
+                                <div className="flex flex-wrap items-center gap-1">
+                                    {PERIOD_OPTIONS.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            id={`map-period-${opt.value}`}
+                                            onClick={() => setPeriod(opt.value)}
+                                            className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
+                                            style={{
+                                                background:
+                                                    filters.period === opt.value
+                                                        ? '#1D3557'
+                                                        : '#F8F9FA',
+                                                color:
+                                                    filters.period === opt.value
+                                                        ? '#fff'
+                                                        : '#6B7A8D',
+                                            }}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Custom date inputs */}
+                                {filters.period === 'custom' && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-xs text-brand-muted">
+                                                From
+                                            </span>
+                                            <input
+                                                id="map-date-from"
+                                                type="date"
+                                                value={filters.date_from}
+                                                onChange={(e) =>
+                                                    navigate({
+                                                        date_from:
+                                                            e.target.value,
+                                                    })
+                                                }
+                                                className={inputClass}
+                                                style={inputStyle}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-xs text-brand-muted">
+                                                To
+                                            </span>
+                                            <input
+                                                id="map-date-to"
+                                                type="date"
+                                                value={filters.date_to}
+                                                min={
+                                                    filters.date_from ||
+                                                    undefined
+                                                }
+                                                onChange={(e) =>
+                                                    navigate({
+                                                        date_to: e.target.value,
+                                                    })
+                                                }
+                                                className={inputClass}
+                                                style={inputStyle}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Color-by toggle */}
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-brand-muted">
+                                    Color by:
+                                </span>
+                                {(['alarm_level', 'type'] as ColorBy[]).map(
+                                    (opt) => (
+                                        <button
+                                            key={opt}
+                                            id={`map-color-by-${opt}`}
+                                            onClick={() => setColorBy(opt)}
+                                            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold capitalize transition-all"
+                                            style={{
+                                                background:
+                                                    colorBy === opt
+                                                        ? '#1D3557'
+                                                        : '#F8F9FA',
+                                                color:
+                                                    colorBy === opt
+                                                        ? '#fff'
+                                                        : '#6B7A8D',
+                                            }}
+                                        >
+                                            {opt === 'alarm_level'
+                                                ? 'Alarm Level'
+                                                : 'Type'}
+                                        </button>
+                                    ),
+                                )}
+                            </div>
                         </div>
 
-                        {/* Period segmented buttons */}
-                        <div className="flex flex-wrap items-center gap-1">
-                            {PERIOD_OPTIONS.map((opt) => (
+                        {/* Row 2: Attribute filters + Reset */}
+                        <div
+                            className="flex flex-wrap items-center gap-3 border-t pt-3"
+                            style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <SlidersHorizontal
+                                    size={14}
+                                    className="text-brand-muted"
+                                />
+                                <span className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
+                                    Filters
+                                </span>
+                            </div>
+
+                            {/* Barangay dropdown */}
+                            <div className="relative flex items-center">
+                                <select
+                                    id="map-barangay-filter"
+                                    value={filters.barangay_id}
+                                    onChange={(e) =>
+                                        navigate({
+                                            barangay_id: e.target.value,
+                                        })
+                                    }
+                                    className={selectClass}
+                                    style={inputStyle}
+                                >
+                                    <option value="">All barangays</option>
+                                    {barangays.map((b) => (
+                                        <option
+                                            key={b.barangay_id}
+                                            value={String(b.barangay_id)}
+                                        >
+                                            {b.barangay_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    size={11}
+                                    className="pointer-events-none absolute right-1.5 text-brand-muted"
+                                />
+                            </div>
+
+                            {/* Type dropdown */}
+                            <div className="relative flex items-center">
+                                <select
+                                    id="map-type-filter"
+                                    value={filters.incident_type}
+                                    onChange={(e) =>
+                                        navigate({
+                                            incident_type: e.target.value,
+                                        })
+                                    }
+                                    className={selectClass}
+                                    style={inputStyle}
+                                >
+                                    {TYPE_OPTIONS.map((opt) => (
+                                        <option
+                                            key={opt.value}
+                                            value={opt.value}
+                                        >
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    size={11}
+                                    className="pointer-events-none absolute right-1.5 text-brand-muted"
+                                />
+                            </div>
+
+                            {/* Alarm Level dropdown */}
+                            <div className="relative flex items-center">
+                                <select
+                                    id="map-alarm-level-filter"
+                                    value={filters.alarm_level}
+                                    onChange={(e) =>
+                                        navigate({
+                                            alarm_level: e.target.value,
+                                        })
+                                    }
+                                    className={selectClass}
+                                    style={inputStyle}
+                                >
+                                    {ALARM_LEVEL_OPTIONS.map((opt) => (
+                                        <option
+                                            key={opt.value}
+                                            value={opt.value}
+                                        >
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    size={11}
+                                    className="pointer-events-none absolute right-1.5 text-brand-muted"
+                                />
+                            </div>
+
+                            {/* Reset filters */}
+                            {hasActiveFilters && (
                                 <button
-                                    key={opt.value}
-                                    id={`map-period-${opt.value}`}
-                                    onClick={() => setPeriod(opt.value)}
-                                    className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
+                                    type="button"
+                                    id="map-reset-filters"
+                                    onClick={resetFilters}
+                                    className="ml-auto flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-brand-muted transition-colors hover:bg-red-50 hover:text-red-500"
                                     style={{
-                                        background:
-                                            filters.period === opt.value
-                                                ? '#1D3557'
-                                                : '#F8F9FA',
-                                        color:
-                                            filters.period === opt.value
-                                                ? '#fff'
-                                                : '#6B7A8D',
+                                        border: '1px solid rgba(43,45,66,0.13)',
                                     }}
                                 >
-                                    {opt.label}
+                                    <X size={11} />
+                                    Reset filters
                                 </button>
-                            ))}
-                        </div>
-
-                        {/* Custom date inputs */}
-                        {filters.period === 'custom' && (
-                            <div className="flex flex-wrap items-center gap-2">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-brand-muted">
-                                        From
-                                    </span>
-                                    <input
-                                        id="map-date-from"
-                                        type="date"
-                                        value={filters.date_from}
-                                        onChange={(e) =>
-                                            navigate({
-                                                date_from: e.target.value,
-                                            })
-                                        }
-                                        className={inputClass}
-                                        style={inputStyle}
-                                    />
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-brand-muted">
-                                        To
-                                    </span>
-                                    <input
-                                        id="map-date-to"
-                                        type="date"
-                                        value={filters.date_to}
-                                        min={filters.date_from || undefined}
-                                        onChange={(e) =>
-                                            navigate({
-                                                date_to: e.target.value,
-                                            })
-                                        }
-                                        className={inputClass}
-                                        style={inputStyle}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Separator */}
-                        <div
-                            className="h-5 w-px"
-                            style={{ background: 'rgba(43,45,66,0.12)' }}
-                        />
-
-                        {/* Barangay dropdown */}
-                        <div className="relative flex items-center">
-                            <select
-                                id="map-barangay-filter"
-                                value={filters.barangay_id}
-                                onChange={(e) =>
-                                    navigate({ barangay_id: e.target.value })
-                                }
-                                className={selectClass}
-                                style={inputStyle}
-                            >
-                                <option value="">All barangays</option>
-                                {barangays.map((b) => (
-                                    <option
-                                        key={b.barangay_id}
-                                        value={String(b.barangay_id)}
-                                    >
-                                        {b.barangay_name}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={11}
-                                className="pointer-events-none absolute right-1.5 text-brand-muted"
-                            />
-                        </div>
-
-                        {/* Type dropdown */}
-                        <div className="relative flex items-center">
-                            <select
-                                id="map-type-filter"
-                                value={filters.incident_type}
-                                onChange={(e) =>
-                                    navigate({ incident_type: e.target.value })
-                                }
-                                className={selectClass}
-                                style={inputStyle}
-                            >
-                                {TYPE_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={11}
-                                className="pointer-events-none absolute right-1.5 text-brand-muted"
-                            />
-                        </div>
-
-                        {/* Alarm Level dropdown */}
-                        <div className="relative flex items-center">
-                            <select
-                                id="map-alarm-level-filter"
-                                value={filters.alarm_level}
-                                onChange={(e) =>
-                                    navigate({ alarm_level: e.target.value })
-                                }
-                                className={selectClass}
-                                style={inputStyle}
-                            >
-                                {ALARM_LEVEL_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown
-                                size={11}
-                                className="pointer-events-none absolute right-1.5 text-brand-muted"
-                            />
-                        </div>
-
-                        {/* Separator */}
-                        <div
-                            className="h-5 w-px"
-                            style={{ background: 'rgba(43,45,66,0.12)' }}
-                        />
-
-                        {/* Color-by toggle */}
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-brand-muted">
-                                Color by:
-                            </span>
-                            {(['alarm_level', 'type'] as ColorBy[]).map(
-                                (opt) => (
-                                    <button
-                                        key={opt}
-                                        id={`map-color-by-${opt}`}
-                                        onClick={() => setColorBy(opt)}
-                                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold capitalize transition-all"
-                                        style={{
-                                            background:
-                                                colorBy === opt
-                                                    ? '#1D3557'
-                                                    : '#F8F9FA',
-                                            color:
-                                                colorBy === opt
-                                                    ? '#fff'
-                                                    : '#6B7A8D',
-                                        }}
-                                    >
-                                        {opt === 'alarm_level'
-                                            ? 'Alarm Level'
-                                            : 'Type'}
-                                    </button>
-                                ),
                             )}
                         </div>
                     </div>
                 </PortalCard>
 
                 {/* ── Map + Sidebar ──────────────────────────────────────── */}
-                <div
-                    className="flex flex-row-reverse gap-4"
-                    style={{ height: 'calc(100vh - 64px - 48px - 80px)' }}
-                >
+                <div className="flex min-h-0 flex-1 flex-row-reverse gap-4">
                     {/* Incident sidebar */}
                     {sidebarOpen && (
                         <PortalCard className="flex w-64 flex-shrink-0 flex-col overflow-hidden">
@@ -1133,7 +1195,7 @@ export default function FireIncidentsMap({
                                             <p className="text-[10px] font-semibold tracking-wide text-brand-muted uppercase">
                                                 Barangay Risk
                                             </p>
-                                            <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-1">
+                                            <div className="flex max-h-[300px] flex-col gap-1 overflow-y-auto pr-1">
                                                 {(
                                                     [
                                                         'high',

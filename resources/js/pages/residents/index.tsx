@@ -8,6 +8,7 @@ import {
     Search,
     ShieldAlert,
     ShieldCheck,
+    X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -100,6 +101,9 @@ type Confirmation = 'reset' | 'suspend' | 'reactivate' | null;
 
 const inputClass =
     'h-9 w-full rounded-md border border-brand-navy/15 bg-white px-3 text-sm text-brand-navy outline-none focus:border-brand-blue';
+const filterInputClass =
+    'rounded-lg border bg-brand-bg py-2 px-3 text-sm text-brand-navy outline-none focus:ring-1 focus:ring-brand-navy/20';
+const filterInputStyle = { borderColor: 'rgba(43,45,66,0.13)' };
 
 function formatDateTime(value: string | null): string {
     if (!value) {
@@ -203,6 +207,10 @@ export default function ResidentIndex({
             return;
         }
 
+        if (searchValue === filters.search) {
+            return;
+        }
+
         const timeout = setTimeout(
             () => navigate({ search: searchValue }),
             400,
@@ -211,6 +219,21 @@ export default function ResidentIndex({
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue]);
+
+    const hasActiveFilters =
+        searchValue !== '' ||
+        filters.search !== '' ||
+        filters.barangay !== 'all' ||
+        filters.status !== 'all';
+
+    const resetFilters = () => {
+        setSearchValue('');
+        navigate({
+            search: '',
+            barangay: 'all',
+            status: 'all',
+        });
+    };
 
     const seedEditForm = (resident: ResidentProfile) => {
         editForm.setData({
@@ -344,9 +367,9 @@ export default function ResidentIndex({
 
                 <PortalCard className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="relative min-w-64 flex-1">
+                        <div className="relative">
                             <Search
-                                size={14}
+                                size={13}
                                 className="absolute top-1/2 left-3 -translate-y-1/2 text-brand-muted"
                             />
                             <input
@@ -355,7 +378,8 @@ export default function ResidentIndex({
                                     setSearchValue(event.target.value)
                                 }
                                 placeholder="Search residents…"
-                                className={`${inputClass} pl-9`}
+                                className="w-64 rounded-lg border bg-brand-bg py-2 pr-4 pl-8 text-sm text-brand-navy outline-none"
+                                style={filterInputStyle}
                             />
                         </div>
                         <select
@@ -364,9 +388,10 @@ export default function ResidentIndex({
                             onChange={(event) =>
                                 navigate({ barangay: event.target.value })
                             }
-                            className={`${inputClass} w-52`}
+                            className={`${filterInputClass} pr-8`}
+                            style={filterInputStyle}
                         >
-                            <option value="all">All barangays</option>
+                            <option value="all">All Barangays</option>
                             {barangays.map((barangay) => (
                                 <option
                                     key={barangay.barangay_id}
@@ -382,12 +407,24 @@ export default function ResidentIndex({
                             onChange={(event) =>
                                 navigate({ status: event.target.value })
                             }
-                            className={`${inputClass} w-40`}
+                            className={`${filterInputClass} pr-8`}
+                            style={filterInputStyle}
                         >
-                            <option value="all">All statuses</option>
+                            <option value="all">All Statuses</option>
                             <option value="active">Active</option>
                             <option value="suspended">Suspended</option>
                         </select>
+                        {hasActiveFilters && (
+                            <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="flex items-center gap-1 rounded-lg border px-2.5 py-2 text-xs font-medium text-brand-muted transition-colors hover:bg-red-50 hover:text-red-500"
+                                style={filterInputStyle}
+                            >
+                                <X size={11} />
+                                Reset filters
+                            </button>
+                        )}
                     </div>
                 </PortalCard>
 

@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Filter, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { ContactFormModal } from '@/components/barangay-contacts/contact-form-modal';
 import type {
@@ -8,16 +8,12 @@ import type {
 } from '@/components/barangay-contacts/contact-form-modal';
 import { DeleteContactDialog } from '@/components/barangay-contacts/delete-contact-dialog';
 import { PortalCard } from '@/components/portal/portal-card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import PortalLayout from '@/layouts/portal-layout';
 import { barangayContacts as barangayContactsIndex } from '@/routes';
+
+const inputClass =
+    'rounded-lg border bg-brand-bg py-2 px-3 text-sm text-brand-navy outline-none focus:ring-1 focus:ring-brand-navy/20';
+const inputStyle = { borderColor: 'rgba(43,45,66,0.13)' };
 
 export default function BarangayContactsIndex({
     contacts,
@@ -36,13 +32,23 @@ export default function BarangayContactsIndex({
     const setBarangayFilter = (value: string) => {
         router.get(
             barangayContactsIndex().url,
-            { search, barangay_id: value === 'all' ? undefined : value },
+            { search, barangay_id: value === '' ? undefined : value },
             { preserveState: true, replace: true },
         );
     };
 
-    const activeBarangayId = filters.barangay_id?.toString() ?? 'all';
-    const hasFilter = filters.barangay_id !== null;
+    const activeBarangayId = filters.barangay_id?.toString() ?? '';
+    const hasActiveFilters =
+        search !== '' || filters.search !== '' || filters.barangay_id !== null;
+
+    const resetFilters = () => {
+        setSearch('');
+        router.get(
+            barangayContactsIndex().url,
+            { search: '', barangay_id: undefined },
+            { preserveState: true, replace: true },
+        );
+    };
 
     const [addOpen, setAddOpen] = useState(false);
     const [editing, setEditing] = useState<ContactRow | null>(null);
@@ -53,6 +59,10 @@ export default function BarangayContactsIndex({
         if (isFirstRender.current) {
             isFirstRender.current = false;
 
+            return;
+        }
+
+        if (search === filters.search) {
             return;
         }
 
@@ -103,51 +113,39 @@ export default function BarangayContactsIndex({
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search by name, role, or phone…"
                                 className="w-72 rounded-lg border bg-brand-bg py-2 pr-4 pl-8 text-sm text-brand-navy outline-none"
-                                style={{ borderColor: 'rgba(43,45,66,0.13)' }}
+                                style={inputStyle}
                             />
                         </div>
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold text-brand-navy"
-                                    style={{
-                                        borderColor: 'rgba(43,45,66,0.15)',
-                                    }}
+                        <select
+                            aria-label="Filter by barangay"
+                            value={activeBarangayId}
+                            onChange={(e) => setBarangayFilter(e.target.value)}
+                            className={`${inputClass} pr-8`}
+                            style={inputStyle}
+                        >
+                            <option value="">All Barangays</option>
+                            {barangays.map((b) => (
+                                <option
+                                    key={b.barangay_id}
+                                    value={b.barangay_id.toString()}
                                 >
-                                    <Filter size={13} /> Barangay
-                                    {hasFilter && (
-                                        <span className="flex size-4 items-center justify-center rounded-full bg-brand-navy text-[10px] text-white">
-                                            1
-                                        </span>
-                                    )}
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                align="start"
-                                className="max-h-72 w-56 overflow-y-auto bg-white text-brand-navy"
+                                    {b.barangay_name}
+                                </option>
+                            ))}
+                        </select>
+
+                        {hasActiveFilters && (
+                            <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="flex items-center gap-1 rounded-lg border px-2.5 py-2 text-xs font-medium text-brand-muted transition-colors hover:bg-red-50 hover:text-red-500"
+                                style={inputStyle}
                             >
-                                <DropdownMenuLabel>
-                                    Filter by Barangay
-                                </DropdownMenuLabel>
-                                <DropdownMenuRadioGroup
-                                    value={activeBarangayId}
-                                    onValueChange={setBarangayFilter}
-                                >
-                                    <DropdownMenuRadioItem value="all">
-                                        All barangays
-                                    </DropdownMenuRadioItem>
-                                    {barangays.map((b) => (
-                                        <DropdownMenuRadioItem
-                                            key={b.barangay_id}
-                                            value={b.barangay_id.toString()}
-                                        >
-                                            {b.barangay_name}
-                                        </DropdownMenuRadioItem>
-                                    ))}
-                                </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                <X size={11} />
+                                Reset filters
+                            </button>
+                        )}
                     </div>
                 </PortalCard>
 

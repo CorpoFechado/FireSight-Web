@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Filter, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { DeletePersonnelDialog } from '@/components/personnel/delete-personnel-dialog';
 import { PersonnelFormModal } from '@/components/personnel/personnel-form-modal';
@@ -9,31 +9,26 @@ import {
     PersonnelStatusBadge,
     RoleBadge,
 } from '@/components/portal/status-badge';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useInitials } from '@/hooks/use-initials';
 import PortalLayout from '@/layouts/portal-layout';
 import { groupLabel } from '@/lib/duty-schedule';
 import { personnel as personnelIndex } from '@/routes';
 
 const ROLE_FILTERS = [
-    { label: 'All roles', value: 'all' },
+    { label: 'All Roles', value: 'all' },
     { label: 'Admin', value: 'bfp_admin' },
     { label: 'Personnel', value: 'bfp_personnel' },
 ];
 
 const STATUS_FILTERS = [
-    { label: 'All statuses', value: 'all' },
+    { label: 'All Statuses', value: 'all' },
     { label: 'Active', value: 'active' },
     { label: 'Inactive', value: 'inactive' },
 ];
+
+const inputClass =
+    'rounded-lg border bg-brand-bg py-2 px-3 text-sm text-brand-navy outline-none focus:ring-1 focus:ring-brand-navy/20';
+const inputStyle = { borderColor: 'rgba(43,45,66,0.13)' };
 
 export default function PersonnelIndex({
     personnel,
@@ -57,6 +52,10 @@ export default function PersonnelIndex({
         if (isFirstRender.current) {
             isFirstRender.current = false;
 
+            return;
+        }
+
+        if (search === filters.search) {
             return;
         }
 
@@ -85,8 +84,20 @@ export default function PersonnelIndex({
         );
     };
 
-    const activeFilterCount =
-        (filters.role !== 'all' ? 1 : 0) + (filters.status !== 'all' ? 1 : 0);
+    const hasActiveFilters =
+        search !== '' ||
+        filters.search !== '' ||
+        filters.role !== 'all' ||
+        filters.status !== 'all';
+
+    const resetFilters = () => {
+        setSearch('');
+        router.get(
+            personnelIndex().url,
+            { role: 'all', status: 'all', search: '' },
+            { preserveState: true, replace: true },
+        );
+    };
 
     return (
         <PortalLayout title="Personnel Accounts">
@@ -123,63 +134,51 @@ export default function PersonnelIndex({
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search personnel…"
                                 className="w-64 rounded-lg border bg-brand-bg py-2 pr-4 pl-8 text-sm text-brand-navy outline-none"
-                                style={{ borderColor: 'rgba(43,45,66,0.13)' }}
+                                style={inputStyle}
                             />
                         </div>
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold text-brand-navy"
-                                    style={{
-                                        borderColor: 'rgba(43,45,66,0.15)',
-                                    }}
-                                >
-                                    <Filter size={13} /> Filter
-                                    {activeFilterCount > 0 && (
-                                        <span className="flex size-4 items-center justify-center rounded-full bg-brand-navy text-[10px] text-white">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                align="start"
-                                className="w-48 bg-white text-brand-navy"
+                        <select
+                            aria-label="Filter by role"
+                            value={filters.role}
+                            onChange={(e) => setFilter('role', e.target.value)}
+                            className={`${inputClass} pr-8`}
+                            style={inputStyle}
+                        >
+                            {ROLE_FILTERS.map((r) => (
+                                <option key={r.value} value={r.value}>
+                                    {r.label}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            aria-label="Filter by status"
+                            value={filters.status}
+                            onChange={(e) =>
+                                setFilter('status', e.target.value)
+                            }
+                            className={`${inputClass} pr-8`}
+                            style={inputStyle}
+                        >
+                            {STATUS_FILTERS.map((s) => (
+                                <option key={s.value} value={s.value}>
+                                    {s.label}
+                                </option>
+                            ))}
+                        </select>
+
+                        {hasActiveFilters && (
+                            <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="flex items-center gap-1 rounded-lg border px-2.5 py-2 text-xs font-medium text-brand-muted transition-colors hover:bg-red-50 hover:text-red-500"
+                                style={inputStyle}
                             >
-                                <DropdownMenuLabel>Role</DropdownMenuLabel>
-                                <DropdownMenuRadioGroup
-                                    value={filters.role}
-                                    onValueChange={(v) => setFilter('role', v)}
-                                >
-                                    {ROLE_FILTERS.map((r) => (
-                                        <DropdownMenuRadioItem
-                                            key={r.value}
-                                            value={r.value}
-                                        >
-                                            {r.label}
-                                        </DropdownMenuRadioItem>
-                                    ))}
-                                </DropdownMenuRadioGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuLabel>Status</DropdownMenuLabel>
-                                <DropdownMenuRadioGroup
-                                    value={filters.status}
-                                    onValueChange={(v) =>
-                                        setFilter('status', v)
-                                    }
-                                >
-                                    {STATUS_FILTERS.map((s) => (
-                                        <DropdownMenuRadioItem
-                                            key={s.value}
-                                            value={s.value}
-                                        >
-                                            {s.label}
-                                        </DropdownMenuRadioItem>
-                                    ))}
-                                </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                <X size={11} />
+                                Reset filters
+                            </button>
+                        )}
                     </div>
                 </PortalCard>
 

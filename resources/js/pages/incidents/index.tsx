@@ -1,10 +1,8 @@
 import { Link, router } from '@inertiajs/react';
 import { Plus, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import {
-    CreateManualReportModal,
-    type PersonnelOption,
-} from '@/components/incidents/create-manual-report-modal';
+import { CreateManualReportModal } from '@/components/incidents/create-manual-report-modal';
+import type { PersonnelOption } from '@/components/incidents/create-manual-report-modal';
 import { PaginationBar } from '@/components/portal/pagination-bar';
 import { PortalCard } from '@/components/portal/portal-card';
 import {
@@ -124,6 +122,10 @@ export default function IncidentsIndex({
             return;
         }
 
+        if (search === filters.search) {
+            return;
+        }
+
         const timeout = setTimeout(() => {
             navigate({ search });
         }, 400);
@@ -134,21 +136,28 @@ export default function IncidentsIndex({
 
     const setStatus = (status: string) => navigate({ status });
 
-    const hasSecondaryFilters =
+    const hasActiveFilters =
+        filters.status !== 'all' ||
+        search !== '' ||
+        filters.search !== '' ||
         filters.date_from !== '' ||
         filters.date_to !== '' ||
         filters.barangay_id !== '' ||
         filters.incident_type !== '' ||
         filters.alarm_level !== '';
 
-    const clearSecondaryFilters = () =>
+    const resetFilters = () => {
+        setSearch('');
         navigate({
+            status: 'all',
+            search: '',
             date_from: '',
             date_to: '',
             barangay_id: '',
             incident_type: '',
             alarm_level: '',
         });
+    };
 
     return (
         <PortalLayout
@@ -158,151 +167,166 @@ export default function IncidentsIndex({
             <div className="space-y-4">
                 {/* Filter bar */}
                 <PortalCard className="p-4">
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* Text search */}
-                        <div className="relative">
-                            <Search
-                                size={13}
-                                className="absolute top-1/2 left-3 -translate-y-1/2 text-brand-muted"
-                            />
-                            <input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search reporter, contact, barangay…"
-                                className="w-56 rounded-lg border bg-brand-bg py-2 pr-4 pl-8 text-sm text-brand-navy outline-none"
-                                style={inputStyle}
-                            />
-                        </div>
+                    <div className="flex flex-col gap-3">
+                        {/* Row 1: Status tabs + Add Manual Report */}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex flex-wrap items-center gap-1">
+                                {STATUS_FILTERS.map((s) => (
+                                    <button
+                                        key={s.value}
+                                        type="button"
+                                        onClick={() => setStatus(s.value)}
+                                        className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
+                                        style={{
+                                            background:
+                                                filters.status === s.value
+                                                    ? '#1D3557'
+                                                    : '#F8F9FA',
+                                            color:
+                                                filters.status === s.value
+                                                    ? '#fff'
+                                                    : '#6B7A8D',
+                                        }}
+                                    >
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
 
-                        {/* Date range */}
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-brand-muted">
-                                From
-                            </span>
-                            <input
-                                type="date"
-                                value={filters.date_from}
-                                onChange={(e) =>
-                                    navigate({ date_from: e.target.value })
-                                }
-                                className={inputClass}
-                                style={inputStyle}
-                            />
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-brand-muted">To</span>
-                            <input
-                                type="date"
-                                value={filters.date_to}
-                                min={filters.date_from || undefined}
-                                onChange={(e) =>
-                                    navigate({ date_to: e.target.value })
-                                }
-                                className={inputClass}
-                                style={inputStyle}
-                            />
-                        </div>
-
-                        {/* Barangay dropdown */}
-                        <select
-                            value={filters.barangay_id}
-                            onChange={(e) =>
-                                navigate({ barangay_id: e.target.value })
-                            }
-                            className={`${inputClass} pr-8`}
-                            style={inputStyle}
-                        >
-                            <option value="">All Barangays</option>
-                            {barangays.map((b) => (
-                                <option
-                                    key={b.barangay_id}
-                                    value={String(b.barangay_id)}
-                                >
-                                    {b.barangay_name}
-                                </option>
-                            ))}
-                        </select>
-
-                        {/* Type dropdown */}
-                        <select
-                            value={filters.incident_type}
-                            onChange={(e) =>
-                                navigate({ incident_type: e.target.value })
-                            }
-                            className={`${inputClass} pr-8`}
-                            style={inputStyle}
-                        >
-                            <option value="">All Types</option>
-                            {TYPE_OPTIONS.map((t) => (
-                                <option key={t.value} value={t.value}>
-                                    {t.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        {/* Alarm Level dropdown */}
-                        <select
-                            value={filters.alarm_level}
-                            onChange={(e) =>
-                                navigate({ alarm_level: e.target.value })
-                            }
-                            className={`${inputClass} pr-8`}
-                            style={inputStyle}
-                        >
-                            <option value="">All Alarm Levels</option>
-                            {ALARM_LEVEL_OPTIONS.map((s) => (
-                                <option key={s.value} value={s.value}>
-                                    {s.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        {/* Clear secondary filters */}
-                        {hasSecondaryFilters && (
                             <button
-                                onClick={clearSecondaryFilters}
-                                className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-brand-muted transition-colors hover:bg-red-50 hover:text-red-500"
-                                style={{
-                                    border: '1px solid rgba(43,45,66,0.13)',
-                                }}
+                                type="button"
+                                onClick={() => setManualOpen(true)}
+                                className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
+                                style={{ background: '#1D3557' }}
                             >
-                                <X size={11} />
-                                Clear filters
+                                <Plus size={14} />
+                                Add Manual Report
                             </button>
-                        )}
+                        </div>
 
-                        {/* Status tabs */}
-                        <div className="flex flex-wrap items-center gap-1">
-                            {STATUS_FILTERS.map((s) => (
+                        {/* Row 2: Search + Date range */}
+                        <div
+                            className="flex flex-wrap items-center gap-3 border-t pt-3"
+                            style={{ borderColor: 'rgba(43,45,66,0.08)' }}
+                        >
+                            {/* Text search */}
+                            <div className="relative">
+                                <Search
+                                    size={13}
+                                    className="absolute top-1/2 left-3 -translate-y-1/2 text-brand-muted"
+                                />
+                                <input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search reporter, contact, barangay…"
+                                    className="w-56 rounded-lg border bg-brand-bg py-2 pr-4 pl-8 text-sm text-brand-navy outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            {/* Date range */}
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-brand-muted">
+                                    From
+                                </span>
+                                <input
+                                    type="date"
+                                    value={filters.date_from}
+                                    onChange={(e) =>
+                                        navigate({ date_from: e.target.value })
+                                    }
+                                    className={inputClass}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-brand-muted">
+                                    To
+                                </span>
+                                <input
+                                    type="date"
+                                    value={filters.date_to}
+                                    min={filters.date_from || undefined}
+                                    onChange={(e) =>
+                                        navigate({ date_to: e.target.value })
+                                    }
+                                    className={inputClass}
+                                    style={inputStyle}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Row 3: Barangay, Type, Alarm Level + Reset */}
+                        <div className="flex flex-wrap items-center gap-3">
+                            {/* Barangay dropdown */}
+                            <select
+                                value={filters.barangay_id}
+                                onChange={(e) =>
+                                    navigate({ barangay_id: e.target.value })
+                                }
+                                className={`${inputClass} pr-8`}
+                                style={inputStyle}
+                            >
+                                <option value="">All Barangays</option>
+                                {barangays.map((b) => (
+                                    <option
+                                        key={b.barangay_id}
+                                        value={String(b.barangay_id)}
+                                    >
+                                        {b.barangay_name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Type dropdown */}
+                            <select
+                                value={filters.incident_type}
+                                onChange={(e) =>
+                                    navigate({ incident_type: e.target.value })
+                                }
+                                className={`${inputClass} pr-8`}
+                                style={inputStyle}
+                            >
+                                <option value="">All Types</option>
+                                {TYPE_OPTIONS.map((t) => (
+                                    <option key={t.value} value={t.value}>
+                                        {t.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Alarm Level dropdown */}
+                            <select
+                                value={filters.alarm_level}
+                                onChange={(e) =>
+                                    navigate({ alarm_level: e.target.value })
+                                }
+                                className={`${inputClass} pr-8`}
+                                style={inputStyle}
+                            >
+                                <option value="">All Alarm Levels</option>
+                                {ALARM_LEVEL_OPTIONS.map((s) => (
+                                    <option key={s.value} value={s.value}>
+                                        {s.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Reset filters */}
+                            {hasActiveFilters && (
                                 <button
-                                    key={s.value}
-                                    onClick={() => setStatus(s.value)}
-                                    className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
+                                    type="button"
+                                    onClick={resetFilters}
+                                    className="flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-medium text-brand-muted transition-colors hover:bg-red-50 hover:text-red-500"
                                     style={{
-                                        background:
-                                            filters.status === s.value
-                                                ? '#1D3557'
-                                                : '#F8F9FA',
-                                        color:
-                                            filters.status === s.value
-                                                ? '#fff'
-                                                : '#6B7A8D',
+                                        border: '1px solid rgba(43,45,66,0.13)',
                                     }}
                                 >
-                                    {s.label}
+                                    <X size={11} />
+                                    Reset filters
                                 </button>
-                            ))}
+                            )}
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={() => setManualOpen(true)}
-                            className="ml-auto flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
-                            style={{ background: '#1D3557' }}
-                        >
-                            <Plus size={14} />
-                            Add Manual Report
-                        </button>
                     </div>
                 </PortalCard>
 
