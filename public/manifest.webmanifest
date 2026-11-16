@@ -1,0 +1,27 @@
+{
+    "name": "FireSight — BFP Lian Operations Portal",
+    "short_name": "FireSight",
+    "description": "Bureau of Fire Protection Lian incident monitoring and emergency response portal.",
+    "start_url": "/dashboard",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f8f9fa",
+    "theme_color": "#1d3557",
+    "icons": [
+        {
+            "src": "/favicon.png?v=3",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/apple-touch-icon.png?v=3",
+            "sizes": "180x180",
+            "type": "image/png"
+        },
+        {
+            "src": "/favicon.svg?v=3",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

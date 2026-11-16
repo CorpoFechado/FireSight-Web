@@ -187,6 +187,16 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Browser Web Push subscriptions registered for this user.
+     *
+     * @return HasMany<PushSubscription, $this>
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class, 'user_id', 'user_id');
+    }
+
+    /**
      * Duty rotation overrides assigned to this personnel member.
      */
     public function dutyOverrides(): HasMany

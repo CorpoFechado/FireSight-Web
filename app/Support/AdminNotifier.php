@@ -6,6 +6,7 @@ use App\Models\CommunityReport;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\ExpoPushService;
+use App\Services\WebPushService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
@@ -16,6 +17,7 @@ class AdminNotifier
 {
     public function __construct(
         protected ExpoPushService $pushService,
+        protected WebPushService $webPushService,
     ) {}
 
     /** Reports within this radius of an active report are flagged as possible duplicates. */
@@ -39,15 +41,32 @@ class AdminNotifier
      */
     public function reportSubmitted(CommunityReport $report, ?CarbonInterface $at = null): void
     {
-        $this->sendToRoles(
-            'New Fire Report',
-            "Report #{$report->report_id} from {$this->reporterName($report)}{$this->locationSuffix($report)} is awaiting verification.",
+        $title = 'New Fire Report';
+        $message = "Report #{$report->report_id} from {$this->reporterName($report)}{$this->locationSuffix($report)} is awaiting verification.";
+
+        $recipientIds = $this->sendToRoles(
+            $title,
+            $message,
             'incident_alert',
             [User::ROLE_BFP_ADMIN],
             null,
             $at,
             (int) $report->report_id,
         );
+
+        if ($recipientIds->isNotEmpty()) {
+            $this->webPushService->sendToUsers(
+                $recipientIds->values()->all(),
+                $title,
+                $this->buildWebPushReportMessage($report, $message),
+                [
+                    'report_id' => (int) $report->report_id,
+                    'url' => "/incidents/{$report->report_id}",
+                    'type' => 'new_report',
+                    'requireInteraction' => true,
+                ],
+            );
+        }
     }
 
     /**
@@ -198,6 +217,7 @@ class AdminNotifier
 
     /**
      * @param  list<string>  $roles
+     * @return Collection<int, int>
      */
     private function sendToRoles(
         string $title,
@@ -207,7 +227,8 @@ class AdminNotifier
         ?int $exceptUserId,
         ?CarbonInterface $at,
         ?int $reportId = null
-    ): void {
+    ): Collection {
+        /** @var Collection<int, int> $recipientIds */
         $recipientIds = User::query()
             ->whereIn('role', $roles)
             ->where('status', User::STATUS_ACTIVE)
@@ -215,7 +236,7 @@ class AdminNotifier
             ->pluck('user_id');
 
         if ($recipientIds->isEmpty()) {
-            return;
+            return collect();
         }
 
         $createdAt = $at ?? now();
@@ -245,6 +266,33 @@ class AdminNotifier
                 ['report_id' => $reportId, 'type' => $type]
             );
         }
+
+        return $recipientIds;
+    }
+
+    private function buildWebPushReportMessage(CommunityReport $report, string $baseMessage): string
+    {
+        $label = $report->ai_fire_label;
+        if ($label === null || $label === '') {
+            return $baseMessage;
+        }
+
+        $confidence = $report->ai_fire_confidence !== null
+            ? round((float) $report->ai_fire_confidence * 100)
+            : null;
+
+        if ($label === 'non_fire') {
+            $aiSummary = $confidence !== null
+                ? "AI check: no fire detected ({$confidence}% confidence)."
+                : 'AI check: no fire detected.';
+        } else {
+            $detected = $label === 'fire' ? 'fire' : $label;
+            $aiSummary = $confidence !== null
+                ? "AI check: {$detected} detected ({$confidence}% confidence)."
+                : "AI check: {$detected} detected.";
+        }
+
+        return "{$baseMessage} {$aiSummary}";
     }
 
     private function reporterName(CommunityReport $report): string

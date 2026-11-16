@@ -12,6 +12,7 @@ use App\Http\Controllers\IncidentActionController;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\ResponseTrackingController;
 use App\Http\Controllers\RiskAnalyticsController;
@@ -62,6 +63,12 @@ Route::middleware(['auth', 'verified', 'bfp.admin'])->group(function () {
         ->name('notifications.read');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])
         ->name('notifications.readAll');
+    Route::post('notifications/push-subscriptions', [PushSubscriptionController::class, 'store'])
+        ->name('notifications.pushSubscriptions.store');
+    Route::delete('notifications/push-subscriptions', [PushSubscriptionController::class, 'destroy'])
+        ->name('notifications.pushSubscriptions.destroy');
+    Route::post('notifications/push-subscriptions/test', [PushSubscriptionController::class, 'test'])
+        ->name('notifications.pushSubscriptions.test');
 
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 

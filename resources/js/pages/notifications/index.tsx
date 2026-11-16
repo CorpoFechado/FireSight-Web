@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { CheckCheck } from 'lucide-react';
 import { NotificationItem } from '@/components/notifications/notification-item';
 import type { NotificationRow } from '@/components/notifications/notification-item';
+import { PushNotificationsCard } from '@/components/notifications/push-notifications-card';
 import { PortalCard } from '@/components/portal/portal-card';
 import PortalLayout from '@/layouts/portal-layout';
 import { readAll } from '@/routes/notifications';
@@ -52,6 +53,8 @@ export default function NotificationsIndex({
                         <CheckCheck size={15} /> Mark all as read
                     </button>
                 </div>
+
+                <PushNotificationsCard />
 
                 {isEmpty ? (
                     <PortalCard className="flex flex-col items-center justify-center gap-2 p-10 text-center">

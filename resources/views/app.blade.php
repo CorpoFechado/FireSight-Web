@@ -30,6 +30,8 @@
             }
         </style>
 
+        <meta name="theme-color" content="#1d3557">
+        <link rel="manifest" href="/manifest.webmanifest">
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=3">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
         <link rel="icon" href="/favicon.ico?v=3" sizes="any">

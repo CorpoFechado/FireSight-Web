@@ -43,6 +43,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'unreadNotificationCount' => fn () => $request->user()?->appNotifications()->where('is_read', false)->count() ?? 0,
+            'vapidPublicKey' => fn () => $request->user()?->isBfpAdmin() ? config('services.webpush.public_key') : null,
             'flash' => [
                 'toast' => $request->session()->get('toast'),
                 'residentTemporaryPassword' => $request->session()->get('residentTemporaryPassword'),
