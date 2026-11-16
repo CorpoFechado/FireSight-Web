@@ -13,6 +13,7 @@ import {
     ZoomControl,
 } from 'react-leaflet';
 import { OSM_ATTRIBUTION, OSM_TILE_URL } from '@/lib/map-constants';
+import { cn } from '@/lib/utils';
 
 const FIRE_COLOR = '#E63946';
 const NAVY_COLOR = '#1D3557';
@@ -103,6 +104,18 @@ function MapView({
     const map = useMap();
 
     useEffect(() => {
+        const container = map.getContainer();
+        const resizeObserver = new ResizeObserver(() => {
+            map.invalidateSize();
+        });
+        resizeObserver.observe(container);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [map]);
+
+    useEffect(() => {
         const fireLocation = L.latLng(latitude, longitude);
 
         if (deviceLatitude === null || deviceLongitude === null) {
@@ -141,12 +154,18 @@ export function IncidentLocationMap({
     deviceLatitude,
     deviceLongitude,
     height = 220,
+    zoom = 15,
+    scrollWheelZoom = false,
+    className,
 }: {
     latitude: number;
     longitude: number;
     deviceLatitude: number | null;
     deviceLongitude: number | null;
-    height?: number;
+    height?: number | string;
+    zoom?: number;
+    scrollWheelZoom?: boolean;
+    className?: string;
 }) {
     const fireLocation: [number, number] = [latitude, longitude];
     const hasDistinctReporterLocation =
@@ -163,15 +182,18 @@ export function IncidentLocationMap({
 
     return (
         <div
-            className="relative isolate overflow-hidden rounded-lg"
+            className={cn(
+                'relative isolate overflow-hidden rounded-lg',
+                className,
+            )}
             style={{ height }}
         >
             <MapContainer
                 className="relative z-0"
                 center={fireLocation}
-                zoom={15}
+                zoom={zoom}
                 zoomControl={false}
-                scrollWheelZoom={false}
+                scrollWheelZoom={scrollWheelZoom}
                 style={{ height: '100%', width: '100%' }}
             >
                 <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
@@ -185,7 +207,7 @@ export function IncidentLocationMap({
                     deviceLongitude={
                         hasDistinctReporterLocation ? deviceLongitude : null
                     }
-                    zoom={15}
+                    zoom={zoom}
                 />
 
                 {reporterLocation && (

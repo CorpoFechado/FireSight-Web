@@ -683,13 +683,13 @@ export function CreateManualReportModal({
                                                 setExpandedMapOpen(true)
                                             }
                                             className="absolute top-2 right-2 z-[400] flex items-center gap-1 rounded-md border border-[rgba(43,45,66,0.18)] bg-white/95 px-2.5 py-1 text-xs font-semibold text-brand-navy shadow-xs transition hover:bg-white"
-                                            title="Open larger map to pin location"
+                                            title="Expand map to pin location"
                                         >
                                             <Maximize2
                                                 size={12}
                                                 className="text-brand-blue"
                                             />
-                                            Larger Map
+                                            Expand Map
                                         </button>
                                     </div>
                                     {(errors.latitude || errors.longitude) && (

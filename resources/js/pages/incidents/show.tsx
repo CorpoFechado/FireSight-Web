@@ -7,6 +7,7 @@ import {
     FileDown,
     FileText,
     MapPin,
+    Maximize2,
     Phone,
     Plus,
     Trash2,
@@ -27,6 +28,12 @@ import {
     AlarmLevelBadge,
     StatusBadge,
 } from '@/components/portal/status-badge';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import {
     Tooltip,
     TooltipContent,
@@ -334,6 +341,7 @@ export default function IncidentShow({
     navigationSource: 'incidents' | 'map' | 'notifications';
 }) {
     const [editOpen, setEditOpen] = useState(false);
+    const [expandedMapOpen, setExpandedMapOpen] = useState(false);
     const [uploadingPhotos, setUploadingPhotos] = useState(false);
     const evidenceInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -1021,9 +1029,23 @@ export default function IncidentShow({
                         {/* Right column */}
                         <div className="space-y-5">
                             <div>
-                                <p className="mb-2 text-xs font-semibold tracking-wider text-brand-muted uppercase">
-                                    Incident Location
-                                </p>
+                                <div className="mb-2 flex items-center justify-between">
+                                    <p className="text-xs font-semibold tracking-wider text-brand-muted uppercase">
+                                        Incident Location
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedMapOpen(true)}
+                                        className="flex items-center gap-1 rounded-md border border-[rgba(43,45,66,0.18)] bg-white px-2 py-1 text-[11px] font-semibold text-brand-navy shadow-xs transition hover:bg-brand-bg"
+                                        title="Expand map"
+                                    >
+                                        <Maximize2
+                                            size={11}
+                                            className="text-brand-blue"
+                                        />
+                                        Expand Map
+                                    </button>
+                                </div>
                                 <div className="relative">
                                     <IncidentLocationMap
                                         latitude={report.latitude}
@@ -1376,6 +1398,73 @@ export default function IncidentShow({
                         initialValues={assessmentValues}
                     />
                 )}
+
+                <Dialog
+                    open={expandedMapOpen}
+                    onOpenChange={setExpandedMapOpen}
+                >
+                    <DialogContent className="flex flex-col gap-0 overflow-hidden bg-white p-0 text-brand-navy sm:max-w-5xl">
+                        <DialogHeader
+                            className="border-b px-6 py-3.5"
+                            style={{ borderColor: 'rgba(43,45,66,0.1)' }}
+                        >
+                            <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
+                                <div>
+                                    <DialogTitle className="text-base font-bold text-brand-navy">
+                                        Incident Location
+                                    </DialogTitle>
+                                    <p className="text-xs text-brand-muted">
+                                        {report.barangay
+                                            ? `Brgy. ${report.barangay}, Lian`
+                                            : 'Outside Lian Jurisdiction'}{' '}
+                                        · {report.reference}
+                                    </p>
+                                </div>
+                                <span className="font-mono text-xs text-brand-muted">
+                                    {Number(report.latitude).toFixed(6)},{' '}
+                                    {Number(report.longitude).toFixed(6)}
+                                </span>
+                            </div>
+                        </DialogHeader>
+
+                        <div className="relative isolate h-[65vh] w-full">
+                            {expandedMapOpen && (
+                                <IncidentLocationMap
+                                    latitude={report.latitude}
+                                    longitude={report.longitude}
+                                    deviceLatitude={report.device_latitude}
+                                    deviceLongitude={report.device_longitude}
+                                    height="100%"
+                                    zoom={16}
+                                    scrollWheelZoom
+                                    className="rounded-none"
+                                />
+                            )}
+                            <div className="pointer-events-none absolute top-3 left-3 z-[20] flex items-center gap-1.5 rounded-md bg-white/95 px-3 py-1.5 text-xs font-semibold text-brand-navy shadow-sm">
+                                <MapPin size={13} className="text-brand-red" />
+                                <span>
+                                    {report.barangay
+                                        ? `Brgy. ${report.barangay}, Lian`
+                                        : 'Outside Lian Jurisdiction'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            className="flex items-center justify-end gap-2 border-t bg-brand-bg/50 px-6 py-3"
+                            style={{ borderColor: 'rgba(43,45,66,0.1)' }}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setExpandedMapOpen(false)}
+                                className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
+                                style={{ background: '#1D3557' }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </PortalLayout>
     );
