@@ -24,7 +24,7 @@ class ProfileController extends Controller
         return Inertia::render('profile/index', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
-            'personnel' => $user->isBfpStaff() ? [
+            'personnel' => $user->isBfpAdmin() ? [
                 'rank' => $user->personnelDetails?->rank,
                 'employee_number' => $user->personnelDetails?->employee_number,
                 'station_assigned' => $user->personnelDetails?->station_assigned,
@@ -58,7 +58,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        if ($user->isBfpStaff() && isset($data['rank'])) {
+        if ($user->isBfpAdmin() && isset($data['rank'])) {
             $user->personnelDetails()->update(['rank' => $data['rank']]);
         }
 

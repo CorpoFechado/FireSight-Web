@@ -2,22 +2,19 @@ import { Link, router } from '@inertiajs/react';
 import { LogOut, X } from 'lucide-react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { dashboard, logout } from '@/routes';
-import type { BfpRole } from '@/types/auth';
-import { navItemsForRole } from './nav-config';
+import { PORTAL_NAV } from './nav-config';
 
 export function PortalSidebar({
-    role,
     unreadCount = 0,
     isOpen = false,
     onClose,
 }: {
-    role: BfpRole;
     unreadCount?: number;
     isOpen?: boolean;
     onClose?: () => void;
 }) {
     const { isCurrentUrl } = useCurrentUrl();
-    const items = navItemsForRole(role);
+    const items = PORTAL_NAV;
 
     const renderContent = (isMobile = false) => (
         <div className="flex h-full w-full flex-col">
@@ -58,9 +55,7 @@ export function PortalSidebar({
                     Signed in as
                 </p>
                 <p className="mt-0.5 text-xs font-bold text-white">
-                    {role === 'bfp_admin'
-                        ? 'BFP Administrator'
-                        : 'BFP Personnel'}
+                    BFP Administrator
                 </p>
             </div>
 

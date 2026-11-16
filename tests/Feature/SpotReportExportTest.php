@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
-    $this->staff = User::factory()->bfpPersonnel()->create();
+    $this->staff = User::factory()->bfpAdmin()->create();
     $this->resident = User::factory()->create(['role' => 'resident']);
 
     $this->barangay = Barangay::firstOrCreate(

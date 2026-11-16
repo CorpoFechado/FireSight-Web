@@ -83,8 +83,9 @@ export function LandingHeader({ user }: LandingHeaderProps) {
         scrollToSection(id);
     };
 
-    const portalRoute = user ? dashboard() : login();
-    const portalLabel = user ? 'Dashboard' : 'Admin Portal';
+    const isAdmin = user?.role === 'bfp_admin';
+    const portalRoute = isAdmin ? dashboard() : login();
+    const portalLabel = isAdmin ? 'Dashboard' : 'Admin Portal';
 
     return (
         <header

@@ -58,11 +58,10 @@ test('bfp_admin can access the map', function () {
         ->assertInertia(fn ($page) => $page->component('map/index'));
 });
 
-test('bfp_personnel can access the map', function () {
+test('bfp_personnel cannot access the web map', function () {
     $this->actingAs(User::factory()->bfpPersonnel()->create())
         ->get(route('map'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('map/index'));
+        ->assertForbidden();
 });
 
 // ─── Status filtering ─────────────────────────────────────────────────────────

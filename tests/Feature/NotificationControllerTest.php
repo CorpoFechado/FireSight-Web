@@ -36,7 +36,7 @@ it('admin only sees their own notifications, not residents\'', function () {
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
         ->component('notifications/index')
-        ->where('isAdmin', true)
+        ->missing('isAdmin')
         ->has('groups.today', 1)
         ->where('groups.today.0.title', 'New Fire Report')
         ->missing('groups.today.0.user_name')
@@ -107,34 +107,12 @@ it('marks a notification read and shows an error when its report is unavailable'
     expect($notification->fresh()->is_read)->toBeTrue();
 });
 
-it('bfp personnel only sees their own notifications', function () {
+it('bfp personnel cannot access web notifications', function () {
     $personnel = User::factory()->bfpPersonnel()->create([
         'email_verified_at' => now(),
     ]);
 
-    $other = User::factory()->create(['email_verified_at' => now()]);
-
-    Notification::create([
-        'user_id' => $personnel->getKey(),
-        'title' => 'My Notif',
-        'message' => 'For me',
-        'notification_type' => 'status_update',
-        'is_read' => false,
-    ]);
-
-    Notification::create([
-        'user_id' => $other->getKey(),
-        'title' => 'Other Notif',
-        'message' => 'Not mine',
-        'notification_type' => 'status_update',
-        'is_read' => false,
-    ]);
-
-    $response = $this->actingAs($personnel)->get(route('notifications'));
-
-    $response->assertOk();
-    $response->assertInertia(fn ($page) => $page
-        ->component('notifications/index')
-        ->where('isAdmin', false)
-    );
+    $this->actingAs($personnel)
+        ->get(route('notifications'))
+        ->assertForbidden();
 });

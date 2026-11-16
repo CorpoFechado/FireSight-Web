@@ -5,12 +5,17 @@ use App\Models\CommunityReport;
 use App\Models\Notification;
 use App\Models\User;
 
-test('bfp staff can view their own notifications page', function () {
-    $user = User::factory()->bfpPersonnel()->create();
-    $this->actingAs($user);
+test('bfp admin can view their own notifications page and personnel are forbidden', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $personnel = User::factory()->bfpPersonnel()->create();
 
-    $response = $this->get(route('notifications'));
-    $response->assertOk();
+    $this->actingAs($admin)
+        ->get(route('notifications'))
+        ->assertOk();
+
+    $this->actingAs($personnel)
+        ->get(route('notifications'))
+        ->assertForbidden();
 });
 
 test('notifications are grouped into today, recent, and earlier', function () {
@@ -51,7 +56,7 @@ test('notifications are grouped into today, recent, and earlier', function () {
 });
 
 test('a user can mark a single notification as read', function () {
-    $user = User::factory()->bfpPersonnel()->create();
+    $user = User::factory()->bfpAdmin()->create();
     $this->actingAs($user);
 
     $notification = Notification::create([
@@ -71,8 +76,8 @@ test('a user can mark a single notification as read', function () {
 });
 
 test('a user cannot mark another user\'s notification as read', function () {
-    $owner = User::factory()->bfpPersonnel()->create();
-    $intruder = User::factory()->bfpPersonnel()->create();
+    $owner = User::factory()->bfpAdmin()->create();
+    $intruder = User::factory()->bfpAdmin()->create();
     $this->actingAs($intruder);
 
     $notification = Notification::create([

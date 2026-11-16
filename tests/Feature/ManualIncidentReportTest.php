@@ -178,7 +178,7 @@ test('staff can upload additional evidence photos later on a resolved incident',
 
     $photo = UploadedFile::fake()->image('followup.jpg');
 
-    $this->actingAs($this->staff)
+    $this->actingAs($this->admin)
         ->post(route('incidents.storeEvidence', $report), [
             'photos' => [$photo],
         ])
@@ -186,7 +186,7 @@ test('staff can upload additional evidence photos later on a resolved incident',
 
     $evidence = ReportEvidence::where('report_id', $report->report_id)->get();
     expect($evidence)->toHaveCount(1)
-        ->and($evidence->first()->uploaded_by)->toBe($this->staff->getKey());
+        ->and($evidence->first()->uploaded_by)->toBe($this->admin->getKey());
 
     @unlink(storage_path('app/public/'.$evidence->first()->image_path));
 });
@@ -205,7 +205,7 @@ test('staff can delete an evidence photo from a resolved incident', function () 
 
     $photo = UploadedFile::fake()->image('to-delete.jpg');
 
-    $this->actingAs($this->staff)
+    $this->actingAs($this->admin)
         ->post(route('incidents.storeEvidence', $report), [
             'photos' => [$photo],
         ])
@@ -215,7 +215,7 @@ test('staff can delete an evidence photo from a resolved incident', function () 
     $filePath = storage_path('app/public/'.$evidence->image_path);
     expect(file_exists($filePath))->toBeTrue();
 
-    $this->actingAs($this->staff)
+    $this->actingAs($this->admin)
         ->delete(route('incidents.destroyEvidence', [$report, $evidence]))
         ->assertRedirect();
 

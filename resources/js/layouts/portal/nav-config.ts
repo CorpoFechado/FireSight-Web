@@ -32,21 +32,15 @@ import {
 } from '@/routes';
 import { index as incidents } from '@/routes/incidents';
 import { edit as profileEdit } from '@/routes/profile';
-import type { BfpRole } from '@/types/auth';
 
 export type PortalNavItem = {
     title: string;
     href: NonNullable<InertiaLinkProps['href']>;
     icon: LucideIcon;
-    /** When set, only these roles see this item. Omit to show to all BFP staff. */
-    roles?: BfpRole[];
 };
 
 /**
- * Single source of truth for the portal sidebar. `bfp_personnel` sees
- * everything without a `roles` restriction; `bfp_admin`-only items
- * (Analytics, Personnel Accounts, Announcements) are flagged explicitly —
- * mirrors ADMIN_NAV / PERSONNEL_NAV from the original design.
+ * Single source of truth for the BFP Administrator portal sidebar.
  */
 export const PORTAL_NAV: PortalNavItem[] = [
     { title: 'Dashboard', href: dashboard(), icon: Home },
@@ -58,50 +52,37 @@ export const PORTAL_NAV: PortalNavItem[] = [
         title: 'Analytics & Reports',
         href: analytics(),
         icon: BarChart3,
-        roles: ['bfp_admin'],
     },
     {
         title: 'Personnel Accounts',
         href: personnel(),
         icon: Users,
-        roles: ['bfp_admin'],
     },
     {
         title: 'Resident Accounts',
         href: residents(),
         icon: UserRound,
-        roles: ['bfp_admin'],
     },
     {
         title: 'Barangay Contacts',
         href: barangayContacts(),
         icon: Phone,
-        roles: ['bfp_admin'],
     },
     {
         title: 'Duty Schedule',
         href: dutySchedule(),
         icon: CalendarClock,
-        roles: ['bfp_admin'],
     },
     {
         title: 'Announcements',
         href: announcements(),
         icon: Megaphone,
-        roles: ['bfp_admin'],
     },
     {
         title: 'Fire Education',
         href: fireEducation(),
         icon: BookOpen,
-        roles: ['bfp_admin'],
     },
     { title: 'Notifications', href: notifications(), icon: Bell },
     { title: 'Profile', href: profileEdit(), icon: User },
 ];
-
-export function navItemsForRole(role: BfpRole): PortalNavItem[] {
-    return PORTAL_NAV.filter(
-        (item) => !item.roles || item.roles.includes(role),
-    );
-}

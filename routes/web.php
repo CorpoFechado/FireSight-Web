@@ -29,11 +29,17 @@ Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 've
 Route::get('/verify-registration/{token}', [EmailVerificationController::class, 'verifyRegistration'])
     ->name('firesight.verify_registration');
 
-Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
+Route::middleware(['auth', 'verified', 'bfp.admin'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('incidents', [IncidentController::class, 'index'])->name('incidents.index');
+    Route::post('incidents/manual', [IncidentActionController::class, 'storeManual'])
+        ->name('incidents.storeManual');
     Route::get('incidents/{report}', [IncidentController::class, 'show'])->name('incidents.show');
+    Route::post('incidents/{report}/accept', [IncidentActionController::class, 'accept'])
+        ->name('incidents.accept');
+    Route::post('incidents/{report}/invalidate', [IncidentActionController::class, 'invalidate'])
+        ->name('incidents.invalidate');
     Route::patch('incidents/{report}/status', [IncidentActionController::class, 'updateStatus'])
         ->name('incidents.updateStatus');
     Route::post('incidents/{report}/resolve', [IncidentActionController::class, 'resolve'])
@@ -57,49 +63,40 @@ Route::middleware(['auth', 'verified', 'bfp.staff'])->group(function () {
     Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])
         ->name('notifications.readAll');
 
-    Route::middleware('bfp.admin')->group(function () {
-        Route::post('incidents/manual', [IncidentActionController::class, 'storeManual'])
-            ->name('incidents.storeManual');
-        Route::post('incidents/{report}/accept', [IncidentActionController::class, 'accept'])
-            ->name('incidents.accept');
-        Route::post('incidents/{report}/invalidate', [IncidentActionController::class, 'invalidate'])
-            ->name('incidents.invalidate');
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
-        Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
+    Route::get('personnel', [PersonnelController::class, 'index'])->name('personnel');
+    Route::post('personnel', [PersonnelController::class, 'store'])->name('personnel.store');
+    Route::patch('personnel/{user}', [PersonnelController::class, 'update'])->name('personnel.update');
+    Route::delete('personnel/{user}', [PersonnelController::class, 'destroy'])->name('personnel.destroy');
 
-        Route::get('personnel', [PersonnelController::class, 'index'])->name('personnel');
-        Route::post('personnel', [PersonnelController::class, 'store'])->name('personnel.store');
-        Route::patch('personnel/{user}', [PersonnelController::class, 'update'])->name('personnel.update');
-        Route::delete('personnel/{user}', [PersonnelController::class, 'destroy'])->name('personnel.destroy');
+    Route::get('residents', [ResidentController::class, 'index'])->name('residents');
+    Route::get('residents/{user}', [ResidentController::class, 'show'])->name('residents.show');
+    Route::patch('residents/{user}', [ResidentController::class, 'update'])->name('residents.update');
+    Route::post('residents/{user}/reset-password', [ResidentController::class, 'resetPassword'])->name('residents.resetPassword');
+    Route::post('residents/{user}/suspend', [ResidentController::class, 'suspend'])->name('residents.suspend');
+    Route::post('residents/{user}/reactivate', [ResidentController::class, 'reactivate'])->name('residents.reactivate');
 
-        Route::get('residents', [ResidentController::class, 'index'])->name('residents');
-        Route::get('residents/{user}', [ResidentController::class, 'show'])->name('residents.show');
-        Route::patch('residents/{user}', [ResidentController::class, 'update'])->name('residents.update');
-        Route::post('residents/{user}/reset-password', [ResidentController::class, 'resetPassword'])->name('residents.resetPassword');
-        Route::post('residents/{user}/suspend', [ResidentController::class, 'suspend'])->name('residents.suspend');
-        Route::post('residents/{user}/reactivate', [ResidentController::class, 'reactivate'])->name('residents.reactivate');
+    Route::get('barangay-contacts', [BarangayContactController::class, 'index'])->name('barangayContacts');
+    Route::post('barangay-contacts', [BarangayContactController::class, 'store'])->name('barangayContacts.store');
+    Route::patch('barangay-contacts/{barangayContact}', [BarangayContactController::class, 'update'])->name('barangayContacts.update');
+    Route::delete('barangay-contacts/{barangayContact}', [BarangayContactController::class, 'destroy'])->name('barangayContacts.destroy');
 
-        Route::get('barangay-contacts', [BarangayContactController::class, 'index'])->name('barangayContacts');
-        Route::post('barangay-contacts', [BarangayContactController::class, 'store'])->name('barangayContacts.store');
-        Route::patch('barangay-contacts/{barangayContact}', [BarangayContactController::class, 'update'])->name('barangayContacts.update');
-        Route::delete('barangay-contacts/{barangayContact}', [BarangayContactController::class, 'destroy'])->name('barangayContacts.destroy');
+    Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements');
+    Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::patch('announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
+    Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
 
-        Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements');
-        Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
-        Route::patch('announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
-        Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::get('duty-schedule', [DutyScheduleController::class, 'index'])->name('dutySchedule');
+    Route::patch('duty-schedule/personnel/{user}/group', [DutyScheduleController::class, 'updateGroup'])->name('dutySchedule.updateGroup');
+    Route::post('duty-schedule/overrides', [DutyScheduleController::class, 'storeOverride'])->name('dutySchedule.overrides.store');
+    Route::post('duty-schedule/swaps', [DutyScheduleController::class, 'swap'])->name('dutySchedule.swap');
+    Route::delete('duty-schedule/overrides/{override}', [DutyScheduleController::class, 'destroyOverride'])->name('dutySchedule.overrides.destroy');
 
-        Route::get('duty-schedule', [DutyScheduleController::class, 'index'])->name('dutySchedule');
-        Route::patch('duty-schedule/personnel/{user}/group', [DutyScheduleController::class, 'updateGroup'])->name('dutySchedule.updateGroup');
-        Route::post('duty-schedule/overrides', [DutyScheduleController::class, 'storeOverride'])->name('dutySchedule.overrides.store');
-        Route::post('duty-schedule/swaps', [DutyScheduleController::class, 'swap'])->name('dutySchedule.swap');
-        Route::delete('duty-schedule/overrides/{override}', [DutyScheduleController::class, 'destroyOverride'])->name('dutySchedule.overrides.destroy');
-
-        Route::get('fire-education', [FireEducationController::class, 'index'])->name('fireEducation');
-        Route::post('fire-education', [FireEducationController::class, 'store'])->name('fireEducation.store');
-        Route::patch('fire-education/{fireEducationContent}', [FireEducationController::class, 'update'])->name('fireEducation.update');
-        Route::delete('fire-education/{fireEducationContent}', [FireEducationController::class, 'destroy'])->name('fireEducation.destroy');
-    });
+    Route::get('fire-education', [FireEducationController::class, 'index'])->name('fireEducation');
+    Route::post('fire-education', [FireEducationController::class, 'store'])->name('fireEducation.store');
+    Route::patch('fire-education/{fireEducationContent}', [FireEducationController::class, 'update'])->name('fireEducation.update');
+    Route::delete('fire-education/{fireEducationContent}', [FireEducationController::class, 'destroy'])->name('fireEducation.destroy');
 });
 
 require __DIR__.'/settings.php';

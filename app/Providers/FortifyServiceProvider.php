@@ -4,12 +4,15 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
@@ -41,6 +44,23 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $username = (string) $request->input(Fortify::username());
+            $user = User::where(Fortify::username(), $username)->first();
+
+            if (! $user || ! Hash::check($request->string('password')->value(), $user->password)) {
+                return null;
+            }
+
+            if (! $user->isBfpAdmin() || ! $user->isActive()) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => ['Access restricted to BFP Administrators. Personnel and residents must sign in via the FireSight Mobile app.'],
+                ]);
+            }
+
+            return $user;
+        });
     }
 
     /**

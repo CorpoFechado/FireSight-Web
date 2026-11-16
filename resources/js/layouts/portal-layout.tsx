@@ -16,7 +16,7 @@ export default function PortalLayout({
     const { auth, unreadNotificationCount } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Fortify's `verified`/`bfp.staff` middleware guarantee this on every
+    // Fortify's `verified`/`bfp.admin` middleware guarantee this on every
     // portal route, but the type is nullable — narrow it once here.
     if (!auth.user) {
         return null;
@@ -29,7 +29,6 @@ export default function PortalLayout({
             <AuroraBackground variant="light" className="!fixed inset-0" />
 
             <PortalSidebar
-                role={auth.user.role}
                 unreadCount={unreadNotificationCount ?? 0}
                 isOpen={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}

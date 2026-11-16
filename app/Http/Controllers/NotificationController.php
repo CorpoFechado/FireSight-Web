@@ -15,7 +15,6 @@ class NotificationController extends Controller
         $user = request()->user();
         $today = Carbon::today();
         $weekAgo = Carbon::today()->subDays(7);
-        $isAdmin = $user->isBfpAdmin();
 
         $notifications = $user->appNotifications()->latest('created_at')->get();
 
@@ -24,7 +23,6 @@ class NotificationController extends Controller
         $earlier = $notifications->filter(fn (Notification $n) => $n->created_at->lt($weekAgo));
 
         return Inertia::render('notifications/index', [
-            'isAdmin' => $isAdmin,
             'groups' => [
                 'today' => $todayGroup->map(fn (Notification $n) => $this->toRow($n))->values(),
                 'recent' => $recent->map(fn (Notification $n) => $this->toRow($n))->values(),

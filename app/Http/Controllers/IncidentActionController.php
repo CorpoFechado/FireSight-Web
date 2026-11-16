@@ -172,11 +172,10 @@ class IncidentActionController extends Controller
 
             $this->fillAssessmentFields($record, $data)->save();
 
-            $actorRole = auth()->user()?->role === User::ROLE_BFP_ADMIN ? 'BFP admin' : 'BFP personnel';
             $this->logStatusHistory(
                 $report,
                 $report->status,
-                "Incident assessment details updated by {$actorRole}."
+                'Incident assessment details updated by BFP admin.'
             );
         });
 

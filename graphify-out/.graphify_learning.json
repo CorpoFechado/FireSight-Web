@@ -1,19 +1,40 @@
 {
-  "generated_at": "2026-11-04T01:24:16.159526+00:00",
+  "generated_at": "2026-11-16T14:45:24.846278+00:00",
   "nodes": {
     "app_http_controllers_analyticscontroller_analyticscontroller": {
       "code_fingerprint": "740590cb2d38f102ceb493747a82abf5e12f07542841d14610e5a195550fcdfe",
       "label": "AnalyticsController",
-      "last": "2026-11-03T22:35:40.277438+00:00",
+      "last": "2026-11-04T01:35:21.071750+00:00",
       "provenance": [
+        {
+          "date": "2026-11-04T01:35:21.071750+00:00",
+          "outcome": "useful",
+          "q": "Where are FireSight alarm levels ordered, validated, colored, filtered, and escalated?"
+        },
         {
           "date": "2026-11-03T22:35:40.277438+00:00",
           "outcome": "useful",
           "q": "Find all Fire Alarm level definitions and consumers, and identify missing BFP Running Card System levels before adding them."
         }
       ],
-      "score": 0.997298488,
+      "score": 1.49446942,
       "source_file": "app/Http/Controllers/AnalyticsController.php",
+      "status": "preferred",
+      "uses": 2
+    },
+    "app_http_controllers_firemapcontroller_firemapcontroller": {
+      "code_fingerprint": "cb6be03ea335b5ff3d98fa58acc8988af2b2f8fe1397f75ce70e9df535d0f184",
+      "label": "FireMapController",
+      "last": "2026-11-04T01:35:21.071750+00:00",
+      "provenance": [
+        {
+          "date": "2026-11-04T01:35:21.071750+00:00",
+          "outcome": "useful",
+          "q": "Where are FireSight alarm levels ordered, validated, colored, filtered, and escalated?"
+        }
+      ],
+      "score": 0.74831184,
+      "source_file": "app/Http/Controllers/FireMapController.php",
       "status": "tentative",
       "uses": 1
     },
@@ -28,7 +49,7 @@
           "q": "Remove the read_minutes column from fire_education_content and announcement_type from announcement, then fix the frontend."
         }
       ],
-      "score": 0.653136821,
+      "score": 0.48866312,
       "source_file": "app/Models/Announcement.php",
       "status": "tentative",
       "uses": 1
@@ -44,7 +65,7 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.631115683,
+      "score": 0.472187371,
       "source_file": "resources/js/components/aurora-background.tsx",
       "status": "tentative",
       "uses": 1
@@ -60,13 +81,13 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.631115683,
+      "score": 0.472187371,
       "source_file": "resources/js/components/ui/button.tsx",
       "status": "tentative",
       "uses": 1
     },
     "resources_js_layouts_portal_layout": {
-      "code_fingerprint": "8b2343aab9dc245a82a5455a2c6734de61207908151cc6e954710241d36663b3",
+      "code_fingerprint": "4d2dcfca818e4a0d31cd53d6883b2618affbf8e6adb354008c53c50bbb11687a",
       "label": "portal-layout.tsx",
       "last": "2026-10-15T03:18:26.936323+00:00",
       "provenance": [
@@ -81,26 +102,31 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 1.261799436,
+      "score": 0.944051581,
       "source_file": "resources/js/layouts/portal-layout.tsx",
       "status": "preferred",
       "uses": 2
     },
     "resources_js_lib_fire_status_alarm_level_cfg": {
-      "code_fingerprint": "d035e292e1dab4f3e5017dea8e1b1c9aaa2442e48cc8cf8acac60a85cecdfcbf",
+      "code_fingerprint": "9faea3c487aefaf49e09339bb855f56c795665de35018df3340e4e4ff211f214",
       "label": "ALARM_LEVEL_CFG",
-      "last": "2026-11-03T22:35:40.277438+00:00",
+      "last": "2026-11-04T01:35:21.071750+00:00",
       "provenance": [
+        {
+          "date": "2026-11-04T01:35:21.071750+00:00",
+          "outcome": "useful",
+          "q": "Where are FireSight alarm levels ordered, validated, colored, filtered, and escalated?"
+        },
         {
           "date": "2026-11-03T22:35:40.277438+00:00",
           "outcome": "useful",
           "q": "Find all Fire Alarm level definitions and consumers, and identify missing BFP Running Card System levels before adding them."
         }
       ],
-      "score": 0.997298488,
+      "score": 1.49446942,
       "source_file": "resources/js/lib/fire-status.ts",
-      "status": "tentative",
-      "uses": 1
+      "status": "preferred",
+      "uses": 2
     },
     "resources_js_pages_announcements_index": {
       "code_fingerprint": "d41fc79746633f6f3f832bc28d7cb7c5d138d8d02801eafddf5756385b228815",
@@ -113,7 +139,7 @@
           "q": "Remove the read_minutes column from fire_education_content and announcement_type from announcement, then fix the frontend."
         }
       ],
-      "score": 0.653136821,
+      "score": 0.48866312,
       "source_file": "resources/js/pages/announcements/index.tsx",
       "status": "tentative",
       "uses": 1
@@ -129,7 +155,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.630683753,
+      "score": 0.47186421,
       "source_file": "resources/js/pages/auth/login.tsx",
       "status": "tentative",
       "uses": 1
@@ -145,13 +171,13 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.630683753,
+      "score": 0.47186421,
       "source_file": "resources/js/pages/auth/login.tsx",
       "status": "tentative",
       "uses": 1
     },
     "resources_js_pages_dashboard": {
-      "code_fingerprint": "608aa8fc1658b58c736746370acf576e022e08f328b9ee1cb004cf140d7ee807",
+      "code_fingerprint": "87cef1c19e124bee6f5e22b8b2b0c8873129e4a4bf1c7fc5319e7d19b29e2100",
       "label": "dashboard.tsx",
       "last": "2026-10-15T03:18:26.936323+00:00",
       "provenance": [
@@ -161,13 +187,13 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.631115683,
+      "score": 0.472187371,
       "source_file": "resources/js/pages/dashboard.tsx",
       "status": "tentative",
       "uses": 1
     },
     "resources_js_pages_dashboard_dashboard": {
-      "code_fingerprint": "608aa8fc1658b58c736746370acf576e022e08f328b9ee1cb004cf140d7ee807",
+      "code_fingerprint": "87cef1c19e124bee6f5e22b8b2b0c8873129e4a4bf1c7fc5319e7d19b29e2100",
       "label": "Dashboard()",
       "last": "2026-10-15T03:18:26.936323+00:00",
       "provenance": [
@@ -177,7 +203,7 @@
           "q": "Analyze the current landing page, explain why it looks plain or vibe coded, address the poor cellphone visual, and provide a prompt for Antigravity to improve it while matching the system colors."
         }
       ],
-      "score": 0.631115683,
+      "score": 0.472187371,
       "source_file": "resources/js/pages/dashboard.tsx",
       "status": "tentative",
       "uses": 1
@@ -193,7 +219,7 @@
           "q": "Remove the read_minutes column from fire_education_content and announcement_type from announcement, then fix the frontend."
         }
       ],
-      "score": 0.653136821,
+      "score": 0.48866312,
       "source_file": "resources/js/pages/fire-education/index.tsx",
       "status": "tentative",
       "uses": 1
@@ -209,13 +235,13 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.630683753,
+      "score": 0.47186421,
       "source_file": "resources/js/pages/notifications/index.tsx",
       "status": "tentative",
       "uses": 1
     },
     "resources_js_pages_personnel_index": {
-      "code_fingerprint": "49d47bac3afe98c0d9a271fecdde14162423f4c3ebfa25dcecee457b3fa3bd7a",
+      "code_fingerprint": "0eb2aa81f38cc507c43eb17dfc85c8b199d4e8aef1eae336bae4e63b165ba728",
       "label": "personnel/index.tsx",
       "last": "2026-10-15T02:35:46.800292+00:00",
       "provenance": [
@@ -225,13 +251,13 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.630683753,
+      "score": 0.47186421,
       "source_file": "resources/js/pages/personnel/index.tsx",
       "status": "tentative",
       "uses": 1
     },
     "resources_js_pages_risk_analytics_index": {
-      "code_fingerprint": "ba75792d20a8a268341fe2db73cf66f6d355aad1bc15c886601415147a2c4f84",
+      "code_fingerprint": "5448035938090235aba1dc9102980a9414e89c5ba124f29cbdd2dae4775f011f",
       "label": "risk-analytics/index.tsx",
       "last": "2026-10-15T02:35:46.800292+00:00",
       "provenance": [
@@ -241,13 +267,13 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 0.630683753,
+      "score": 0.47186421,
       "source_file": "resources/js/pages/risk-analytics/index.tsx",
       "status": "tentative",
       "uses": 1
     },
     "resources_js_pages_welcome": {
-      "code_fingerprint": "be58b62507fd8a5b2d0124aa36aef445c4cca684b518395aefa0890a54d0bc97",
+      "code_fingerprint": "5ab515faa907e3eae4dc2a1d2d40a73e203d9b8bb284b2584f7f82d654d682d3",
       "label": "welcome.tsx",
       "last": "2026-10-15T03:18:26.936323+00:00",
       "provenance": [
@@ -262,13 +288,13 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 1.261799436,
+      "score": 0.944051581,
       "source_file": "resources/js/pages/welcome.tsx",
       "status": "preferred",
       "uses": 2
     },
     "resources_js_pages_welcome_welcome": {
-      "code_fingerprint": "be58b62507fd8a5b2d0124aa36aef445c4cca684b518395aefa0890a54d0bc97",
+      "code_fingerprint": "5ab515faa907e3eae4dc2a1d2d40a73e203d9b8bb284b2584f7f82d654d682d3",
       "label": "Welcome()",
       "last": "2026-10-15T03:18:26.936323+00:00",
       "provenance": [
@@ -283,7 +309,7 @@
           "q": "Create a prompt to implement the FireSight landing page based on the attached design, without arrows in Key Features and Built for Everyone, recommend essential system features, disable downloads while mobile is under development, and add an admin portal login button."
         }
       ],
-      "score": 1.261799436,
+      "score": 0.944051581,
       "source_file": "resources/js/pages/welcome.tsx",
       "status": "preferred",
       "uses": 2

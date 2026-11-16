@@ -5,6 +5,7 @@ use App\Models\BfpPersonnelDetails;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
 use App\Models\Notification;
+use App\Models\ReportStatusHistory;
 use App\Models\User;
 
 /**
@@ -123,9 +124,13 @@ test('a status change by personnel notifies admins with the personnel name', fun
     ]);
     $report = makeCommunityReport(['status' => CommunityReport::STATUS_ACCEPTED]);
 
-    $this->actingAs($personnel)
-        ->patch(route('incidents.updateStatus', $report), ['status' => CommunityReport::STATUS_DISPATCHED])
-        ->assertRedirect();
+    ReportStatusHistory::create([
+        'report_id' => $report->report_id,
+        'status' => CommunityReport::STATUS_DISPATCHED,
+        'notes' => 'Dispatched via mobile app.',
+        'changed_by' => $personnel->getKey(),
+        'created_at' => now(),
+    ]);
 
     $this->assertDatabaseHas('notification', [
         'user_id' => $admin->getKey(),
@@ -159,7 +164,7 @@ test('the admin who changed a status is not notified about their own action', fu
 
 test('editing incident details notifies admins with who edited them', function () {
     $admin = User::factory()->bfpAdmin()->create();
-    $personnel = User::factory()->bfpPersonnel()->create();
+    $editingAdmin = User::factory()->bfpAdmin()->create();
     $report = makeCommunityReport(['status' => CommunityReport::STATUS_RESOLVED]);
     IncidentRecord::create([
         'report_id' => $report->report_id,
@@ -168,7 +173,7 @@ test('editing incident details notifies admins with who edited them', function (
         'alarm_level' => '1st_alarm',
     ]);
 
-    $this->actingAs($personnel)
+    $this->actingAs($editingAdmin)
         ->patch(route('incidents.updateDetails', $report), [
             'incident_type' => 'commercial_fire',
             'alarm_level' => '2nd_alarm',
@@ -178,7 +183,7 @@ test('editing incident details notifies admins with who edited them', function (
     $this->assertDatabaseHas('notification', [
         'user_id' => $admin->getKey(),
         'title' => 'Incident Details Updated',
-        'message' => "{$personnel->name} updated the incident assessment for Report #{$report->report_id}.",
+        'message' => "{$editingAdmin->name} updated the incident assessment for Report #{$report->report_id}.",
         'notification_type' => 'system',
     ]);
 });

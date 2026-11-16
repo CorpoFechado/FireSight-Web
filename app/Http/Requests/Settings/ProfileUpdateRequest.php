@@ -20,10 +20,10 @@ class ProfileUpdateRequest extends FormRequest
     {
         $rules = $this->profileRules($this->user()->getKey());
 
-        // BFP staff also manage their rank/contact number from this same
+        // BFP administrators also manage their rank/contact number from this same
         // form; residents (registered via the shared trait/CreateNewUser)
         // never see these fields, so they stay out of profileRules().
-        if ($this->user()->isBfpStaff()) {
+        if ($this->user()->isBfpAdmin()) {
             $rules['rank'] = ['required', 'string', 'max:100'];
             $rules['contact_number'] = ['required', 'string', 'max:20', Rule::unique('users', 'contact_number')->ignore($this->user()->getKey())];
         }

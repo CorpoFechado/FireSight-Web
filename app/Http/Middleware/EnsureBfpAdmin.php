@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Restricts a route to bfp_admin only (Personnel Accounts, Announcements
- * management, Analytics & Reports). Assumes EnsureBfpStaff already ran.
+ * Restricts the entire BFP web portal to active bfp_admin accounts.
+ * Personnel and residents authenticate through the mobile app, not this portal.
  */
 class EnsureBfpAdmin
 {

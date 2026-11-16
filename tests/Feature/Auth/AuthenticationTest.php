@@ -16,8 +16,8 @@ test('login screen can be rendered', function () {
         );
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('bfp admins can authenticate using the login screen', function () {
+    $user = User::factory()->bfpAdmin()->create();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
@@ -28,6 +28,21 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
+test('bfp personnel and residents cannot authenticate on the web login screen', function (string $role) {
+    $user = User::factory()->create(['role' => $role]);
+
+    $response = $this->from(route('login'))->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertGuest();
+    $response->assertSessionHasErrors('email');
+})->with([
+    'bfp_personnel' => [User::ROLE_BFP_PERSONNEL],
+    'resident' => [User::ROLE_RESIDENT],
+]);
+
 test('users with two factor enabled are redirected to two factor challenge', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
@@ -36,7 +51,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'confirmPassword' => true,
     ]);
 
-    $user = User::factory()->withTwoFactor()->create();
+    $user = User::factory()->bfpAdmin()->withTwoFactor()->create();
 
     $response = $this->post(route('login'), [
         'email' => $user->email,

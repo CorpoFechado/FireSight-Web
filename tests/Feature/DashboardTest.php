@@ -19,6 +19,14 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
+test('bfp personnel cannot access the web dashboard', function () {
+    $personnel = User::factory()->bfpPersonnel()->create();
+
+    $this->actingAs($personnel)
+        ->get(route('dashboard'))
+        ->assertForbidden();
+});
+
 test('authenticated bfp admin can visit the dashboard with mobile-matched kpis', function () {
     $user = User::factory()->bfpAdmin()->create();
     $this->actingAs($user);

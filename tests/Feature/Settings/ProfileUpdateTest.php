@@ -3,8 +3,16 @@
 use App\Models\BfpPersonnelDetails;
 use App\Models\User;
 
+test('bfp personnel cannot access web profile settings', function () {
+    $personnel = User::factory()->bfpPersonnel()->create();
+
+    $this->actingAs($personnel)
+        ->get(route('profile.edit'))
+        ->assertForbidden();
+});
+
 test('profile page is displayed', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->bfpAdmin()->create();
 
     $response = $this
         ->actingAs($user)
@@ -14,13 +22,15 @@ test('profile page is displayed', function () {
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->bfpAdmin()->create();
 
     $response = $this
         ->actingAs($user)
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'rank' => 'Senior Fire Officer 3',
+            'contact_number' => '09171234567',
         ]);
 
     $response
@@ -35,13 +45,15 @@ test('profile information can be updated', function () {
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->bfpAdmin()->create();
 
     $response = $this
         ->actingAs($user)
         ->patch(route('profile.update'), [
             'name' => 'Test User',
             'email' => $user->email,
+            'rank' => 'Senior Fire Officer 3',
+            'contact_number' => '09171234568',
         ]);
 
     $response
@@ -52,7 +64,7 @@ test('email verification status is unchanged when the email address is unchanged
 });
 
 test('user can delete their account', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->bfpAdmin()->create();
 
     $response = $this
         ->actingAs($user)
@@ -69,7 +81,7 @@ test('user can delete their account', function () {
 });
 
 test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->bfpAdmin()->create();
 
     $response = $this
         ->actingAs($user)
@@ -85,8 +97,8 @@ test('correct password must be provided to delete account', function () {
     expect($user->fresh())->not->toBeNull();
 });
 
-test('bfp staff must supply rank and contact number', function () {
-    $user = User::factory()->bfpPersonnel()->create();
+test('bfp admin must supply rank and contact number', function () {
+    $user = User::factory()->bfpAdmin()->create();
 
     $response = $this
         ->actingAs($user)
@@ -98,8 +110,8 @@ test('bfp staff must supply rank and contact number', function () {
     $response->assertSessionHasErrors(['rank', 'contact_number']);
 });
 
-test('bfp staff can update their rank and contact number', function () {
-    $user = User::factory()->bfpPersonnel()->create();
+test('bfp admin can update their rank and contact number', function () {
+    $user = User::factory()->bfpAdmin()->create();
     BfpPersonnelDetails::create([
         'user_id' => $user->getKey(),
         'rank' => 'Fire Officer 1',
@@ -123,8 +135,8 @@ test('bfp staff can update their rank and contact number', function () {
     expect($user->personnelDetails->fresh()->rank)->toBe('Fire Officer 2');
 });
 
-test('residents are not required to supply rank or contact number', function () {
-    $user = User::factory()->create();
+test('bfp personnel cannot update web profile settings', function () {
+    $user = User::factory()->bfpPersonnel()->create();
 
     $response = $this
         ->actingAs($user)
@@ -133,5 +145,5 @@ test('residents are not required to supply rank or contact number', function () 
             'email' => $user->email,
         ]);
 
-    $response->assertSessionHasNoErrors();
+    $response->assertForbidden();
 });

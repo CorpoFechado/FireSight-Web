@@ -15,11 +15,9 @@ type Groups = {
 export default function NotificationsIndex({
     groups,
     unreadCount,
-    isAdmin = false,
 }: {
     groups: Groups;
     unreadCount: number;
-    isAdmin?: boolean;
 }) {
     const isEmpty =
         groups.today.length === 0 &&
@@ -61,9 +59,8 @@ export default function NotificationsIndex({
                             No notifications yet
                         </p>
                         <p className="max-w-sm text-xs text-brand-muted">
-                            {isAdmin
-                                ? 'New reports, AI alerts, and status updates from personnel will appear here.'
-                                : 'Updates on your reports and station announcements will show up here.'}
+                            New reports, AI alerts, and status updates from
+                            personnel will appear here.
                         </p>
                     </PortalCard>
                 ) : (

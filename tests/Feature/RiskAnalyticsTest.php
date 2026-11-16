@@ -12,8 +12,8 @@ test('guests are redirected to login from risk analytics', function () {
     $this->get(route('fireProne'))->assertRedirect(route('login'));
 });
 
-test('authenticated bfp user can access risk analytics page with ranking data', function () {
-    $user = User::factory()->create(['role' => 'bfp_personnel']);
+test('authenticated bfp admin can access risk analytics page with ranking data', function () {
+    $user = User::factory()->bfpAdmin()->create();
     $barangay = Barangay::firstOrCreate(
         ['barangay_name' => 'Barangay Test', 'centroid_lat' => 13.9, 'centroid_lng' => 120.6]
     );
@@ -49,7 +49,7 @@ test('authenticated bfp user can access risk analytics page with ranking data', 
 });
 
 test('risk analytics provides mild, moderate, and high risk_level correctly', function () {
-    $user = User::factory()->create(['role' => 'bfp_personnel']);
+    $user = User::factory()->bfpAdmin()->create();
     $b1 = Barangay::firstOrCreate(
         ['barangay_name' => 'Barangay Mild', 'centroid_lat' => 13.91, 'centroid_lng' => 120.61]
     );

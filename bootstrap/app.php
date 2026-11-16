@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\EnsureBfpAdmin;
-use App\Http\Middleware\EnsureBfpStaff;
 use App\Http\Middleware\EnsureMobileTokenIsValid;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -28,7 +27,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'bfp.staff' => EnsureBfpStaff::class,
             'bfp.admin' => EnsureBfpAdmin::class,
             'auth.mobile' => EnsureMobileTokenIsValid::class,
         ]);
