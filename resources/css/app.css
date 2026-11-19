@@ -2,6 +2,46 @@
 
 @import 'tw-animate-css';
 
+@keyframes analytics-expand {
+    from {
+        height: 0;
+        opacity: 0;
+    }
+    to {
+        height: var(--radix-collapsible-content-height);
+        opacity: 1;
+    }
+}
+
+@keyframes analytics-collapse {
+    from {
+        height: var(--radix-collapsible-content-height);
+        opacity: 1;
+    }
+    to {
+        height: 0;
+        opacity: 0;
+    }
+}
+
+.analytics-collapse {
+    overflow: hidden;
+}
+
+.analytics-collapse[data-state='open'] {
+    animation: analytics-expand 220ms ease-out;
+}
+
+.analytics-collapse[data-state='closed'] {
+    animation: analytics-collapse 180ms ease-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .analytics-collapse[data-state] {
+        animation: none;
+    }
+}
+
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 

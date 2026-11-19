@@ -218,6 +218,7 @@ class IncidentController extends Controller
             'navigationSource' => match ($request->string('from')->value()) {
                 'map' => 'map',
                 'notifications' => 'notifications',
+                'analytics' => 'analytics',
                 default => 'incidents',
             },
         ]);

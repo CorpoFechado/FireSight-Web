@@ -121,7 +121,10 @@ export default function PortalLayout({
                     onToggleSidebar={() => setSidebarOpen((v) => !v)}
                 />
 
-                <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+                <main
+                    scroll-region=""
+                    className="flex-1 overflow-y-auto p-4 sm:p-6"
+                >
                     {children}
                 </main>
             </div>

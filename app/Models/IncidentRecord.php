@@ -3,12 +3,28 @@
 namespace App\Models;
 
 use App\Enums\AlarmLevel;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $incident_id
+ * @property int $report_id
+ * @property string|null $incident_type
+ * @property CarbonInterface|null $incident_datetime
+ */
 class IncidentRecord extends Model
 {
+    /** @var array<string, string> */
+    public const LEGACY_TYPE_MAP = [
+        'structural' => 'residential_fire',
+        'grass' => 'rubbish_fire',
+        'electrical' => 'rubbish_fire',
+        'vehicular' => 'vehicular_fire',
+        'other' => 'others',
+    ];
+
     protected $table = 'incident_record';
 
     protected $primaryKey = 'incident_id';
@@ -63,13 +79,7 @@ class IncidentRecord extends Model
      */
     public function getNormalizedTypeAttribute(): ?string
     {
-        return match ($this->incident_type) {
-            'structural' => 'residential_fire',
-            'grass', 'electrical' => 'rubbish_fire',
-            'vehicular' => 'vehicular_fire',
-            'other' => 'others',
-            default => $this->incident_type,
-        };
+        return self::LEGACY_TYPE_MAP[$this->incident_type] ?? $this->incident_type;
     }
 
     // ── Spot Investigation Report ─────────────────────────────────────────────
@@ -128,16 +138,19 @@ class IncidentRecord extends Model
 
     // ── Relationships ─────────────────────────────────────────────────────────
 
+    /** @return BelongsTo<CommunityReport, $this> */
     public function report(): BelongsTo
     {
         return $this->belongsTo(CommunityReport::class, 'report_id');
     }
 
+    /** @return BelongsTo<Barangay, $this> */
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
     }
 
+    /** @return HasMany<ReportEvidence, $this> */
     public function evidence(): HasMany
     {
         return $this->hasMany(ReportEvidence::class, 'report_id', 'report_id');

@@ -338,7 +338,7 @@ export default function IncidentShow({
     suggestedBarangayId: number | null;
     statusHistory?: StatusHistoryEntry[];
     spotReport: SpotReportStatus;
-    navigationSource: 'incidents' | 'map' | 'notifications';
+    navigationSource: 'incidents' | 'map' | 'notifications' | 'analytics';
 }) {
     const [editOpen, setEditOpen] = useState(false);
     const [expandedMapOpen, setExpandedMapOpen] = useState(false);
@@ -347,6 +347,7 @@ export default function IncidentShow({
 
     const handleAddPhotos = (e: ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []);
+
         if (files.length === 0) {
             return;
         }
@@ -360,6 +361,7 @@ export default function IncidentShow({
                 preserveScroll: true,
                 onFinish: () => {
                     setUploadingPhotos(false);
+
                     if (evidenceInputRef.current) {
                         evidenceInputRef.current.value = '';
                     }
@@ -479,8 +481,7 @@ export default function IncidentShow({
                             initialResolution?.notes ??
                             'Fire extinguished and incident marked as resolved.',
                         dispatchesList:
-                            !hasDispatchedTimelineEntry &&
-                            dispatches.length > 0
+                            !hasDispatchedTimelineEntry && dispatches.length > 0
                                 ? dispatches
                                 : undefined,
                         latestDetailUpdate: latestDetailUpdate ?? null,
@@ -532,6 +533,14 @@ export default function IncidentShow({
                         className="flex w-fit items-center gap-1.5 text-xs font-semibold text-brand-blue"
                     >
                         <ArrowLeft size={13} /> Back to Fire Incidents Map
+                    </button>
+                ) : navigationSource === 'analytics' ? (
+                    <button
+                        type="button"
+                        onClick={() => window.history.back()}
+                        className="flex w-fit items-center gap-1.5 text-xs font-semibold text-brand-blue"
+                    >
+                        <ArrowLeft size={13} /> Back to Analytics
                     </button>
                 ) : navigationSource === 'notifications' ? (
                     <Link

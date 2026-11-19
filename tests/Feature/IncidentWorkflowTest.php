@@ -296,6 +296,13 @@ test('incidents show identifies the navigation source', function () {
             ->where('navigationSource', 'notifications')
         );
 
+    $this->get(route('incidents.show', ['report' => $report, 'from' => 'analytics']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('incidents/show')
+            ->where('navigationSource', 'analytics')
+        );
+
     $this->get(route('incidents.show', ['report' => $report, 'from' => 'dashboard']))
         ->assertOk()
         ->assertInertia(fn ($page) => $page

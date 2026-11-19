@@ -49,7 +49,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
     { title: 'Risk Analytics', href: fireProne(), icon: Layers },
     { title: 'Response Tracking', href: response(), icon: Navigation },
     {
-        title: 'Analytics & Reports',
+        title: 'Analytics',
         href: analytics(),
         icon: BarChart3,
     },
