@@ -63,7 +63,7 @@ class AdminNotifier
                     'report_id' => (int) $report->report_id,
                     'url' => "/incidents/{$report->report_id}",
                     'type' => 'new_report',
-                    'requireInteraction' => true,
+                    'requireInteraction' => false,
                 ],
             );
         }
