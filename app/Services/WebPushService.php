@@ -91,6 +91,10 @@ class WebPushService
 
                 if ($report->isSubscriptionExpired()) {
                     $expiredEndpoints[] = $report->getEndpoint();
+                    Log::info('[WebPushService] Subscription expired or rejected by provider.', [
+                        'endpoint' => $report->getEndpoint(),
+                        'reason' => $report->getReason(),
+                    ]);
 
                     continue;
                 }

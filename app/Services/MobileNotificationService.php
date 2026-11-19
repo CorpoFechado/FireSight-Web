@@ -12,6 +12,7 @@ class MobileNotificationService
     public function __construct(
         protected GeoBoundaryService $geoService,
         protected ExpoPushService $pushService,
+        protected WebPushService $webPushService,
     ) {}
 
     /**
@@ -151,6 +152,18 @@ class MobileNotificationService
                 $title,
                 $message,
                 ['report_id' => $reportId, 'type' => 'status_update']
+            );
+
+            $this->webPushService->sendToUsers(
+                $adminUsers->pluck('user_id')->all(),
+                $title,
+                $message,
+                [
+                    'report_id' => $reportId,
+                    'url' => "/incidents/{$reportId}",
+                    'type' => 'status_update',
+                    'requireInteraction' => false,
+                ],
             );
         }
     }

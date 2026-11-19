@@ -217,14 +217,24 @@ export function useWebPush(): UseWebPushReturn {
                 return false;
             }
 
-            let subscription = await registration.pushManager.getSubscription();
+            // Always unsubscribe any existing browser subscription first.
+            // This guarantees the browser regenerates a fresh endpoint
+            // matching the server's current VAPID public key.
+            const existingSubscription =
+                await registration.pushManager.getSubscription();
 
-            if (!subscription) {
-                subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-                });
+            if (existingSubscription) {
+                try {
+                    await existingSubscription.unsubscribe();
+                } catch {
+                    // Ignore unsubscription failure
+                }
             }
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+            });
 
             const json = subscription.toJSON();
             const p256dh = json.keys?.p256dh;
@@ -350,6 +360,9 @@ export function useWebPush(): UseWebPushReturn {
 
             if (!response.ok) {
                 setError(message);
+                if (response.status === 422) {
+                    setIsSubscribed(false);
+                }
             }
 
             return { ok: response.ok, message };
@@ -376,4 +389,67 @@ export function useWebPush(): UseWebPushReturn {
         unsubscribe,
         sendTestAlert,
     };
+}
+
+/**
+ * Automatically ensures the browser is subscribed and synced with the backend
+ * whenever permission is already granted. Completely silent and hands-free.
+ */
+export async function autoEnrollPushNotifications(
+    vapidPublicKey?: string | null,
+): Promise<boolean> {
+    if (
+        typeof window === 'undefined' ||
+        !isPushApiSupported() ||
+        !vapidPublicKey ||
+        vapidPublicKey.trim().length === 0 ||
+        Notification.permission !== 'granted'
+    ) {
+        return false;
+    }
+
+    try {
+        const registration = await registerServiceWorker();
+
+        if (!registration) {
+            return false;
+        }
+
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+            });
+        }
+
+        const json = subscription.toJSON();
+        const p256dh = json.keys?.p256dh;
+        const auth = json.keys?.auth;
+
+        if (!json.endpoint || !p256dh || !auth) {
+            return false;
+        }
+
+        const encodings = (
+            PushManager as unknown as { supportedContentEncodings?: string[] }
+        ).supportedContentEncodings;
+        const contentEncoding =
+            encodings && encodings.length > 0 ? encodings[0] : 'aes128gcm';
+
+        const response = await jsonRequest(
+            storePushSubscription().url,
+            'POST',
+            {
+                endpoint: json.endpoint,
+                keys: { p256dh, auth },
+                content_encoding: contentEncoding,
+            },
+        );
+
+        return response.ok;
+    } catch {
+        return false;
+    }
 }

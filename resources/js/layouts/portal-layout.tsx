@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 import { AuroraBackground } from '@/components/aurora-background';
-import { registerServiceWorker } from '@/hooks/use-web-push';
+import {
+    autoEnrollPushNotifications,
+    registerServiceWorker,
+} from '@/hooks/use-web-push';
 import { PortalSidebar } from '@/layouts/portal/portal-sidebar';
 import { PortalTopbar } from '@/layouts/portal/portal-topbar';
 import { playSubtleAlertChime } from '@/lib/notification-sound';
@@ -28,15 +31,35 @@ export default function PortalLayout({
     subtitle?: string;
     children: ReactNode;
 }) {
-    const { auth, unreadNotificationCount } = usePage().props;
+    const { auth, unreadNotificationCount, vapidPublicKey } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showPermissionBanner, setShowPermissionBanner] = useState(false);
 
     useEffect(() => {
+        if (!auth.user || typeof window === 'undefined') {
+            return;
+        }
+
+        // 1. If permission is not yet decided on this device, show the emergency prompt banner
         if (
-            !auth.user ||
-            typeof window === 'undefined' ||
-            !('serviceWorker' in navigator)
+            'Notification' in window &&
+            Notification.permission === 'default' &&
+            vapidPublicKey
         ) {
+            setShowPermissionBanner(true);
+        }
+
+        // 2. If permission is already granted, auto-subscribe silently in background
+        if (
+            'Notification' in window &&
+            Notification.permission === 'granted' &&
+            vapidPublicKey
+        ) {
+            void autoEnrollPushNotifications(vapidPublicKey).catch(() => {});
+        }
+
+        // 3. Register service worker and listen for push notifications
+        if (!('serviceWorker' in navigator)) {
             return;
         }
 
@@ -52,33 +75,7 @@ export default function PortalLayout({
                 return;
             }
 
-            const {
-                title: alertTitle = 'New Fire Report',
-                body = 'A new fire report is awaiting verification.',
-                url,
-                report_id: reportId,
-                notification_type: notificationType,
-            } = event.data.payload;
-
             playSubtleAlertChime();
-
-            const targetUrl =
-                url ?? (reportId ? `/incidents/${reportId}` : '/notifications');
-
-            const showToast =
-                notificationType === 'test_alert' ? toast.info : toast.warning;
-
-            showToast(alertTitle, {
-                description: body,
-                duration: 10000,
-                action: reportId
-                    ? {
-                          label: 'View Report',
-                          onClick: () => router.visit(targetUrl),
-                      }
-                    : undefined,
-            });
-
             router.reload({ only: ['unreadNotificationCount', 'groups'] });
         };
 
@@ -93,7 +90,23 @@ export default function PortalLayout({
                 handleServiceWorkerMessage,
             );
         };
-    }, [auth.user]);
+    }, [auth.user, vapidPublicKey]);
+
+    const handleEnableAlarms = async () => {
+        try {
+            const result = await Notification.requestPermission();
+
+            if (result === 'granted') {
+                setShowPermissionBanner(false);
+                await autoEnrollPushNotifications(vapidPublicKey);
+                toast.success('Real-time emergency fire alarms enabled for this station.');
+            } else {
+                setShowPermissionBanner(false);
+            }
+        } catch {
+            setShowPermissionBanner(false);
+        }
+    };
 
     // Fortify's `verified`/`bfp.admin` middleware guarantee this on every
     // portal route, but the type is nullable — narrow it once here.
@@ -114,6 +127,45 @@ export default function PortalLayout({
             />
 
             <div className="relative flex min-w-0 flex-1 flex-col">
+                {showPermissionBanner && (
+                    <div
+                        className="relative z-50 flex items-center justify-between gap-3 border-b px-4 py-2 text-xs font-medium text-white shadow-md sm:px-6"
+                        style={{
+                            background:
+                                'linear-gradient(90deg, #1d3557 0%, #e63946 100%)',
+                        }}
+                    >
+                        <div className="flex min-w-0 items-center gap-2">
+                            <span className="relative flex size-2 shrink-0">
+                                <span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-75" />
+                                <span className="relative inline-flex size-2 rounded-full bg-white" />
+                            </span>
+                            <span className="truncate">
+                                <strong>Emergency Dispatch:</strong> Enable
+                                desktop alerts to receive real-time fire alarms on
+                                this computer.
+                            </span>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleEnableAlarms}
+                                className="cursor-pointer rounded-md bg-white px-3 py-1 text-xs font-bold text-brand-navy shadow-sm transition-transform hover:scale-105 active:scale-95"
+                            >
+                                Allow Alarms
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowPermissionBanner(false)}
+                                className="cursor-pointer rounded-md px-2 py-1 text-xs text-white/80 hover:text-white"
+                                title="Dismiss"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <PortalTopbar
                     title={title}
                     subtitle={subtitle}

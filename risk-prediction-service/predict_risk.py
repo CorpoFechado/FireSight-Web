@@ -25,9 +25,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def resolve_file(filename):
+    # 1. Check in model/ subdirectory
+    model_path = os.path.join(BASE_DIR, "model", filename)
+    if os.path.exists(model_path):
+        return model_path
+    # 2. Check directly in BASE_DIR
     local_path = os.path.join(BASE_DIR, filename)
     if os.path.exists(local_path):
         return local_path
+    # 3. Check in ../dataset
     dataset_path = os.path.join(BASE_DIR, "..", "dataset", filename)
     if os.path.exists(dataset_path):
         return dataset_path
@@ -74,6 +80,7 @@ def fetch_weather_open_meteo(as_of):
     import json
     import urllib.request
 
+    print("      -> Contacting Open-Meteo weather API (will fallback if slow)...", flush=True)
     start_period = as_of - 2
     start_date = str(start_period.start_time.date())
     end_date = str(as_of.end_time.date())
@@ -103,7 +110,7 @@ def fetch_weather_open_meteo(as_of):
                     m["rain_3m"] = m["rain_mm"].rolling(3, min_periods=3).sum()
                     match = m[m["period"] == as_of]
                     if not match.empty and not pd.isna(match["rain_3m"].iloc[0]):
-                        print(f"Successfully fetched live weather from Open-Meteo API for {as_of}.")
+                        print(f"      -> Successfully fetched live weather from Open-Meteo API for {as_of}.", flush=True)
                         return m
         except Exception:
             continue
@@ -114,6 +121,7 @@ def fetch_weather_open_meteo(as_of):
 def load_data(as_of=None):
     """Loads demographics reference CSV, live MySQL incidents, and weather data."""
     # 1. Load Demographics Reference CSV (Option A)
+    print("[1/5] Loading demographics reference file...", flush=True)
     dem = pd.read_csv(DEMOGRAPHICS_CSV)
     dem = dem[dem["Barangay"].str.upper() != "LIAN"].copy()
     dem = dem.rename(columns={
@@ -126,14 +134,17 @@ def load_data(as_of=None):
     dem["hh_per_ha"] = dem.households / dem.area_ha
     if len(dem) != 19:
         sys.exit(f"Expected 19 barangays in the demographics file, found {len(dem)}.")
+    print(f"      -> Demographics loaded ({len(dem)} barangays).", flush=True)
 
     # 2. Query Live Incidents from MySQL Database
+    print("[2/5] Connecting to MySQL database...", flush=True)
     try:
         conn = pymysql.connect(**DB)
     except Exception as e:
         sys.exit(f"Database connection failed: {e}\nCheck MySQL status and credentials in .env.")
 
     with conn.cursor() as cur:
+        print("      -> Querying live incidents from table `incident_record`...", flush=True)
         cur.execute("""
             SELECT 
                 ir.incident_id,
@@ -156,6 +167,7 @@ def load_data(as_of=None):
     inc = pd.DataFrame(inc_rows)
     if inc.empty:
         sys.exit("No incident records found in MySQL table `incident_record`.")
+    print(f"      -> Retrieved {len(inc)} incident records from MySQL.", flush=True)
 
     # Standardize barangay names for clean feature joining
     inc["barangay"] = (
@@ -172,16 +184,17 @@ def load_data(as_of=None):
     inc["damages"] = inc.estimated_damages_php.astype(float)
 
     # 3. Weather: Query Open-Meteo API directly, falling back to local weather CSV if offline
+    print("[3/5] Resolving weather data...", flush=True)
     wx = None
     if as_of:
         try:
             wx = fetch_weather_open_meteo(as_of)
         except Exception as e:
-            print(f"Notice: Open-Meteo API skipped ({e}). Falling back to local weather data.")
+            print(f"      -> Open-Meteo API skipped ({e}). Falling back to local weather data.", flush=True)
 
     if wx is None:
         if os.path.exists(WEATHER_CSV):
-            print(f"Loading weather from reference file: {os.path.basename(WEATHER_CSV)}")
+            print(f"      -> Using local weather file: {os.path.basename(WEATHER_CSV)}", flush=True)
             raw_wx = pd.read_csv(WEATHER_CSV)[["year", "month", "rain_mm", "temp_c"]]
             raw_wx["period"] = pd.to_datetime(dict(year=raw_wx.year, month=raw_wx.month, day=1)).dt.to_period("M")
             raw_wx = raw_wx.sort_values("period").reset_index(drop=True)
@@ -301,16 +314,17 @@ def main():
         # Automated monthly cron: default to the full month that just ended
         as_of = pd.Timestamp.now().to_period("M") - 1
 
-    print("Loading live incident records from MySQL, demographics reference CSV, and weather...")
     inc, dem, wx = load_data(as_of)
 
     target_month = as_of + 1
     window_start = str(target_month.to_timestamp().date())
 
-    print(f"Reference data cutoff: {as_of} | Target prediction window: {target_month} ({window_start})")
-    print(f"Total live incidents loaded from MySQL: {len(inc)}")
+    print(f"\nTarget Prediction Window: {target_month} (Starts {window_start})", flush=True)
 
+    print("[4/5] Engineering 16 dynamic risk features across all 19 barangays...", flush=True)
     feats = build_features(inc, dem, wx, as_of)
+
+    print("[5/5] Running XGBoost prediction model...", flush=True)
     proba = predict(feats)
 
     # Convert barangay names to official DB display format
