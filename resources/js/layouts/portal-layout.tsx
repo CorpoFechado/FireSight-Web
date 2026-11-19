@@ -92,14 +92,16 @@ export default function PortalLayout({
         };
     }, [auth.user, vapidPublicKey]);
 
-    const handleEnableAlarms = async () => {
+    const handleEnableNotifications = async () => {
         try {
             const result = await Notification.requestPermission();
 
             if (result === 'granted') {
                 setShowPermissionBanner(false);
                 await autoEnrollPushNotifications(vapidPublicKey);
-                toast.success('Real-time emergency fire alarms enabled for this station.');
+                toast.success(
+                    'Real-time emergency fire notifications enabled for this station.',
+                );
             } else {
                 setShowPermissionBanner(false);
             }
@@ -142,17 +144,17 @@ export default function PortalLayout({
                             </span>
                             <span className="truncate">
                                 <strong>Emergency Dispatch:</strong> Enable
-                                desktop alerts to receive real-time fire alarms on
+                                desktop notifications to receive real-time fire alerts on
                                 this computer.
                             </span>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                             <button
                                 type="button"
-                                onClick={handleEnableAlarms}
+                                onClick={handleEnableNotifications}
                                 className="cursor-pointer rounded-md bg-white px-3 py-1 text-xs font-bold text-brand-navy shadow-sm transition-transform hover:scale-105 active:scale-95"
                             >
-                                Allow Alarms
+                                Allow Notifications
                             </button>
                             <button
                                 type="button"
