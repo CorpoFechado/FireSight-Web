@@ -71,11 +71,16 @@ class PhpWordSpotReportGenerator implements SpotReportGenerator
     {
         $logos = config('bfp.spot_report.logos', []);
 
-        $table = $section->addTable(['borderSize' => 0, 'borderColor' => 'FFFFFF', 'alignment' => Jc::CENTER]);
+        $table = $section->addTable([
+            'borderSize' => 0,
+            'borderColor' => 'FFFFFF',
+            'alignment' => Jc::CENTER,
+            'cellMargin' => 0,
+        ]);
         $table->addRow(Converter::cmToTwip(2.3));
 
         foreach (['left', 'center', 'right'] as $position) {
-            $cell = $table->addCell(Converter::cmToTwip(5.3), ['valign' => 'center']);
+            $cell = $table->addCell(Converter::cmToTwip(2.8), ['valign' => 'center']);
             $logoPath = $logos[$position] ?? null;
 
             if (is_string($logoPath) && is_file($logoPath)) {

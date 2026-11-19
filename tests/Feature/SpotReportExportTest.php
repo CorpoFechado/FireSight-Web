@@ -60,7 +60,7 @@ function createSpotReportIncident(object $test, string $status = CommunityReport
     return $report;
 }
 
-function spotReportDocumentXml(string $content): string
+function spotReportArchiveInfo(string $content): array
 {
     $path = tempnam(sys_get_temp_dir(), 'sir_test_');
     file_put_contents($path, $content);
@@ -68,10 +68,25 @@ function spotReportDocumentXml(string $content): string
     $zip = new ZipArchive;
     $zip->open($path);
     $xml = (string) $zip->getFromName('word/document.xml');
+    $media = [];
+
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $name = $zip->getNameIndex($i);
+
+        if (is_string($name) && str_starts_with($name, 'word/media/')) {
+            $media[] = $name;
+        }
+    }
+
     $zip->close();
     @unlink($path);
 
-    return $xml;
+    return ['xml' => $xml, 'media' => $media];
+}
+
+function spotReportDocumentXml(string $content): string
+{
+    return spotReportArchiveInfo($content)['xml'];
 }
 
 test('bfp staff can download the spot report of a resolved incident with a complete assessment', function () {
@@ -82,7 +97,10 @@ test('bfp staff can download the spot report of a resolved incident with a compl
     $response->assertOk()
         ->assertDownload('SIR-INC-'.$report->created_at->format('Y').'-'.sprintf('%04d', $report->report_id).'-'.now()->format('Ymd').'.docx');
 
-    $xml = spotReportDocumentXml($response->streamedContent());
+    $archive = spotReportArchiveInfo($response->streamedContent());
+    $xml = $archive['xml'];
+
+    expect($archive['media'])->toHaveCount(3);
 
     expect($xml)
         ->toContain('Spot Investigation Report (SIR)')
