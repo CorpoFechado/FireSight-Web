@@ -6,8 +6,8 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 import requests
 
-# Force OpenCV FFmpeg to use TCP and 3s socket timeout for RTSP (prevents packet loss & 30s hangs)
-os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|stimeout;3000000"
+# Force OpenCV FFmpeg to use TCP and zero-latency options for RTSP (prevents packet loss & buffer lag)
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp|fflags;nobuffer|flags;low_delay|max_delay;500000|stimeout;3000000"
 os.environ["OPENCV_LOG_LEVEL"] = "ERROR"
 os.environ["OPENCV_FFMPEG_LOGLEVEL"] = "-8"
 
@@ -71,7 +71,7 @@ else:
 LARAVEL_API_URL = os.getenv('LARAVEL_API_URL', 'http://127.0.0.1:8000/api/cctv/alert')
 ALERT_WEBHOOK_SECRET = os.getenv('CCTV_WEBHOOK_SECRET', 'firesight_cctv_secret_key')
 
-JPEG_QUALITY = int(os.getenv('JPEG_QUALITY', '80'))
+JPEG_QUALITY = int(os.getenv('JPEG_QUALITY', '70'))
 FLASK_HOST = os.getenv('FLASK_HOST', '0.0.0.0')
 FLASK_PORT = int(os.getenv('FLASK_PORT', '5001'))
 
@@ -235,6 +235,7 @@ class AsynchronousCameraStream:
                     now = time.time()
                     if now - self.last_alert_time >= 30.0:
                         self.last_alert_time = now
+                        print(f"[{self.camera_token}] Triggering fire alert! Top confidence: {top_conf:.2f}")
                         self._trigger_laravel_alert(res)
 
             except Exception as e:
@@ -244,19 +245,35 @@ class AsynchronousCameraStream:
 
     def _trigger_laravel_alert(self, detection_result):
         """Sends an immediate webhook to Laravel backend to dispatch push notification to resident."""
-        try:
-            payload = {
-                "token": self.camera_token,
-                "secret": ALERT_WEBHOOK_SECRET,
-                "type": "fire",
-                "flames_count": detection_result.get("fire_count", 1),
-                "confidence": detection_result.get("score_percent", 0.0),
-                "timestamp": int(time.time()),
-            }
-            res = requests.post(LARAVEL_API_URL, json=payload, timeout=2.0)
-            print(f"[AlertWebhook] Dispatched to Laravel. Status: {res.status_code}")
-        except Exception as e:
-            print(f"[AlertWebhook Error] Failed to contact Laravel: {e}")
+        payload = {
+            "token": self.camera_token,
+            "secret": ALERT_WEBHOOK_SECRET,
+            "type": "fire",
+            "flames_count": detection_result.get("fire_count", 1),
+            "confidence": detection_result.get("score_percent", 0.0),
+            "timestamp": int(time.time()),
+        }
+        endpoints = [
+            LARAVEL_API_URL,
+            "http://127.0.0.1/api/cctv/alert",
+            "http://127.0.0.1:8000/api/cctv/alert",
+            "http://localhost/api/cctv/alert",
+            "http://localhost/api/v1/cctv/alert",
+        ]
+        seen = set()
+        unique_endpoints = [x for x in endpoints if x and not (x in seen or seen.add(x))]
+
+        for ep in unique_endpoints:
+            try:
+                res = requests.post(ep, json=payload, timeout=2.0)
+                if res.status_code == 200:
+                    print(f"[AlertWebhook] Dispatched to Laravel ({ep}). Response: {res.json()}")
+                    return
+                else:
+                    print(f"[AlertWebhook] Attempted {ep} -> Status: {res.status_code}")
+            except Exception as e:
+                continue
+        print("[AlertWebhook Error] Failed to contact Laravel on any endpoint.")
 
     def get_frame(self):
         now = time.time()
@@ -366,7 +383,7 @@ def video_feed(token='default'):
                 continue
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            time.sleep(0.02)
+            time.sleep(0.045)  # Optimal ~22 FPS: eliminates network buffer bloat and lag
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
