@@ -22,7 +22,7 @@ class ResidentController extends Controller
         $search = $request->string('search')->trim()->value();
         $barangayId = $request->integer('barangay') ?: null;
         $status = $request->string('status')->lower()->value();
-        $status = in_array($status, ['active', 'suspended'], true) ? $status : 'all';
+        $status = in_array($status, ['active', 'inactive', 'suspended'], true) ? $status : 'all';
 
         $residents = User::query()
             ->where('role', User::ROLE_RESIDENT)
@@ -42,7 +42,15 @@ class ResidentController extends Controller
                 fn ($query) => $query->where('barangay_id', $barangayId),
             ))
             ->when($status === 'active', fn ($query) => $query->where('status', User::STATUS_ACTIVE))
-            ->when($status === 'suspended', fn ($query) => $query->where('status', User::STATUS_INACTIVE))
+            ->when($status === 'inactive', fn ($query) => $query
+                ->where('status', User::STATUS_INACTIVE)
+                ->where('suspension_reason', 'like', '%deletion%'))
+            ->when($status === 'suspended', fn ($query) => $query
+                ->where('status', User::STATUS_INACTIVE)
+                ->where(function ($query): void {
+                    $query->whereNull('suspension_reason')
+                        ->orWhere('suspension_reason', 'not like', '%deletion%');
+                }))
             ->latest('created_at')
             ->paginate(15)
             ->withQueryString()
@@ -109,7 +117,7 @@ class ResidentController extends Controller
                 'suspended_at' => $user->suspended_at?->toISOString(),
                 'suspension_reason' => $user->suspension_reason,
                 'is_google_linked' => $user->google_id !== null,
-                'status' => $user->isActive() ? 'active' : 'suspended',
+                'status' => $user->residentAccountStatus(),
             ],
             'reports' => $reports,
         ]);
@@ -208,6 +216,10 @@ class ResidentController extends Controller
     {
         $this->assertResident($user);
 
+        if ($user->isSelfDeactivated()) {
+            abort(422, 'Accounts deactivated by the resident cannot be reactivated by an administrator.');
+        }
+
         $user->update([
             'status' => User::STATUS_ACTIVE,
             'suspended_at' => null,
@@ -241,7 +253,7 @@ class ResidentController extends Controller
             'email' => $user->email,
             'contact_number' => $user->contact_number,
             'barangay' => $user->homeAddress?->barangay?->barangay_name,
-            'status' => $user->isActive() ? 'active' : 'suspended',
+            'status' => $user->residentAccountStatus(),
             'report_count' => $user->community_reports_count,
             'created_at' => $user->created_at?->toISOString(),
             'is_google_linked' => $user->google_id !== null,

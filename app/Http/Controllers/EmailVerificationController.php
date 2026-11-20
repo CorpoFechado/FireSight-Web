@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ResidentAddress;
 use App\Models\User;
+use App\Support\AdminNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,8 @@ use Illuminate\View\View;
 
 class EmailVerificationController extends Controller
 {
+    public function __construct(private AdminNotifier $adminNotifier) {}
+
     /**
      * Complete pending registration from cache and insert into database.
      * No user row exists in the database until this signed link is verified!
@@ -77,6 +80,12 @@ class EmailVerificationController extends Controller
 
             Cache::forget($cacheKey);
             Cache::forget('pending_reg_email:'.md5($data['email']));
+
+            try {
+                $this->adminNotifier->residentRegistered($user);
+            } catch (\Throwable $e) {
+                Log::warning('[VerifyRegistration] Failed to notify admins: '.$e->getMessage());
+            }
 
             return view('auth.email-verified', [
                 'status' => 'success',

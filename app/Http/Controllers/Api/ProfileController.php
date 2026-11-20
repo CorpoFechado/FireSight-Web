@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\ResidentAddress;
 use App\Models\User;
+use App\Support\AdminNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Log;
 
 class ProfileController extends ApiController
 {
+    public function __construct(private AdminNotifier $adminNotifier) {}
+
     /**
      * Get the authenticated user's full profile including address and personnel details.
      * Matches firesight-api/profile/get.php.
@@ -218,6 +221,12 @@ class ProfileController extends ApiController
 
         // Invalidate active mobile tokens
         DB::table('auth_token')->where('user_id', $user->user_id)->delete();
+
+        try {
+            $this->adminNotifier->residentDeactivated($user);
+        } catch (\Throwable $e) {
+            Log::warning('[ProfileController] Failed to notify admins of account deactivation: '.$e->getMessage());
+        }
 
         return $this->sendSuccess([
             'message' => 'Your account deletion has been scheduled. Your account will be permanently removed in 30 days.',

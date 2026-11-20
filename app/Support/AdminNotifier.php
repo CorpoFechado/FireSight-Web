@@ -155,6 +155,50 @@ class AdminNotifier
     }
 
     /**
+     * A new resident completed registration. Notifies active BFP admins.
+     */
+    public function residentRegistered(User $resident, ?CarbonInterface $at = null): void
+    {
+        if (! $resident->isResident()) {
+            return;
+        }
+
+        $residentName = $resident->name ?: $resident->email;
+
+        $this->sendToRoles(
+            'New Resident Registered',
+            "{$residentName} ({$resident->email}) registered a resident account.",
+            'status_update',
+            [User::ROLE_BFP_ADMIN],
+            null,
+            $at,
+            null,
+        );
+    }
+
+    /**
+     * A resident deactivated their own account via the mobile app. Notifies active BFP admins.
+     */
+    public function residentDeactivated(User $resident, ?CarbonInterface $at = null): void
+    {
+        if (! $resident->isResident()) {
+            return;
+        }
+
+        $residentName = $resident->name ?: $resident->email;
+
+        $this->sendToRoles(
+            'Resident Account Deactivated',
+            "{$residentName} ({$resident->email}) deactivated their resident account.",
+            'status_update',
+            [User::ROLE_BFP_ADMIN],
+            null,
+            $at,
+            null,
+        );
+    }
+
+    /**
      * Active (pending/accepted/dispatched) reports submitted recently within
      * {@see self::DUPLICATE_RADIUS_METERS} of the given report.
      *

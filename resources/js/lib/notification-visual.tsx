@@ -6,6 +6,8 @@ import {
     Flame,
     Megaphone,
     Send,
+    UserMinus,
+    UserPlus,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -28,6 +30,14 @@ export function getNotificationVisual(
     }
 
     if (type === 'status_update') {
+        if (text.includes('deactivated')) {
+            return { Icon: UserMinus, bg: '#F3F4F6', color: '#475569' };
+        }
+
+        if (text.includes('registered')) {
+            return { Icon: UserPlus, bg: '#E0F5F3', color: '#1B7A72' };
+        }
+
         if (text.includes('resolved') || text.includes('complete')) {
             return { Icon: CheckCircle2, bg: '#E0F5F3', color: '#1B7A72' };
         }

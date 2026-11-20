@@ -8,6 +8,7 @@ use App\Models\AuthToken;
 use App\Models\Barangay;
 use App\Models\ResidentAddress;
 use App\Models\User;
+use App\Support\AdminNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\URL;
 
 class AuthController extends ApiController
 {
+    public function __construct(private AdminNotifier $adminNotifier) {}
+
     /**
      * Authenticate a resident or personnel user.
      * Supports both email address and mobile number lookup.
@@ -198,6 +201,12 @@ class AuthController extends ApiController
 
                     DB::commit();
 
+                    try {
+                        $this->adminNotifier->residentRegistered($existingUser->fresh() ?? $existingUser);
+                    } catch (\Throwable $e) {
+                        Log::warning('[AuthController] Failed to notify admins of Google registration: '.$e->getMessage());
+                    }
+
                     return $this->sendSuccess([
                         'token' => $token,
                         'user' => $this->formatUserWithAddress($existingUser),
@@ -294,6 +303,12 @@ class AuthController extends ApiController
             ]);
 
             DB::commit();
+
+            try {
+                $this->adminNotifier->residentRegistered($user);
+            } catch (\Throwable $e) {
+                Log::warning('[AuthController] Failed to notify admins of Google registration: '.$e->getMessage());
+            }
 
             return $this->sendSuccess([
                 'token' => $token,
