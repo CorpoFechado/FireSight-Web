@@ -130,7 +130,6 @@ const ALARM_LEVEL_OPTIONS = [
 ];
 
 const FIXED_MUNICIPAL_ALARMS = new Set<AlarmLevel>([
-    'verification',
     '1st_alarm',
     '2nd_alarm',
     '3rd_alarm',
@@ -1161,11 +1160,6 @@ export default function FireIncidentsMap({
                                                             style={{
                                                                 background:
                                                                     entry.color,
-                                                                border:
-                                                                    entry.key ===
-                                                                    'verification'
-                                                                        ? '1px solid #4a5a75'
-                                                                        : undefined,
                                                             }}
                                                         />
                                                         <span className="text-xs text-brand-muted">

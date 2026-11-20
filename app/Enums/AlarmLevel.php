@@ -4,7 +4,6 @@ namespace App\Enums;
 
 enum AlarmLevel: string
 {
-    case Verification = 'verification';
     case FirstAlarm = '1st_alarm';
     case SecondAlarm = '2nd_alarm';
     case ThirdAlarm = '3rd_alarm';
@@ -22,7 +21,6 @@ enum AlarmLevel: string
     public function label(): string
     {
         return match ($this) {
-            self::Verification => 'Verification',
             self::FirstAlarm => '1st Alarm',
             self::SecondAlarm => '2nd Alarm',
             self::ThirdAlarm => '3rd Alarm',
@@ -42,7 +40,6 @@ enum AlarmLevel: string
     public function color(): string
     {
         return match ($this) {
-            self::Verification => '#A9B8D0',
             self::FirstAlarm => '#4FA3E0',
             self::SecondAlarm => '#4CAF50',
             self::ThirdAlarm => '#F2C94C',
@@ -62,7 +59,7 @@ enum AlarmLevel: string
     public function textColor(): string
     {
         return match ($this) {
-            self::Verification, self::ThirdAlarm => '#1F2937',
+            self::ThirdAlarm => '#1F2937',
             default => '#FFFFFF',
         };
     }

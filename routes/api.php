@@ -107,6 +107,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/incidents/{id}/history', [IncidentController::class, 'statusHistory'])->whereNumber('id')->name('api.v1.incidents.history');
         Route::post('/incidents/{id}/invalid', [IncidentController::class, 'markInvalid'])->whereNumber('id')->name('api.v1.incidents.invalid');
         Route::post('/incidents/{id}/evidence', [IncidentController::class, 'addEvidence'])->whereNumber('id')->name('api.v1.incidents.evidence');
+        Route::post('/incidents/{id}/location', [IncidentController::class, 'updateLocation'])->whereNumber('id')->name('api.v1.incidents.location');
+        Route::get('/incidents/{id}/location', [IncidentController::class, 'getLocation'])->whereNumber('id')->name('api.v1.incidents.get_location');
         Route::post('/incidents/manual', [IncidentController::class, 'createManual'])->name('api.v1.incidents.manual');
 
         // Incidents Compatibility Aliases
@@ -119,7 +121,14 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/incidents/status_history.php', [IncidentController::class, 'statusHistory']);
         Route::post('/incidents/mark_invalid.php', [IncidentController::class, 'markInvalid']);
         Route::post('/incidents/add_evidence.php', [IncidentController::class, 'addEvidence']);
+        Route::post('/incidents/update_location.php', [IncidentController::class, 'updateLocation']);
+        Route::get('/incidents/get_location.php', [IncidentController::class, 'getLocation']);
         Route::post('/incidents/create_manual.php', [IncidentController::class, 'createManual']);
+        Route::post('/incidents/{id}/location', [IncidentController::class, 'updateLocation'])->whereNumber('id');
+        Route::get('/incidents/{id}/location', [IncidentController::class, 'getLocation'])->whereNumber('id');
+        Route::post('/incidents/location', [IncidentController::class, 'updateLocation']);
+        Route::post('/incidents/update_location.php', [IncidentController::class, 'updateLocation']);
+        Route::get('/incidents/get_location.php', [IncidentController::class, 'getLocation']);
 
         // ── 8. Profile Endpoints ─────────────────────────────────────────
         Route::get('/profile', [ProfileController::class, 'show'])->name('api.v1.profile.show');
@@ -189,6 +198,13 @@ Route::get('/education/list.php', [EducationController::class, 'index']);
 Route::get('/education/detail.php', [EducationController::class, 'show']);
 Route::get('/announcements/list.php', [AnnouncementController::class, 'index']);
 Route::get('/contacts/list.php', [ContactController::class, 'index']);
+
+// Emergency Responder Live GPS Streaming (supports both bearer token and report-keyed beacons)
+Route::post('/incidents/{id}/location', [IncidentController::class, 'updateLocation'])->whereNumber('id');
+Route::get('/incidents/{id}/location', [IncidentController::class, 'getLocation'])->whereNumber('id');
+Route::post('/incidents/location', [IncidentController::class, 'updateLocation']);
+Route::post('/incidents/update_location.php', [IncidentController::class, 'updateLocation']);
+Route::get('/incidents/get_location.php', [IncidentController::class, 'getLocation']);
 
 Route::middleware('auth.mobile')->group(function (): void {
     Route::get('/map/incidents_bfp.php', [MapController::class, 'incidentsBfp']);

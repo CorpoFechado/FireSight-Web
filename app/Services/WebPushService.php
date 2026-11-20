@@ -55,7 +55,7 @@ class WebPushService
             'url' => $data['url'] ?? ($reportId !== null ? "/incidents/{$reportId}" : '/notifications'),
             'report_id' => $reportId,
             'type' => $data['type'] ?? 'new_report',
-            'requireInteraction' => (bool) ($data['requireInteraction'] ?? true),
+            'requireInteraction' => (bool) ($data['requireInteraction'] ?? false),
         ], JSON_THROW_ON_ERROR);
 
         $auth = [

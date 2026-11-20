@@ -57,6 +57,7 @@ Route::middleware(['auth', 'verified', 'bfp.admin'])->group(function () {
     Route::get('map', [FireMapController::class, 'index'])->name('map');
     Route::get('fire-prone', [RiskAnalyticsController::class, 'index'])->name('fireProne');
     Route::get('response', [ResponseTrackingController::class, 'index'])->name('response');
+    Route::get('response/{id}/location', [ResponseTrackingController::class, 'location'])->whereNumber('id')->name('response.location');
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::get('notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::patch('notifications/{notification}/read', [NotificationController::class, 'markRead'])

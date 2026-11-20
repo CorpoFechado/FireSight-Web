@@ -6,7 +6,6 @@
 export type ReportStatus =
     'pending' | 'accepted' | 'dispatched' | 'resolved' | 'invalid';
 export type AlarmLevel =
-    | 'verification'
     | '1st_alarm'
     | '2nd_alarm'
     | '3rd_alarm'
@@ -69,13 +68,6 @@ export const STATUS_CFG: Record<ReportStatus, BadgeCfg> = {
 };
 
 export const ALARM_LEVEL_CFG: Record<AlarmLevel, AlarmLevelCfg> = {
-    verification: {
-        backgroundClass: 'bg-alarm-verification-badge',
-        textClass: 'text-alarm-verification-badge-foreground',
-        color: 'var(--color-alarm-verification)',
-        strokeColor: 'var(--color-alarm-verification-stroke)',
-        label: 'Verification',
-    },
     '1st_alarm': {
         backgroundClass: 'bg-alarm-1st',
         textClass: 'text-alarm-1st-foreground',

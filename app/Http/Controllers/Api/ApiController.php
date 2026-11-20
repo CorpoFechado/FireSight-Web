@@ -212,6 +212,7 @@ class ApiController extends Controller
             'time_fire_started' => $timeFireStarted ?? $createdAt,
             'time_fire_out' => $timeFireOut,
             'notes' => $row['notes'] ?? $row->notes ?? null,
+            'dispatched_by' => isset($row['dispatched_by']) && $row['dispatched_by'] !== null ? (int) $row['dispatched_by'] : (isset($row->dispatched_by) && $row->dispatched_by !== null ? (int) $row->dispatched_by : null),
         ];
     }
 }
