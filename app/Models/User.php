@@ -147,6 +147,21 @@ class User extends Authenticatable implements PasskeyUser
         return $this->status === self::STATUS_ACTIVE;
     }
 
+    public function isSelfDeactivated(): bool
+    {
+        return ! $this->isActive()
+            && str_contains(strtolower((string) $this->suspension_reason), 'deletion');
+    }
+
+    public function residentAccountStatus(): string
+    {
+        if ($this->isActive()) {
+            return 'active';
+        }
+
+        return $this->isSelfDeactivated() ? 'inactive' : 'suspended';
+    }
+
     public function suspensionMessage(): string
     {
         $message = 'This account has been suspended. Please contact BFP Lian.';

@@ -93,6 +93,18 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the resident account was self-deactivated via the mobile app.
+     */
+    public function selfDeactivated(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => User::STATUS_INACTIVE,
+            'suspended_at' => now(),
+            'suspension_reason' => 'Resident requested account deletion (30-day grace period)',
+        ]);
+    }
+
+    /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static

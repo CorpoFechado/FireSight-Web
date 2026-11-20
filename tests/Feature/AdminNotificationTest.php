@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AuthToken;
 use App\Models\Barangay;
 use App\Models\BfpPersonnelDetails;
 use App\Models\CommunityReport;
@@ -7,6 +8,9 @@ use App\Models\IncidentRecord;
 use App\Models\Notification;
 use App\Models\ReportStatusHistory;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
 
 /**
  * @param  array<string, mixed>  $overrides
@@ -186,4 +190,97 @@ test('editing incident details notifies admins with who edited them', function (
         'message' => "{$editingAdmin->name} updated the incident assessment for Report #{$report->report_id}.",
         'notification_type' => 'system',
     ]);
+});
+
+test('verifying a new resident email registration notifies active admins only', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $inactiveAdmin = User::factory()->bfpAdmin()->inactive()->create();
+    $personnel = User::factory()->bfpPersonnel()->create();
+    $barangay = Barangay::create(['barangay_name' => 'San Diego']);
+
+    $regToken = str_repeat('r', 64);
+    Cache::put('pending_reg:'.$regToken, [
+        'first_name' => 'Maria',
+        'middle_name' => null,
+        'last_name' => 'Clara',
+        'suffix' => null,
+        'contact_number' => '09171112222',
+        'house_no_street' => '12 Rizal St',
+        'barangay_id' => $barangay->barangay_id,
+        'municipality' => 'Lian',
+        'province' => 'Batangas',
+        'email' => 'maria.clara@example.com',
+        'password' => Hash::make('password123'),
+    ], now()->addHours(4));
+
+    $url = URL::temporarySignedRoute('firesight.verify_registration', now()->addHours(4), ['token' => $regToken]);
+
+    $this->get($url)->assertOk();
+
+    $this->assertDatabaseHas('notification', [
+        'user_id' => $admin->getKey(),
+        'report_id' => null,
+        'title' => 'New Resident Registered',
+        'message' => 'Maria Clara (maria.clara@example.com) registered a resident account.',
+        'notification_type' => 'status_update',
+    ]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $inactiveAdmin->getKey()]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $personnel->getKey()]);
+});
+
+test('google resident registration notifies active admins', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $barangay = Barangay::create(['barangay_name' => 'Malaruhatan']);
+
+    $this->postJson('/api/v1/auth/register', [
+        'google_id' => 'google-123456',
+        'first_name' => 'Jose',
+        'last_name' => 'Rizal',
+        'mobile_number' => '09173334444',
+        'barangay_id' => $barangay->barangay_id,
+        'municipality' => 'Lian',
+        'province' => 'Batangas',
+        'email' => 'jose.rizal@example.com',
+    ])->assertCreated();
+
+    $this->assertDatabaseHas('notification', [
+        'user_id' => $admin->getKey(),
+        'report_id' => null,
+        'title' => 'New Resident Registered',
+        'message' => 'Jose Rizal (jose.rizal@example.com) registered a resident account.',
+        'notification_type' => 'status_update',
+    ]);
+});
+
+test('resident self-deactivation notifies active admins only', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $inactiveAdmin = User::factory()->bfpAdmin()->inactive()->create();
+    $personnel = User::factory()->bfpPersonnel()->create();
+    $resident = User::factory()->resident()->create([
+        'first_name' => 'Andres',
+        'last_name' => 'Bonifacio',
+        'email' => 'andres.b@example.com',
+    ]);
+
+    $token = str_repeat('e', 64);
+    AuthToken::create([
+        'user_id' => $resident->getKey(),
+        'token' => $token,
+        'expires_at' => now()->addDay(),
+        'created_at' => now(),
+    ]);
+
+    $this->withToken($token)
+        ->postJson('/api/v1/profile/delete-account')
+        ->assertSuccessful();
+
+    $this->assertDatabaseHas('notification', [
+        'user_id' => $admin->getKey(),
+        'report_id' => null,
+        'title' => 'Resident Account Deactivated',
+        'message' => 'Andres Bonifacio (andres.b@example.com) deactivated their resident account.',
+        'notification_type' => 'status_update',
+    ]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $inactiveAdmin->getKey()]);
+    $this->assertDatabaseMissing('notification', ['user_id' => $personnel->getKey()]);
 });

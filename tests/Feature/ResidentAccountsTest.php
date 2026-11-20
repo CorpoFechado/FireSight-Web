@@ -249,3 +249,70 @@ test('administrator can reactivate a suspended resident', function () {
         ->and($resident->suspended_at)->toBeNull()
         ->and($resident->suspension_reason)->toBeNull();
 });
+
+test('resident self-deactivation appears as inactive in admin portal and cannot be reactivated by admin', function () {
+    $admin = User::factory()->bfpAdmin()->create();
+    $activeResident = User::factory()->resident()->create();
+    $suspendedResident = User::factory()->resident()->suspended()->create();
+    $deactivatedResident = User::factory()->resident()->create();
+
+    $token = str_repeat('d', 64);
+    AuthToken::create([
+        'user_id' => $deactivatedResident->getKey(),
+        'token' => $token,
+        'expires_at' => now()->addDay(),
+        'created_at' => now(),
+    ]);
+
+    $this->withToken($token)
+        ->postJson('/api/v1/profile/delete-account')
+        ->assertSuccessful();
+
+    $deactivatedResident->refresh();
+    expect($deactivatedResident->isSelfDeactivated())->toBeTrue()
+        ->and($deactivatedResident->residentAccountStatus())->toBe('inactive');
+
+    $this->actingAs($admin);
+
+    $this->get(route('residents', ['status' => 'inactive']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('residents.data', 1)
+            ->where('residents.data.0.id', $deactivatedResident->getKey())
+            ->where('residents.data.0.status', 'inactive')
+        );
+
+    $this->get(route('residents', ['status' => 'suspended']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('residents.data', 1)
+            ->where('residents.data.0.id', $suspendedResident->getKey())
+            ->where('residents.data.0.status', 'suspended')
+        );
+
+    $this->get(route('residents', ['status' => 'active']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('residents.data', 1)
+            ->where('residents.data.0.id', $activeResident->getKey())
+        );
+
+    $this->getJson(route('residents.show', $deactivatedResident))
+        ->assertOk()
+        ->assertJsonPath('resident.status', 'inactive');
+
+    $this->post(route('residents.reactivate', $deactivatedResident))
+        ->assertUnprocessable();
+
+    $deactivatedResident->refresh();
+    expect($deactivatedResident->status)->toBe(User::STATUS_INACTIVE);
+});
+
+test('purged self-deactivated accounts also resolve as inactive rather than suspended', function () {
+    $purgedResident = User::factory()->resident()->selfDeactivated()->create([
+        'suspension_reason' => 'Permanently purged after 30-day deletion grace period',
+    ]);
+
+    expect($purgedResident->isSelfDeactivated())->toBeTrue()
+        ->and($purgedResident->residentAccountStatus())->toBe('inactive');
+});

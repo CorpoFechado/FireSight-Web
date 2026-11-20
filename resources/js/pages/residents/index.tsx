@@ -43,7 +43,7 @@ type ResidentRow = {
     email: string;
     contact_number: string | null;
     barangay: string | null;
-    status: 'active' | 'suspended';
+    status: 'active' | 'inactive' | 'suspended';
     report_count: number;
     created_at: string | null;
     is_google_linked: boolean;
@@ -73,7 +73,7 @@ type ResidentProfile = {
     suspended_at: string | null;
     suspension_reason: string | null;
     is_google_linked: boolean;
-    status: 'active' | 'suspended';
+    status: 'active' | 'inactive' | 'suspended';
 };
 
 type ResidentReport = {
@@ -120,20 +120,30 @@ function formatDateTime(value: string | null): string {
 }
 
 function ResidentStatusBadge({ status }: { status: ResidentRow['status'] }) {
-    const active = status === 'active';
+    const styles = {
+        active: {
+            badge: 'bg-emerald-50 text-emerald-700',
+            dot: 'bg-emerald-600',
+            label: 'Active',
+        },
+        inactive: {
+            badge: 'bg-slate-100 text-slate-700',
+            dot: 'bg-slate-500',
+            label: 'Inactive',
+        },
+        suspended: {
+            badge: 'bg-red-50 text-red-700',
+            dot: 'bg-red-600',
+            label: 'Suspended',
+        },
+    }[status];
 
     return (
         <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                active
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-red-50 text-red-700'
-            }`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${styles.badge}`}
         >
-            <span
-                className={`size-1.5 rounded-full ${active ? 'bg-emerald-600' : 'bg-red-600'}`}
-            />
-            {active ? 'Active' : 'Suspended'}
+            <span className={`size-1.5 rounded-full ${styles.dot}`} />
+            {styles.label}
         </span>
     );
 }
@@ -412,6 +422,7 @@ export default function ResidentIndex({
                         >
                             <option value="all">All Statuses</option>
                             <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
                             <option value="suspended">Suspended</option>
                         </select>
                         {hasActiveFilters && (
@@ -517,7 +528,7 @@ export default function ResidentIndex({
                 open={selected !== null}
                 onOpenChange={(open) => !open && closeModal()}
             >
-                <DialogContent className="max-h-[90vh] overflow-y-auto bg-white text-brand-navy sm:max-w-4xl">
+                <DialogContent className="flex h-[min(90vh,42rem)] flex-col overflow-hidden bg-white text-brand-navy sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle className="text-brand-navy">
                             {selected?.name ?? 'Resident details'}
@@ -555,78 +566,125 @@ export default function ResidentIndex({
                                 ))}
                             </div>
 
-                            {tab === 'profile' && (
-                                <section className="space-y-4">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <p className="text-xs text-brand-muted">
-                                            Details last updated:{' '}
-                                            {formatDateTime(
-                                                details.resident
-                                                    .details_updated_at,
-                                            )}
-                                        </p>
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setEditing((value) => !value)
-                                            }
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-navy/15 px-3 py-2 text-xs font-semibold"
-                                        >
-                                            <Edit3 size={14} />
-                                            {editing
-                                                ? 'Cancel editing'
-                                                : 'Edit'}
-                                        </button>
-                                    </div>
+                            <div className="min-h-0 flex-1 overflow-y-auto">
+                                {tab === 'profile' && (
+                                    <section className="space-y-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <p className="text-xs text-brand-muted">
+                                                Details last updated:{' '}
+                                                {formatDateTime(
+                                                    details.resident
+                                                        .details_updated_at,
+                                                )}
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setEditing(
+                                                        (value) => !value,
+                                                    )
+                                                }
+                                                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-navy/15 px-3 py-2 text-xs font-semibold"
+                                            >
+                                                <Edit3 size={14} />
+                                                {editing
+                                                    ? 'Cancel editing'
+                                                    : 'Edit'}
+                                            </button>
+                                        </div>
 
-                                    {editing ? (
-                                        <form
-                                            onSubmit={submitUpdate}
-                                            className="space-y-4"
-                                        >
-                                            <div className="grid gap-4 sm:grid-cols-2">
-                                                {[
-                                                    [
-                                                        'first_name',
-                                                        'First name',
-                                                    ],
-                                                    [
-                                                        'middle_name',
-                                                        'Middle name',
-                                                    ],
-                                                    ['last_name', 'Last name'],
-                                                    ['suffix', 'Suffix'],
-                                                    ['email', 'Email'],
-                                                    [
-                                                        'contact_number',
-                                                        'Contact number',
-                                                    ],
-                                                    ['username', 'Username'],
-                                                    [
-                                                        'house_no_street',
-                                                        'House no. / Street',
-                                                    ],
-                                                ].map(([field, label]) => (
-                                                    <div
-                                                        key={field}
-                                                        className="space-y-1.5"
-                                                    >
-                                                        <Label>{label}</Label>
-                                                        <input
-                                                            type={
-                                                                field ===
-                                                                'email'
-                                                                    ? 'email'
-                                                                    : 'text'
-                                                            }
+                                        {editing ? (
+                                            <form
+                                                onSubmit={submitUpdate}
+                                                className="space-y-4"
+                                            >
+                                                <div className="grid gap-4 sm:grid-cols-2">
+                                                    {[
+                                                        [
+                                                            'first_name',
+                                                            'First name',
+                                                        ],
+                                                        [
+                                                            'middle_name',
+                                                            'Middle name',
+                                                        ],
+                                                        [
+                                                            'last_name',
+                                                            'Last name',
+                                                        ],
+                                                        ['suffix', 'Suffix'],
+                                                        ['email', 'Email'],
+                                                        [
+                                                            'contact_number',
+                                                            'Contact number',
+                                                        ],
+                                                        [
+                                                            'username',
+                                                            'Username',
+                                                        ],
+                                                        [
+                                                            'house_no_street',
+                                                            'House no. / Street',
+                                                        ],
+                                                    ].map(([field, label]) => (
+                                                        <div
+                                                            key={field}
+                                                            className="space-y-1.5"
+                                                        >
+                                                            <Label>
+                                                                {label}
+                                                            </Label>
+                                                            <input
+                                                                type={
+                                                                    field ===
+                                                                    'email'
+                                                                        ? 'email'
+                                                                        : 'text'
+                                                                }
+                                                                value={
+                                                                    editForm
+                                                                        .data[
+                                                                        field as keyof typeof editForm.data
+                                                                    ]
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    editForm.setData(
+                                                                        field as keyof typeof editForm.data,
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                className={
+                                                                    inputClass
+                                                                }
+                                                            />
+                                                            {editForm.errors[
+                                                                field as keyof typeof editForm.errors
+                                                            ] && (
+                                                                <p className="text-xs text-brand-red">
+                                                                    {
+                                                                        editForm
+                                                                            .errors[
+                                                                            field as keyof typeof editForm.errors
+                                                                        ]
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    <div className="space-y-1.5 sm:col-span-2">
+                                                        <Label>Barangay</Label>
+                                                        <select
                                                             value={
-                                                                editForm.data[
-                                                                    field as keyof typeof editForm.data
-                                                                ]
+                                                                editForm.data
+                                                                    .barangay_id
                                                             }
                                                             onChange={(event) =>
                                                                 editForm.setData(
-                                                                    field as keyof typeof editForm.data,
+                                                                    'barangay_id',
                                                                     event.target
                                                                         .value,
                                                                 )
@@ -634,355 +692,376 @@ export default function ResidentIndex({
                                                             className={
                                                                 inputClass
                                                             }
-                                                        />
-                                                        {editForm.errors[
-                                                            field as keyof typeof editForm.errors
-                                                        ] && (
+                                                        >
+                                                            <option value="">
+                                                                Select barangay
+                                                            </option>
+                                                            {barangays.map(
+                                                                (barangay) => (
+                                                                    <option
+                                                                        key={
+                                                                            barangay.barangay_id
+                                                                        }
+                                                                        value={
+                                                                            barangay.barangay_id
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            barangay.barangay_name
+                                                                        }
+                                                                    </option>
+                                                                ),
+                                                            )}
+                                                        </select>
+                                                        {editForm.errors
+                                                            .barangay_id && (
                                                             <p className="text-xs text-brand-red">
                                                                 {
                                                                     editForm
-                                                                        .errors[
-                                                                        field as keyof typeof editForm.errors
-                                                                    ]
+                                                                        .errors
+                                                                        .barangay_id
                                                                 }
                                                             </p>
                                                         )}
                                                     </div>
-                                                ))}
-                                                <div className="space-y-1.5 sm:col-span-2">
-                                                    <Label>Barangay</Label>
-                                                    <select
-                                                        value={
-                                                            editForm.data
-                                                                .barangay_id
+                                                </div>
+                                                <div className="flex justify-end">
+                                                    <button
+                                                        type="submit"
+                                                        disabled={
+                                                            editForm.processing
                                                         }
-                                                        onChange={(event) =>
-                                                            editForm.setData(
-                                                                'barangay_id',
-                                                                event.target
-                                                                    .value,
-                                                            )
-                                                        }
-                                                        className={inputClass}
+                                                        className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                                                     >
-                                                        <option value="">
-                                                            Select barangay
-                                                        </option>
-                                                        {barangays.map(
-                                                            (barangay) => (
-                                                                <option
-                                                                    key={
-                                                                        barangay.barangay_id
-                                                                    }
-                                                                    value={
-                                                                        barangay.barangay_id
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        barangay.barangay_name
-                                                                    }
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
-                                                    {editForm.errors
-                                                        .barangay_id && (
-                                                        <p className="text-xs text-brand-red">
-                                                            {
-                                                                editForm.errors
-                                                                    .barangay_id
-                                                            }
-                                                        </p>
-                                                    )}
+                                                        {editForm.processing
+                                                            ? 'Saving…'
+                                                            : 'Save changes'}
+                                                    </button>
                                                 </div>
-                                            </div>
-                                            <div className="flex justify-end">
-                                                <button
-                                                    type="submit"
-                                                    disabled={
-                                                        editForm.processing
-                                                    }
-                                                    className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                                                >
-                                                    {editForm.processing
-                                                        ? 'Saving…'
-                                                        : 'Save changes'}
-                                                </button>
-                                            </div>
-                                        </form>
-                                    ) : (
-                                        <div className="grid gap-4 rounded-xl border border-brand-navy/10 p-4 sm:grid-cols-2">
-                                            {[
-                                                [
-                                                    'First name',
-                                                    details.resident.first_name,
-                                                ],
-                                                [
-                                                    'Middle name',
-                                                    details.resident
-                                                        .middle_name,
-                                                ],
-                                                [
-                                                    'Last name',
-                                                    details.resident.last_name,
-                                                ],
-                                                [
-                                                    'Suffix',
-                                                    details.resident.suffix,
-                                                ],
-                                                [
-                                                    'Email',
-                                                    details.resident.email,
-                                                ],
-                                                [
-                                                    'Username',
-                                                    details.resident.username,
-                                                ],
-                                                [
-                                                    'Contact',
-                                                    details.resident
-                                                        .contact_number,
-                                                ],
-                                                [
-                                                    'Address',
+                                            </form>
+                                        ) : (
+                                            <div className="grid gap-4 rounded-xl border border-brand-navy/10 p-4 sm:grid-cols-2">
+                                                {[
                                                     [
+                                                        'First name',
                                                         details.resident
-                                                            .house_no_street,
+                                                            .first_name,
+                                                    ],
+                                                    [
+                                                        'Middle name',
                                                         details.resident
-                                                            .barangay,
+                                                            .middle_name,
+                                                    ],
+                                                    [
+                                                        'Last name',
                                                         details.resident
-                                                            .municipality,
+                                                            .last_name,
+                                                    ],
+                                                    [
+                                                        'Suffix',
+                                                        details.resident.suffix,
+                                                    ],
+                                                    [
+                                                        'Email',
+                                                        details.resident.email,
+                                                    ],
+                                                    [
+                                                        'Username',
                                                         details.resident
-                                                            .province,
-                                                    ]
-                                                        .filter(Boolean)
-                                                        .join(', '),
-                                                ],
-                                                [
-                                                    'Verification',
-                                                    details.resident.is_verified
-                                                        ? 'Verified'
-                                                        : 'Not verified',
-                                                ],
-                                                [
-                                                    'Joined',
-                                                    formatDateTime(
+                                                            .username,
+                                                    ],
+                                                    [
+                                                        'Contact',
                                                         details.resident
-                                                            .joined_at,
-                                                    ),
-                                                ],
-                                            ].map(([label, value]) => (
-                                                <div key={label}>
-                                                    <p className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
-                                                        {label}
+                                                            .contact_number,
+                                                    ],
+                                                    [
+                                                        'Address',
+                                                        [
+                                                            details.resident
+                                                                .house_no_street,
+                                                            details.resident
+                                                                .barangay,
+                                                            details.resident
+                                                                .municipality,
+                                                            details.resident
+                                                                .province,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(', '),
+                                                    ],
+                                                    [
+                                                        'Verification',
+                                                        details.resident
+                                                            .is_verified
+                                                            ? 'Verified'
+                                                            : 'Not verified',
+                                                    ],
+                                                    [
+                                                        'Joined',
+                                                        formatDateTime(
+                                                            details.resident
+                                                                .joined_at,
+                                                        ),
+                                                    ],
+                                                ].map(([label, value]) => (
+                                                    <div key={label}>
+                                                        <p className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
+                                                            {label}
+                                                        </p>
+                                                        <p className="mt-1 text-sm text-brand-navy">
+                                                            {value || '—'}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </section>
+                                )}
+
+                                {tab === 'security' && (
+                                    <section className="space-y-4">
+                                        <div className="rounded-xl border border-brand-navy/10 p-4">
+                                            <p className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
+                                                Password last changed
+                                            </p>
+                                            <p className="mt-1 text-sm font-semibold text-brand-navy">
+                                                {formatDateTime(
+                                                    details.resident
+                                                        .password_changed_at,
+                                                )}
+                                            </p>
+                                            {details.resident
+                                                .is_google_linked && (
+                                                <p className="mt-3 text-sm text-brand-muted">
+                                                    This account is linked to
+                                                    Google and normally signs in
+                                                    with Google.
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {temporaryPassword && (
+                                            <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
+                                                <p className="text-sm font-semibold text-amber-900">
+                                                    Copy this temporary password
+                                                    now. It will not be shown
+                                                    again.
+                                                </p>
+                                                <div className="mt-3 flex items-center gap-2">
+                                                    <code className="flex-1 rounded-lg bg-white px-3 py-2 font-mono text-base text-brand-navy">
+                                                        {temporaryPassword}
+                                                    </code>
+                                                    <button
+                                                        type="button"
+                                                        onClick={
+                                                            copyTemporaryPassword
+                                                        }
+                                                        className="inline-flex items-center gap-1.5 rounded-lg bg-brand-navy px-3 py-2 text-xs font-semibold text-white"
+                                                    >
+                                                        <Clipboard size={14} />{' '}
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setConfirmation('reset')
+                                            }
+                                            className="inline-flex items-center gap-2 rounded-lg bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white"
+                                        >
+                                            <KeyRound size={15} /> Reset
+                                            Password
+                                        </button>
+                                    </section>
+                                )}
+
+                                {tab === 'status' && (
+                                    <section className="space-y-4">
+                                        <div className="rounded-xl border border-brand-navy/10 p-4">
+                                            <ResidentStatusBadge
+                                                status={details.resident.status}
+                                            />
+                                            {details.resident.status ===
+                                                'suspended' && (
+                                                <div className="mt-4 space-y-2 text-sm">
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            Suspended:
+                                                        </span>{' '}
+                                                        {formatDateTime(
+                                                            details.resident
+                                                                .suspended_at,
+                                                        )}
                                                     </p>
-                                                    <p className="mt-1 text-sm text-brand-navy">
-                                                        {value || '—'}
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            Reason:
+                                                        </span>{' '}
+                                                        {details.resident
+                                                            .suspension_reason ||
+                                                            'No reason provided'}
                                                     </p>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </section>
-                            )}
-
-                            {tab === 'security' && (
-                                <section className="space-y-4">
-                                    <div className="rounded-xl border border-brand-navy/10 p-4">
-                                        <p className="text-xs font-semibold tracking-wide text-brand-muted uppercase">
-                                            Password last changed
-                                        </p>
-                                        <p className="mt-1 text-sm font-semibold text-brand-navy">
-                                            {formatDateTime(
-                                                details.resident
-                                                    .password_changed_at,
                                             )}
-                                        </p>
-                                        {details.resident.is_google_linked && (
-                                            <p className="mt-3 text-sm text-brand-muted">
-                                                This account is linked to Google
-                                                and normally signs in with
-                                                Google.
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {temporaryPassword && (
-                                        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4">
-                                            <p className="text-sm font-semibold text-amber-900">
-                                                Copy this temporary password
-                                                now. It will not be shown again.
-                                            </p>
-                                            <div className="mt-3 flex items-center gap-2">
-                                                <code className="flex-1 rounded-lg bg-white px-3 py-2 font-mono text-base text-brand-navy">
-                                                    {temporaryPassword}
-                                                </code>
-                                                <button
-                                                    type="button"
-                                                    onClick={
-                                                        copyTemporaryPassword
-                                                    }
-                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-brand-navy px-3 py-2 text-xs font-semibold text-white"
-                                                >
-                                                    <Clipboard size={14} /> Copy
-                                                </button>
-                                            </div>
+                                            {details.resident.status ===
+                                                'inactive' && (
+                                                <div className="mt-4 space-y-2 text-sm">
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            Deactivated:
+                                                        </span>{' '}
+                                                        {formatDateTime(
+                                                            details.resident
+                                                                .suspended_at,
+                                                        )}
+                                                    </p>
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            Reason:
+                                                        </span>{' '}
+                                                        {details.resident
+                                                            .suspension_reason ||
+                                                            'Deactivated by resident via mobile app'}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
 
-                                    <button
-                                        type="button"
-                                        onClick={() => setConfirmation('reset')}
-                                        className="inline-flex items-center gap-2 rounded-lg bg-brand-navy px-4 py-2.5 text-sm font-semibold text-white"
-                                    >
-                                        <KeyRound size={15} /> Reset Password
-                                    </button>
-                                </section>
-                            )}
-
-                            {tab === 'status' && (
-                                <section className="space-y-4">
-                                    <div className="rounded-xl border border-brand-navy/10 p-4">
-                                        <ResidentStatusBadge
-                                            status={details.resident.status}
-                                        />
                                         {details.resident.status ===
-                                            'suspended' && (
-                                            <div className="mt-4 space-y-2 text-sm">
-                                                <p>
-                                                    <span className="font-semibold">
-                                                        Suspended:
-                                                    </span>{' '}
-                                                    {formatDateTime(
-                                                        details.resident
-                                                            .suspended_at,
-                                                    )}
-                                                </p>
-                                                <p>
-                                                    <span className="font-semibold">
-                                                        Reason:
-                                                    </span>{' '}
-                                                    {details.resident
-                                                        .suspension_reason ||
-                                                        'No reason provided'}
-                                                </p>
-                                            </div>
+                                        'active' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setConfirmation('suspend')
+                                                }
+                                                className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 text-sm font-semibold text-white"
+                                            >
+                                                <ShieldAlert size={15} />{' '}
+                                                Suspend Account
+                                            </button>
+                                        ) : details.resident.status ===
+                                          'suspended' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setConfirmation(
+                                                        'reactivate',
+                                                    )
+                                                }
+                                                className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white"
+                                            >
+                                                <ShieldCheck size={15} />{' '}
+                                                Reactivate Account
+                                            </button>
+                                        ) : (
+                                            <p className="text-xs text-brand-muted">
+                                                This account was deactivated by
+                                                the resident via the mobile app.
+                                                In compliance with data privacy
+                                                policies, only the resident may
+                                                reactivate it by signing back in
+                                                within the 30-day grace period.
+                                            </p>
                                         )}
-                                    </div>
+                                    </section>
+                                )}
 
-                                    {details.resident.status === 'active' ? (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setConfirmation('suspend')
-                                            }
-                                            className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 text-sm font-semibold text-white"
-                                        >
-                                            <ShieldAlert size={15} /> Suspend
-                                            Account
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setConfirmation('reactivate')
-                                            }
-                                            className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white"
-                                        >
-                                            <ShieldCheck size={15} /> Reactivate
-                                            Account
-                                        </button>
-                                    )}
-                                </section>
-                            )}
-
-                            {tab === 'reports' && (
-                                <section>
-                                    {details.reports.length === 0 ? (
-                                        <div className="rounded-xl border border-dashed border-brand-navy/20 py-12 text-center text-sm text-brand-muted">
-                                            This resident has not submitted any
-                                            reports.
-                                        </div>
-                                    ) : (
-                                        <div className="overflow-x-auto rounded-xl border border-brand-navy/10">
-                                            <table className="w-full text-sm">
-                                                <thead className="bg-slate-50">
-                                                    <tr>
-                                                        {[
-                                                            'Reference',
-                                                            'Type',
-                                                            'Barangay',
-                                                            'Status',
-                                                            'Date',
-                                                            '',
-                                                        ].map(
-                                                            (
-                                                                heading,
-                                                                index,
-                                                            ) => (
-                                                                <th
-                                                                    key={`${heading}-${index}`}
-                                                                    className="px-3 py-2 text-left text-xs font-semibold text-brand-muted uppercase"
+                                {tab === 'reports' && (
+                                    <section>
+                                        {details.reports.length === 0 ? (
+                                            <div className="rounded-xl border border-dashed border-brand-navy/20 py-12 text-center text-sm text-brand-muted">
+                                                This resident has not submitted
+                                                any reports.
+                                            </div>
+                                        ) : (
+                                            <div className="overflow-x-auto rounded-xl border border-brand-navy/10">
+                                                <table className="w-full text-sm">
+                                                    <thead className="bg-slate-50">
+                                                        <tr>
+                                                            {[
+                                                                'Reference',
+                                                                'Type',
+                                                                'Barangay',
+                                                                'Status',
+                                                                'Date',
+                                                                '',
+                                                            ].map(
+                                                                (
+                                                                    heading,
+                                                                    index,
+                                                                ) => (
+                                                                    <th
+                                                                        key={`${heading}-${index}`}
+                                                                        className="px-3 py-2 text-left text-xs font-semibold text-brand-muted uppercase"
+                                                                    >
+                                                                        {
+                                                                            heading
+                                                                        }
+                                                                    </th>
+                                                                ),
+                                                            )}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {details.reports.map(
+                                                            (report) => (
+                                                                <tr
+                                                                    key={
+                                                                        report.id
+                                                                    }
+                                                                    className="border-t border-brand-navy/10"
                                                                 >
-                                                                    {heading}
-                                                                </th>
+                                                                    <td className="px-3 py-3 font-mono text-xs font-semibold">
+                                                                        {
+                                                                            report.reference
+                                                                        }
+                                                                    </td>
+                                                                    <td className="px-3 py-3 text-xs">
+                                                                        {
+                                                                            report.incident_type
+                                                                        }
+                                                                    </td>
+                                                                    <td className="px-3 py-3 text-xs">
+                                                                        {report.barangay ??
+                                                                            '—'}
+                                                                    </td>
+                                                                    <td className="px-3 py-3">
+                                                                        <StatusBadge
+                                                                            status={
+                                                                                report.status
+                                                                            }
+                                                                        />
+                                                                    </td>
+                                                                    <td className="px-3 py-3 text-xs text-brand-muted">
+                                                                        {formatDateTime(
+                                                                            report.created_at,
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-3 py-3 text-right">
+                                                                        <Link
+                                                                            href={showIncident(
+                                                                                report.id,
+                                                                            )}
+                                                                            className="text-xs font-semibold text-brand-blue hover:underline"
+                                                                        >
+                                                                            View
+                                                                            Report
+                                                                        </Link>
+                                                                    </td>
+                                                                </tr>
                                                             ),
                                                         )}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {details.reports.map(
-                                                        (report) => (
-                                                            <tr
-                                                                key={report.id}
-                                                                className="border-t border-brand-navy/10"
-                                                            >
-                                                                <td className="px-3 py-3 font-mono text-xs font-semibold">
-                                                                    {
-                                                                        report.reference
-                                                                    }
-                                                                </td>
-                                                                <td className="px-3 py-3 text-xs">
-                                                                    {
-                                                                        report.incident_type
-                                                                    }
-                                                                </td>
-                                                                <td className="px-3 py-3 text-xs">
-                                                                    {report.barangay ??
-                                                                        '—'}
-                                                                </td>
-                                                                <td className="px-3 py-3">
-                                                                    <StatusBadge
-                                                                        status={
-                                                                            report.status
-                                                                        }
-                                                                    />
-                                                                </td>
-                                                                <td className="px-3 py-3 text-xs text-brand-muted">
-                                                                    {formatDateTime(
-                                                                        report.created_at,
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-3 py-3 text-right">
-                                                                    <Link
-                                                                        href={showIncident(
-                                                                            report.id,
-                                                                        )}
-                                                                        className="text-xs font-semibold text-brand-blue hover:underline"
-                                                                    >
-                                                                        View
-                                                                        Report
-                                                                    </Link>
-                                                                </td>
-                                                            </tr>
-                                                        ),
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    )}
-                                </section>
-                            )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </section>
+                                )}
+                            </div>
                         </>
                     )}
                 </DialogContent>
