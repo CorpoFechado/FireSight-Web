@@ -3,11 +3,14 @@ import { Link, router, useRemember } from '@inertiajs/react';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import L from 'leaflet';
 import {
+    ArrowUpDown,
     CalendarDays,
+    Check,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
     Layers,
+    Search,
     SlidersHorizontal,
     X,
 } from 'lucide-react';
@@ -101,6 +104,26 @@ type MapView = {
     center: [number, number];
     zoom: number;
 };
+
+type SidebarSort = 'newest' | 'oldest' | 'alarm_desc' | 'alarm_asc';
+
+const SIDEBAR_SORT_OPTIONS: { label: string; value: SidebarSort }[] = [
+    { label: 'Date: Newest first', value: 'newest' },
+    { label: 'Date: Oldest first', value: 'oldest' },
+    { label: 'Alarm Level: Highest first', value: 'alarm_desc' },
+    { label: 'Alarm Level: Lowest first', value: 'alarm_asc' },
+];
+
+const ALARM_LEVEL_RANK: Record<AlarmLevel, number> = (
+    Object.keys(ALARM_LEVEL_CFG) as AlarmLevel[]
+).reduce(
+    (acc, key, index) => {
+        acc[key] = index;
+
+        return acc;
+    },
+    {} as Record<AlarmLevel, number>,
+);
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -292,6 +315,18 @@ export default function FireIncidentsMap({
         null,
         'FireIncidentsMap.selectedId',
     );
+    const [sidebarSearch, setSidebarSearch] = useRemember<string>(
+        '',
+        'FireIncidentsMap.sidebarSearch',
+    );
+    const [sidebarSort, setSidebarSort] = useRemember<SidebarSort>(
+        'newest',
+        'FireIncidentsMap.sidebarSort',
+    );
+    const [searchOpen, setSearchOpen] = useState<boolean>(
+        Boolean(sidebarSearch),
+    );
+    const [sortMenuOpen, setSortMenuOpen] = useState<boolean>(false);
     const [mapView, setMapView] = useRemember<MapView>(
         {
             center: LIAN_CENTER,
@@ -305,6 +340,8 @@ export default function FireIncidentsMap({
     > | null>(null);
     const mapRef = useRef<L.Map | null>(null);
     const incidentMarkerRefs = useRef(new Map<number, L.CircleMarker>());
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
+    const sortMenuRef = useRef<HTMLDivElement | null>(null);
 
     const activeSelectedId = incidents.some(
         (incident) => incident.report_id === selectedId,
@@ -346,6 +383,82 @@ export default function FireIncidentsMap({
             incidentMarkerRefs.current.get(activeSelectedId)?.openPopup();
         }
     }, [activeSelectedId]);
+
+    useEffect(() => {
+        if (searchOpen) {
+            searchInputRef.current?.focus();
+        }
+    }, [searchOpen]);
+
+    useEffect(() => {
+        if (!sortMenuOpen) {
+            return;
+        }
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                sortMenuRef.current &&
+                !sortMenuRef.current.contains(event.target as Node)
+            ) {
+                setSortMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [sortMenuOpen]);
+
+    const displayedIncidents = useMemo(() => {
+        const query = sidebarSearch.trim().toLowerCase();
+
+        const filtered = query
+            ? incidents.filter(
+                  (inc) =>
+                      inc.reference.toLowerCase().includes(query) ||
+                      String(inc.report_id).includes(query),
+              )
+            : [...incidents];
+
+        return filtered.sort((a, b) => {
+            if (sidebarSort === 'oldest') {
+                return (
+                    a.dateTime.localeCompare(b.dateTime) ||
+                    a.report_id - b.report_id
+                );
+            }
+
+            if (sidebarSort === 'alarm_desc' || sidebarSort === 'alarm_asc') {
+                const rankA = a.alarm_level
+                    ? (ALARM_LEVEL_RANK[a.alarm_level] ?? null)
+                    : null;
+                const rankB = b.alarm_level
+                    ? (ALARM_LEVEL_RANK[b.alarm_level] ?? null)
+                    : null;
+
+                if (rankA === null && rankB !== null) {
+                    return 1;
+                }
+
+                if (rankA !== null && rankB === null) {
+                    return -1;
+                }
+
+                if (rankA !== null && rankB !== null && rankA !== rankB) {
+                    return sidebarSort === 'alarm_desc'
+                        ? rankB - rankA
+                        : rankA - rankB;
+                }
+            }
+
+            return (
+                b.dateTime.localeCompare(a.dateTime) ||
+                b.report_id - a.report_id
+            );
+        });
+    }, [incidents, sidebarSearch, sidebarSort]);
 
     // Load barangay GeoJSON
     useEffect(() => {
@@ -749,15 +862,151 @@ export default function FireIncidentsMap({
                         <PortalCard className="flex w-64 flex-shrink-0 flex-col overflow-hidden">
                             {/* Header */}
                             <div
-                                className="flex items-center justify-between border-b px-4 py-3"
+                                className="relative z-10 flex items-center justify-between gap-2 border-b px-4 py-3"
                                 style={{ borderColor: 'rgba(43,45,66,0.08)' }}
                             >
-                                <h3 className="text-sm font-bold text-brand-navy">
-                                    Incidents
-                                </h3>
-                                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-brand-orange">
-                                    {incidents.length}
-                                </span>
+                                {searchOpen || Boolean(sidebarSearch) ? (
+                                    <div className="flex h-5 min-w-0 flex-1 items-center gap-1.5">
+                                        <Search
+                                            size={13}
+                                            className="shrink-0 text-brand-muted"
+                                        />
+                                        <input
+                                            ref={searchInputRef}
+                                            id="map-sidebar-search-input"
+                                            type="text"
+                                            value={sidebarSearch}
+                                            onChange={(e) =>
+                                                setSidebarSearch(e.target.value)
+                                            }
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Escape') {
+                                                    setSidebarSearch('');
+                                                    setSearchOpen(false);
+                                                }
+                                            }}
+                                            placeholder="Search INC-2026-..."
+                                            aria-label="Search incident ID"
+                                            className="min-w-0 flex-1 bg-transparent text-xs text-brand-navy outline-none placeholder:text-brand-muted/70"
+                                        />
+                                        <span className="shrink-0 rounded-full bg-orange-100 px-1.5 py-0.5 text-[11px] leading-none font-semibold text-brand-orange">
+                                            {displayedIncidents.length}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            id="map-sidebar-search-clear"
+                                            onClick={() => {
+                                                setSidebarSearch('');
+                                                setSearchOpen(false);
+                                            }}
+                                            title="Clear search"
+                                            aria-label="Clear search"
+                                            className="inline-flex size-5 shrink-0 items-center justify-center rounded text-brand-muted transition-colors hover:bg-gray-100 hover:text-brand-navy"
+                                        >
+                                            <X size={13} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex h-5 items-center gap-2">
+                                        <h3 className="text-sm font-bold text-brand-navy">
+                                            Incidents
+                                        </h3>
+                                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-brand-orange">
+                                            {incidents.length}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="flex shrink-0 items-center gap-1">
+                                    {!searchOpen && !sidebarSearch && (
+                                        <button
+                                            type="button"
+                                            id="map-sidebar-search-toggle"
+                                            onClick={() => setSearchOpen(true)}
+                                            title="Search incident ID"
+                                            aria-label="Search incident ID"
+                                            className="inline-flex size-5 items-center justify-center rounded text-brand-muted transition-colors hover:bg-gray-100 hover:text-brand-navy"
+                                        >
+                                            <Search size={14} />
+                                        </button>
+                                    )}
+
+                                    <div className="relative" ref={sortMenuRef}>
+                                        <button
+                                            type="button"
+                                            id="map-sidebar-sort-toggle"
+                                            onClick={() =>
+                                                setSortMenuOpen((open) => !open)
+                                            }
+                                            title="Sort incidents"
+                                            aria-label="Sort incidents"
+                                            aria-expanded={sortMenuOpen}
+                                            className={`inline-flex size-5 items-center justify-center rounded transition-colors ${
+                                                sidebarSort !== 'newest'
+                                                    ? 'bg-blue-50 text-brand-navy'
+                                                    : 'text-brand-muted hover:bg-gray-100 hover:text-brand-navy'
+                                            }`}
+                                        >
+                                            <ArrowUpDown size={14} />
+                                        </button>
+
+                                        {sortMenuOpen && (
+                                            <div
+                                                id="map-sidebar-sort-menu"
+                                                role="menu"
+                                                className="absolute top-full right-0 z-20 mt-1 w-48 rounded-lg border bg-white py-1 shadow-lg"
+                                                style={{
+                                                    borderColor:
+                                                        'rgba(43,45,66,0.12)',
+                                                }}
+                                            >
+                                                {SIDEBAR_SORT_OPTIONS.map(
+                                                    (opt) => {
+                                                        const active =
+                                                            sidebarSort ===
+                                                            opt.value;
+
+                                                        return (
+                                                            <button
+                                                                key={opt.value}
+                                                                type="button"
+                                                                role="menuitemradio"
+                                                                aria-checked={
+                                                                    active
+                                                                }
+                                                                onClick={() => {
+                                                                    setSidebarSort(
+                                                                        opt.value,
+                                                                    );
+                                                                    setSortMenuOpen(
+                                                                        false,
+                                                                    );
+                                                                }}
+                                                                className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-xs transition-colors hover:bg-gray-50 ${
+                                                                    active
+                                                                        ? 'font-semibold text-brand-navy'
+                                                                        : 'text-brand-muted'
+                                                                }`}
+                                                            >
+                                                                <span>
+                                                                    {opt.label}
+                                                                </span>
+                                                                {active && (
+                                                                    <Check
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                        className="text-brand-navy"
+                                                                    />
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Incident list */}
@@ -775,7 +1024,26 @@ export default function FireIncidentsMap({
                                         </p>
                                     </div>
                                 )}
-                                {incidents.map((inc) => (
+                                {incidents.length > 0 &&
+                                    displayedIncidents.length === 0 && (
+                                        <div className="flex flex-col items-center gap-2 p-6 text-center">
+                                            <p className="text-xs font-semibold text-brand-muted">
+                                                No incident matching &ldquo;
+                                                {sidebarSearch.trim()}&rdquo;
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSidebarSearch('');
+                                                    setSearchOpen(false);
+                                                }}
+                                                className="rounded-md px-2.5 py-1 text-xs font-semibold text-brand-blue transition-colors hover:bg-blue-50"
+                                            >
+                                                Clear search
+                                            </button>
+                                        </div>
+                                    )}
+                                {displayedIncidents.map((inc) => (
                                     <div
                                         key={inc.report_id}
                                         onClick={() => focusIncident(inc)}

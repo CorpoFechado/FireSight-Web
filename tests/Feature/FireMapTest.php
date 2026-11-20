@@ -315,9 +315,20 @@ test('map page defaults to the requested layer and sidebar layout', function () 
 
     expect($source)
         ->toContain('risk: false,')
-        ->toContain('className="flex flex-row-reverse gap-4"')
+        ->toContain('className="flex min-h-0 flex-1 flex-row-reverse gap-4"')
         ->not->toContain('{/* Grouped counts */}')
         ->not->toContain('Object.entries(groupedCounts).map(');
+});
+
+test('map sidebar includes inline incident id search and sort controls', function () {
+    $source = file_get_contents(resource_path('js/pages/map/index.tsx'));
+
+    expect($source)
+        ->toContain('map-sidebar-search-toggle')
+        ->toContain('map-sidebar-search-input')
+        ->toContain('map-sidebar-search-clear')
+        ->toContain('map-sidebar-sort-toggle')
+        ->toContain('SIDEBAR_SORT_OPTIONS');
 });
 
 test('map report links preserve map-only return navigation and remembered state', function () {
