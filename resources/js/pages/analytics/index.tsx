@@ -189,6 +189,7 @@ function AnalyticsFilters({
                                     {type.label}
                                 </option>
                             ))}
+                            <option value="unclassified">Unclassified</option>
                         </select>
                     </div>
                     {data.period === 'custom' && (
@@ -305,29 +306,19 @@ function SupportingIncidentList({
                     <select
                         id="supporting-type"
                         className={inputClass}
-                        disabled={Boolean(filters.incident_type)}
                         value={filters.incident_type || filters.supporting_type}
                         onChange={(event) =>
                             onChange({ supporting_type: event.target.value })
                         }
                     >
-                        {!filters.incident_type && (
-                            <option value="">All Fire Types</option>
-                        )}
+                        <option value="">All Fire Types</option>
                         {typeOptions.map((type) => (
                             <option key={type.value} value={type.value}>
                                 {type.label}
                             </option>
                         ))}
-                        {!filters.incident_type && (
-                            <option value="unclassified">Unclassified</option>
-                        )}
+                        <option value="unclassified">Unclassified</option>
                     </select>
-                    {filters.incident_type && (
-                        <p className="text-xs text-brand-muted">
-                            Uses the page fire-type filter.
-                        </p>
-                    )}
                 </div>
                 <div className="min-w-40 flex-1 space-y-1.5">
                     <label
@@ -664,14 +655,10 @@ function BarangayDetails({
                     </div>
                 </div>
                 <div className="space-y-5 p-4 sm:p-5">
-                    {!filters.incident_type && barangay.types.length > 0 && (
+                    {barangay.types.length > 0 && (
                         <IncidentTypeChart
                             types={barangay.types}
-                            selectedType={
-                                filters.supporting_view === 'barangay'
-                                    ? filters.supporting_type
-                                    : ''
-                            }
+                            selectedType={filters.incident_type}
                             onSelect={(type) => {
                                 setShowIncidents(true);
                                 onShowSupporting(
@@ -781,9 +768,10 @@ export default function Analytics({
         'Analytics:alarmIncidents',
     );
     const [selecting, setSelecting] = useState(false);
-    const typeLabel = typeOptions.find(
-        (type) => type.value === filters.incident_type,
-    )?.label;
+    const typeLabel =
+        typeOptions.find((type) => type.value === filters.incident_type)
+            ?.label ||
+        (filters.incident_type === 'unclassified' ? 'Unclassified' : undefined);
     const zeroIncidentBarangays = barangayOverview.filter(
         (row) => row.count === 0,
     ).length;
@@ -796,6 +784,16 @@ export default function Analytics({
         selectedBarangay?.barangay_name || 'All barangays',
         typeLabel || 'All fire types',
     ].join(' · ');
+
+    const selectedAlarmLabel =
+        filters.supporting_alarm_level === 'unassessed'
+            ? 'Awaiting assessment'
+            : incidentsByAlarmLevel.find(
+                  (level) => level.level === filters.supporting_alarm_level,
+              )?.label;
+    const trendContextLabel = [contextLabel, selectedAlarmLabel]
+        .filter(Boolean)
+        .join(' · ');
 
     const selectBarangay = (id: number | null) => {
         router.get(
@@ -825,15 +823,13 @@ export default function Analytics({
             {
                 ...filters,
                 supporting_view: view,
-                supporting_type:
-                    view === filters.supporting_view
-                        ? filters.supporting_type
-                        : '',
+                incident_type: values.supporting_type ?? filters.incident_type,
+                supporting_type: '',
                 supporting_alarm_level:
-                    view === filters.supporting_view
-                        ? filters.supporting_alarm_level
-                        : '',
-                ...values,
+                    values.supporting_type !== undefined
+                        ? ''
+                        : (values.supporting_alarm_level ??
+                          filters.supporting_alarm_level),
             },
             {
                 preserveState: true,
@@ -1127,13 +1123,13 @@ export default function Analytics({
                                 Monthly incident trend
                             </h2>
                             <p className="mt-1 text-sm text-brand-muted">
-                                {contextLabel}
+                                {trendContextLabel}
                             </p>
                         </div>
                         <div
                             className="p-3 sm:p-5"
                             role="img"
-                            aria-label={`Monthly recorded incidents. ${contextLabel}. ${monthlyTrend.map((point) => `${point.month}: ${point.incidents}`).join(', ')}`}
+                            aria-label={`Monthly recorded incidents. ${trendContextLabel}. ${monthlyTrend.map((point) => `${point.month}: ${point.incidents}`).join(', ')}`}
                         >
                             <ResponsiveContainer width="100%" height={260}>
                                 <LineChart
@@ -1205,6 +1201,24 @@ export default function Analytics({
                             />
                         </CollapsibleTrigger>
                         <CollapsibleContent className="analytics-collapse">
+                            {filters.supporting_alarm_level && (
+                                <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4 sm:px-5">
+                                    <p className="text-sm text-brand-navy">
+                                        Selected alarm · {selectedAlarmLabel}
+                                    </p>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            showSupporting('alarm', {
+                                                supporting_alarm_level: '',
+                                            })
+                                        }
+                                    >
+                                        Clear alarm filter
+                                    </Button>
+                                </div>
+                            )}
                             <div
                                 className="overflow-x-auto border-t border-brand-navy/10 p-4 sm:p-5"
                                 role="img"
@@ -1265,8 +1279,10 @@ export default function Analytics({
                                                 onClick={(entry) =>
                                                     showSupporting('alarm', {
                                                         supporting_alarm_level:
-                                                            entry.level,
-                                                        supporting_type: '',
+                                                            filters.supporting_alarm_level ===
+                                                            entry.level
+                                                                ? ''
+                                                                : entry.level,
                                                     })
                                                 }
                                             >
@@ -1274,7 +1290,19 @@ export default function Analytics({
                                                     (row) => (
                                                         <Cell
                                                             key={row.level}
-                                                            fill={row.color}
+                                                            fill={
+                                                                filters.supporting_alarm_level ===
+                                                                row.level
+                                                                    ? '#1D3557'
+                                                                    : row.color
+                                                            }
+                                                            fillOpacity={
+                                                                filters.supporting_alarm_level &&
+                                                                filters.supporting_alarm_level !==
+                                                                    row.level
+                                                                    ? 0.25
+                                                                    : 1
+                                                            }
                                                         />
                                                     ),
                                                 )}

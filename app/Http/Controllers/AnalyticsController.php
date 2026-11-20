@@ -31,7 +31,7 @@ class AnalyticsController extends Controller
             'period' => ['nullable', Rule::in(['this_month', 'last_3_months', 'this_year', 'custom'])],
             'date_from' => ['required_if:period,custom', 'nullable', 'date_format:Y-m-d'],
             'date_to' => ['required_if:period,custom', 'nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
-            'incident_type' => ['nullable', Rule::in(array_keys(self::TYPE_LABELS))],
+            'incident_type' => ['nullable', Rule::in([...array_keys(self::TYPE_LABELS), 'unclassified'])],
             'barangay_id' => ['nullable', 'integer', 'exists:barangay,barangay_id'],
             'incident_page' => ['nullable', 'integer', 'min:1'],
             'supporting_view' => ['nullable', Rule::in(['barangay', 'alarm'])],
@@ -43,7 +43,7 @@ class AnalyticsController extends Controller
 
         $now = Date::now();
         $period = $input['period'] ?? 'this_year';
-        $type = $input['incident_type'] ?? '';
+        $type = $input['incident_type'] ?? $input['supporting_type'] ?? '';
         [$start, $end] = DateRange::resolve($period, $input['date_from'] ?? '', $input['date_to'] ?? '', $now);
 
         $filters = [
@@ -57,7 +57,8 @@ class AnalyticsController extends Controller
             'supporting_alarm_level' => $input['supporting_alarm_level'] ?? '',
         ];
 
-        $query = $this->filterType(IncidentRecord::query()->whereBetween('incident_datetime', [$start, $end]), $type);
+        $allTypesQuery = IncidentRecord::query()->whereBetween('incident_datetime', [$start, $end]);
+        $query = $this->filterType(clone $allTypesQuery, $type);
 
         $counts = (clone $query)
             ->select('barangay_id', 'incident_type')
@@ -102,17 +103,14 @@ class AnalyticsController extends Controller
                 'fatalities' => (int) $impact->getAttribute('fatalities'),
                 'estimated_damage' => $impact->estimated_damage !== null ? (float) $impact->estimated_damage : null,
                 'damage_recorded' => (int) $impact->getAttribute('damage_recorded'),
-                'types' => $this->typeBreakdown($countsByBarangay->get($selected->barangay_id, collect())),
+                'types' => $this->typeBreakdown((clone $allTypesQuery)->where('barangay_id', $selected->barangay_id)
+                    ->select('incident_type')->selectRaw('COUNT(*) as total')->groupBy('incident_type')->get()),
             ];
         }
 
         if ($selected !== null || $filters['supporting_view'] === 'alarm') {
             $supportingQuery = $this->filterType(clone $contextQuery, $filters['supporting_type']);
-            if ($filters['supporting_alarm_level'] === 'unassessed') {
-                $supportingQuery->whereNull('alarm_level');
-            } elseif ($filters['supporting_alarm_level'] !== '') {
-                $supportingQuery->where('alarm_level', $filters['supporting_alarm_level']);
-            }
+            $supportingQuery = $this->filterAlarmLevel($supportingQuery, $filters['supporting_alarm_level']);
 
             $supportingIncidents = $supportingQuery
                 ->with('report:report_id,created_at')
@@ -148,7 +146,7 @@ class AnalyticsController extends Controller
             'barangayOverview' => $overview,
             'selectedBarangay' => $selectedBarangay,
             'supportingIncidents' => $supportingIncidents,
-            'monthlyTrend' => $this->monthlyTrend($contextQuery, $start, $end),
+            'monthlyTrend' => $this->monthlyTrend($this->filterAlarmLevel(clone $contextQuery, $filters['supporting_alarm_level']), $start, $end),
             'incidentsByAlarmLevel' => collect(AlarmLevel::cases())->map(fn (AlarmLevel $level): array => [
                 'level' => $level->value,
                 'label' => $level->label(),
@@ -160,6 +158,19 @@ class AnalyticsController extends Controller
             'dateRange' => ['start' => $start->format('Y-m-d'), 'end' => $end->format('Y-m-d')],
             'filters' => $filters,
         ]);
+    }
+
+    /**
+     * @param  Builder<IncidentRecord>  $query
+     * @return Builder<IncidentRecord>
+     */
+    private function filterAlarmLevel(Builder $query, string $level): Builder
+    {
+        if ($level === 'unassessed') {
+            return $query->whereNull('alarm_level');
+        }
+
+        return $level === '' ? $query : $query->where('alarm_level', $level);
     }
 
     /**
