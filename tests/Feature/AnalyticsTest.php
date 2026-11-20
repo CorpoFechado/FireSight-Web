@@ -42,9 +42,9 @@ test('bfp admin can view the prevention analytics overview', function () {
             ->has('monthlyTrend.0.incidents')
             ->missing('monthlyTrend.0.resolved')
             ->has('incidentsByAlarmLevel')
-            ->where('incidentsByAlarmLevel.0.level', 'verification')
-            ->where('incidentsByAlarmLevel.0.label', 'Verification')
-            ->where('incidentsByAlarmLevel.0.color', '#A9B8D0')
+            ->where('incidentsByAlarmLevel.0.level', \App\Enums\AlarmLevel::cases()[0]->value)
+            ->where('incidentsByAlarmLevel.0.label', \App\Enums\AlarmLevel::cases()[0]->label())
+            ->where('incidentsByAlarmLevel.0.color', \App\Enums\AlarmLevel::cases()[0]->color())
             ->has('filters')
             ->where('filters.period', 'this_year')
             ->where('filters.incident_type', '')
@@ -255,7 +255,7 @@ test('canonical type filters include legacy types consistently', function (strin
         ->where('barangayOverview.0.count', 2)
         ->where('selectedBarangay.count', 2)
         ->where('selectedBarangay.injuries', 5)
-        ->has('selectedBarangay.types', 1)
+        ->has('selectedBarangay.types', 3)
         ->where('selectedBarangay.types.0.type', $canonical)
         ->where('selectedBarangay.types.0.count', 2)
         ->where('monthlyTrend.5.incidents', 2)
@@ -300,7 +300,8 @@ test('a selected barangay remains available when filters match no incidents', fu
         ->assertInertia(fn ($page) => $page
             ->where('selectedBarangay.barangay_id', $barangay->barangay_id)
             ->where('selectedBarangay.count', 0)
-            ->where('selectedBarangay.types', [])
+            ->has('selectedBarangay.types', 1)
+            ->where('selectedBarangay.types.0.type', 'residential_fire')
             ->where('selectedBarangay.estimated_damage', null)
             ->where('selectedBarangay.damage_recorded', 0)
             ->where('supportingIncidents.total', 0)
@@ -370,7 +371,7 @@ test('invalid analytics query inputs return validation errors', function (array 
     'reversed range' => [['period' => 'custom', 'date_from' => '2026-06-15', 'date_to' => '2026-06-01'], 'date_to'],
 ]);
 
-test('supporting filters narrow the selected barangay records while retaining the analytics context', function () {
+test('supporting filters narrow the selected barangay records and coordinate the trend and alarm distribution', function () {
     $alpha = Barangay::create(['barangay_name' => 'Alpha']);
     $beta = Barangay::create(['barangay_name' => 'Beta']);
     createAnalyticsIncident($alpha);
@@ -385,10 +386,10 @@ test('supporting filters narrow the selected barangay records while retaining th
         'supporting_type' => 'residential_fire',
         'supporting_alarm_level' => '2nd_alarm',
     ]))->assertInertia(fn ($page) => $page
-        ->where('summary.total', 6)
-        ->where('selectedBarangay.count', 4)
-        ->where('monthlyTrend.5.incidents', 4)
-        ->where('incidentsByAlarmLevel', fn ($rows) => collect($rows)->sum('count') === 3)
+        ->where('summary.total', 4)
+        ->where('selectedBarangay.count', 2)
+        ->where('monthlyTrend.5.incidents', 1)
+        ->where('incidentsByAlarmLevel', fn ($rows) => collect($rows)->sum('count') === 2)
         ->where('supportingIncidents.total', 1)
         ->where('supportingIncidents.data.0.incident_id', $match->incident_id)
         ->where('supportingIncidents.data.0.type', 'Residential Fire')
@@ -425,7 +426,7 @@ test('supporting records can isolate unclassified incidents awaiting alarm asses
         'supporting_type' => 'unclassified',
         'supporting_alarm_level' => 'unassessed',
     ]))->assertInertia(fn ($page) => $page
-        ->where('summary.total', 3)
+        ->where('summary.total', 2)
         ->where('supportingIncidents.total', 1)
         ->where('supportingIncidents.data.0.incident_id', $match->incident_id)
         ->where('supportingIncidents.data.0.type', 'Unclassified')
@@ -456,6 +457,39 @@ test('supporting filters respect the shared date type and barangay filters', fun
         ->assertInertia(fn ($page) => $page
             ->where('selectedBarangay.count', 1)
             ->where('supportingIncidents.total', 0));
+});
+
+test('type and alarm selections coordinate charts while retaining their complete breakdowns', function () {
+    $barangay = Barangay::create(['barangay_name' => 'Alpha']);
+    createAnalyticsIncident($barangay);
+    createAnalyticsIncident($barangay, ['incident_type' => 'structural', 'alarm_level' => '2nd_alarm']);
+    createAnalyticsIncident($barangay, ['incident_type' => 'commercial_fire', 'alarm_level' => '3rd_alarm']);
+
+    $filters = ['barangay_id' => $barangay->barangay_id, 'incident_type' => 'residential_fire'];
+    $this->get(route('analytics', $filters))->assertInertia(fn ($page) => $page
+        ->has('selectedBarangay.types', 2)
+        ->where('selectedBarangay.types.0.count', 2)
+        ->where('selectedBarangay.types.1.type', 'commercial_fire')
+        ->where('monthlyTrend.5.incidents', 2)
+        ->where('incidentsByAlarmLevel', fn ($rows) => collect($rows)->sum('count') === 2)
+        ->where('supportingIncidents.total', 2));
+
+    $this->get(route('analytics', [...$filters, 'supporting_alarm_level' => '2nd_alarm']))
+        ->assertInertia(fn ($page) => $page
+            ->has('selectedBarangay.types', 2)
+            ->where('incidentsByAlarmLevel', fn ($rows) => collect($rows)->sum('count') === 2)
+            ->where('monthlyTrend.5.incidents', 1)
+            ->where('supportingIncidents.total', 1));
+
+    $this->get(route('analytics', $filters))->assertInertia(fn ($page) => $page
+        ->where('monthlyTrend.5.incidents', 2)
+        ->where('supportingIncidents.total', 2));
+
+    $this->get(route('analytics', ['barangay_id' => $barangay->barangay_id]))
+        ->assertInertia(fn ($page) => $page
+            ->where('monthlyTrend.5.incidents', 3)
+            ->where('incidentsByAlarmLevel', fn ($rows) => collect($rows)->sum('count') === 3)
+            ->where('supportingIncidents.total', 3));
 });
 
 test('alarm evidence pagination retains its supporting filters', function () {
