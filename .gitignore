@@ -44,3 +44,9 @@ dataset/
 !risk-prediction-service/lian_barangay_demographics_area.csv
 !risk-prediction-service/lian_weather_monthly.csv
 
+# Python Virtual Environments
+venv/
+.venv/
+fire-detection-service/venv/
+fire-detection-service/.venv/
+

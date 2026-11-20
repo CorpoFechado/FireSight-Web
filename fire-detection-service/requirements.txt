@@ -1,0 +1,13 @@
+# Core Computer Vision & AI Inference
+opencv-python>=4.8.0
+numpy>=1.24.0
+onnxruntime>=1.16.0
+Pillow>=10.0.0
+
+# Web Streaming Server & CORS
+Flask>=3.0.0
+Flask-Cors>=4.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0

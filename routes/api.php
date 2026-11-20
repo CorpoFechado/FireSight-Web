@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CctvController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EducationController;
@@ -157,7 +158,15 @@ Route::prefix('v1')->group(function (): void {
         // ── 10. Dashboard Analytics ──────────────────────────────────────
         Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('api.v1.dashboard.analytics');
         Route::get('/dashboard/analytics.php', [DashboardController::class, 'analytics']);
+
+        // ── 11. Resident CCTV & AI Fire Monitoring ────────────────────────
+        Route::get('/cctv', [CctvController::class, 'index'])->name('api.v1.cctv.index');
+        Route::post('/cctv', [CctvController::class, 'store'])->name('api.v1.cctv.store');
+        Route::delete('/cctv', [CctvController::class, 'destroy'])->name('api.v1.cctv.destroy');
     });
+
+    Route::post('/cctv/alert', [CctvController::class, 'alert'])->name('api.v1.cctv.alert');
+    Route::get('/cctv/resolve/{token}', [CctvController::class, 'resolve'])->name('api.v1.cctv.resolve');
 
     // Compatibility aliases with firesight-api
     Route::get('/map/incidents.php', [MapController::class, 'incidents']);
@@ -241,4 +250,12 @@ Route::middleware('auth.mobile')->group(function (): void {
 
     // Dashboard analytics legacy route
     Route::get('/dashboard/analytics.php', [DashboardController::class, 'analytics']);
+
+    // Resident Home CCTV & AI Fire Monitoring (direct /api/cctv)
+    Route::get('/cctv', [CctvController::class, 'index']);
+    Route::post('/cctv', [CctvController::class, 'store']);
+    Route::delete('/cctv', [CctvController::class, 'destroy']);
 });
+
+Route::post('/cctv/alert', [CctvController::class, 'alert']);
+Route::get('/cctv/resolve/{token}', [CctvController::class, 'resolve']);
