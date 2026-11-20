@@ -14,6 +14,7 @@ use App\Models\ReportEvidence;
 use App\Models\ReportStatusHistory;
 use App\Models\User;
 use App\Services\MobileNotificationService;
+use App\Support\Geo;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,10 @@ use Illuminate\Support\Facades\Log;
 
 class IncidentController extends ApiController
 {
+    public const DUPLICATE_RADIUS_METERS = 200;
+
+    public const DUPLICATE_WINDOW_HOURS = 1;
+
     public function __construct(
         protected MobileNotificationService $notificationService,
     ) {}
@@ -180,7 +185,29 @@ class IncidentController extends ApiController
 
         $rows = $query->get();
 
-        return $this->sendSuccess($rows->map(fn ($r) => $this->formatIncidentRow($r->toArray()))->all());
+        $pendingReports = $rows->where('status', CommunityReport::STATUS_PENDING)->values();
+
+        $formattedRows = $rows->map(function ($r) use ($pendingReports) {
+            $rowArray = $this->formatIncidentRow($r->toArray());
+            $rowArray['nearby_pending_count'] = 0;
+
+            if ($r->status === CommunityReport::STATUS_PENDING && $r->latitude !== null && $r->longitude !== null) {
+                $lat = (float) $r->latitude;
+                $lng = (float) $r->longitude;
+                $count = $pendingReports->filter(function ($other) use ($r, $lat, $lng) {
+                    if ($other->report_id === $r->report_id || $other->latitude === null || $other->longitude === null) {
+                        return false;
+                    }
+
+                    return Geo::distanceInMeters($lat, $lng, (float) $other->latitude, (float) $other->longitude) <= self::DUPLICATE_RADIUS_METERS;
+                })->count();
+                $rowArray['nearby_pending_count'] = $count;
+            }
+
+            return $rowArray;
+        })->all();
+
+        return $this->sendSuccess($formattedRows);
     }
 
     /**
@@ -220,9 +247,10 @@ class IncidentController extends ApiController
         }
         $incident['barangay_contacts'] = $contacts;
 
-        // Fetch dispatches with deployed fire trucks and crew personnel
+        // Fetch dispatches with deployed fire trucks and crew personnel across the duplicate cluster
+        $clusterIds = CommunityReport::getClusterReportIds($reportId);
         $dispatches = IncidentDispatch::with(['trucks', 'personnel.user.personnelDetails'])
-            ->where('report_id', $reportId)
+            ->whereIn('report_id', $clusterIds)
             ->orderBy('dispatched_at', 'desc')
             ->get()
             ->map(function ($d) {
@@ -246,6 +274,10 @@ class IncidentController extends ApiController
             })
             ->all();
         $incident['dispatches'] = $dispatches;
+
+        // Fetch linked duplicate reports and nearby unlinked candidate reports
+        $incident['linked_reports'] = $this->fetchLinkedReports($reportId);
+        $incident['nearby_unlinked_reports'] = $this->fetchNearbyUnlinkedReports($reportId);
 
         return $this->sendSuccess($incident);
     }
@@ -994,5 +1026,253 @@ class IncidentController extends ApiController
         $location = Cache::get("incident:{$reportId}:responder_location");
 
         return $this->sendSuccess(['location' => $location]);
+    }
+
+    /**
+     * Link one or more duplicate/related community reports to this primary incident.
+     */
+    public function linkReports(Request $request, int|string|null $id = null): JsonResponse
+    {
+        if ($deny = $this->authorizeBfp($request)) {
+            return $deny;
+        }
+
+        $user = $request->user();
+        $mainReportId = (int) ($id ?? $request->input('main_report_id', $request->input('report_id', 0)));
+        $rawRelated = $request->input('related_report_ids', $request->input('related_report_id'));
+
+        $relatedIds = is_array($rawRelated) ? $rawRelated : ($rawRelated ? [$rawRelated] : []);
+        $relatedIds = array_filter(array_map('intval', $relatedIds), fn ($rid) => $rid > 0 && $rid !== $mainReportId);
+
+        if ($mainReportId <= 0 || empty($relatedIds)) {
+            return $this->sendError('Missing main_report_id or related_report_ids.', 400);
+        }
+
+        $mainReport = CommunityReport::find($mainReportId);
+        if (! $mainReport) {
+            return $this->sendError('Main incident report not found.', 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $existingCluster = CommunityReport::getClusterReportIds($mainReportId);
+            $allClusterMembers = array_values(array_unique(array_merge($existingCluster, $relatedIds)));
+
+            // Form pairwise connections so every report in the cluster is linked to each other
+            foreach ($allClusterMembers as $i => $idA) {
+                foreach ($allClusterMembers as $j => $idB) {
+                    if ($j <= $i) {
+                        continue;
+                    }
+                    $main = min($idA, $idB);
+                    $rel = max($idA, $idB);
+
+                    $exists = DB::table('report_link')
+                        ->where(function ($q) use ($main, $rel) {
+                            $q->where('main_report_id', $main)->where('related_report_id', $rel);
+                        })
+                        ->orWhere(function ($q) use ($main, $rel) {
+                            $q->where('main_report_id', $rel)->where('related_report_id', $main);
+                        })
+                        ->exists();
+
+                    if (! $exists) {
+                        DB::table('report_link')->insert([
+                            'main_report_id' => $main,
+                            'related_report_id' => $rel,
+                        ]);
+                    }
+                }
+            }
+
+            // Find the highest workflow status among all reports in the cluster
+            $clusterReports = CommunityReport::whereIn('report_id', $allClusterMembers)->get();
+
+            $statusRanks = [
+                CommunityReport::STATUS_PENDING => 1,
+                CommunityReport::STATUS_ACCEPTED => 2,
+                CommunityReport::STATUS_DISPATCHED => 3,
+                CommunityReport::STATUS_RESOLVED => 4,
+            ];
+
+            $highestRank = 1;
+            $highestStatus = CommunityReport::STATUS_PENDING;
+
+            foreach ($clusterReports as $r) {
+                $rank = $statusRanks[$r->status] ?? 0;
+                if ($rank > $highestRank) {
+                    $highestRank = $rank;
+                    $highestStatus = $r->status;
+                }
+            }
+
+            // If any report has an advanced status, synchronize all cluster reports up to that highest status
+            if ($highestRank > 1) {
+                foreach ($clusterReports as $r) {
+                    $currentRank = $statusRanks[$r->status] ?? 0;
+                    if ($currentRank < $highestRank) {
+                        $r->status = $highestStatus;
+                        $r->save();
+
+                        if ($r->user_id) {
+                            $this->notificationService->notifyReportLinked($r, $mainReport);
+                        }
+                    }
+                }
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('[IncidentController@linkReports] Error: '.$e->getMessage());
+
+            return $this->sendError('Failed to link reports: '.$e->getMessage(), 500);
+        }
+
+        return $this->show($request, $mainReportId);
+    }
+
+    /**
+     * Unlink a duplicate/related community report from this incident.
+     */
+    public function unlinkReport(Request $request, int|string|null $id = null): JsonResponse
+    {
+        if ($deny = $this->authorizeBfp($request)) {
+            return $deny;
+        }
+
+        $mainReportId = (int) ($id ?? $request->input('main_report_id', $request->input('report_id', 0)));
+        $relatedReportId = (int) $request->input('related_report_id', 0);
+
+        if ($mainReportId <= 0 || $relatedReportId <= 0) {
+            return $this->sendError('Missing main_report_id or related_report_id.', 400);
+        }
+
+        // Get all reports in this cluster
+        $clusterIds = CommunityReport::getClusterReportIds($mainReportId);
+
+        // Remove all links connecting the unlinked report to any report in this cluster
+        DB::table('report_link')
+            ->where(function ($q) use ($relatedReportId, $clusterIds) {
+                $q->where('main_report_id', $relatedReportId)->whereIn('related_report_id', $clusterIds);
+            })
+            ->orWhere(function ($q) use ($relatedReportId, $clusterIds) {
+                $q->where('related_report_id', $relatedReportId)->whereIn('main_report_id', $clusterIds);
+            })
+            ->delete();
+
+        return $this->show($request, $mainReportId);
+    }
+
+    /**
+     * Fetch reports currently linked to this incident via report_link.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function fetchLinkedReports(int $reportId): array
+    {
+        $report = CommunityReport::find($reportId);
+        if (! $report) {
+            return [];
+        }
+
+        $linkedIds = $report->allLinkedReportIds();
+
+        if (empty($linkedIds)) {
+            return [];
+        }
+
+        return CommunityReport::with(['evidence'])
+            ->whereIn('report_id', $linkedIds)
+            ->get()
+            ->map(function ($other) use ($report) {
+                $distance = ($report->latitude !== null && $other->latitude !== null)
+                    ? round(Geo::distanceInMeters((float) $report->latitude, (float) $report->longitude, (float) $other->latitude, (float) $other->longitude))
+                    : null;
+
+                return [
+                    'report_id' => (int) $other->report_id,
+                    'reference' => sprintf('CR-%s-%06d', $other->created_at?->format('Y') ?? date('Y'), $other->report_id),
+                    'reporter_name' => $other->reporter_name,
+                    'contact_number' => $other->contact_number,
+                    'status' => $other->status,
+                    'distance_meters' => $distance,
+                    'description' => $other->description,
+                    'report_image' => $other->report_image,
+                    'evidence_photos' => $other->evidence->map(fn ($e) => [
+                        'evidence_id' => $e->evidence_id,
+                        'image_path' => $e->image_path,
+                        'caption' => $e->caption,
+                    ])->all(),
+                    'created_at' => $other->created_at?->format('Y-m-d H:i:s'),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Find unlinked duplicate candidates within 300 meters and 3 hours.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function fetchNearbyUnlinkedReports(int $reportId): array
+    {
+        $report = CommunityReport::find($reportId);
+        if (! $report || $report->latitude === null || $report->longitude === null) {
+            return [];
+        }
+
+        $clusterIds = CommunityReport::getClusterReportIds($reportId);
+
+        $latitude = (float) $report->latitude;
+        $longitude = (float) $report->longitude;
+        $radiusMeters = self::DUPLICATE_RADIUS_METERS;
+        $latitudeDelta = $radiusMeters / 111320;
+        $longitudeDelta = $latitudeDelta / max(cos(deg2rad($latitude)), 0.01);
+        $windowHours = self::DUPLICATE_WINDOW_HOURS;
+        $refTime = $report->created_at ?? now();
+
+        return CommunityReport::with(['evidence'])
+            ->whereNotIn('report_id', $clusterIds)
+            ->whereIn('status', [
+                CommunityReport::STATUS_PENDING,
+                CommunityReport::STATUS_ACCEPTED,
+                CommunityReport::STATUS_DISPATCHED,
+            ])
+            ->whereBetween('created_at', [
+                $refTime->copy()->subHours($windowHours),
+                $refTime->copy()->addHours($windowHours),
+            ])
+            ->whereBetween('latitude', [$latitude - $latitudeDelta, $latitude + $latitudeDelta])
+            ->whereBetween('longitude', [$longitude - $longitudeDelta, $longitude + $longitudeDelta])
+            ->get()
+            ->filter(function ($other) use ($latitude, $longitude, $radiusMeters) {
+                return Geo::distanceInMeters($latitude, $longitude, (float) $other->latitude, (float) $other->longitude) <= $radiusMeters;
+            })
+            ->map(function ($other) use ($latitude, $longitude) {
+                $distance = round(Geo::distanceInMeters($latitude, $longitude, (float) $other->latitude, (float) $other->longitude));
+
+                return [
+                    'report_id' => (int) $other->report_id,
+                    'reference' => sprintf('CR-%s-%06d', $other->created_at?->format('Y') ?? date('Y'), $other->report_id),
+                    'reporter_name' => $other->reporter_name,
+                    'contact_number' => $other->contact_number,
+                    'status' => $other->status,
+                    'latitude' => (float) $other->latitude,
+                    'longitude' => (float) $other->longitude,
+                    'distance_meters' => $distance,
+                    'description' => $other->description,
+                    'report_image' => $other->report_image,
+                    'evidence_photos' => $other->evidence->map(fn ($e) => [
+                        'evidence_id' => $e->evidence_id,
+                        'image_path' => $e->image_path,
+                        'caption' => $e->caption,
+                    ])->all(),
+                    'created_at' => $other->created_at?->format('Y-m-d H:i:s'),
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

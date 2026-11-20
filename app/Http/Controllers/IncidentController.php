@@ -105,11 +105,9 @@ class IncidentController extends Controller
         $contacts = $barangay?->contacts ?? collect();
         $primaryContact = $contacts->first();
 
-        // report_link is directional (main/related); merge both sides so
-        // either report in a linked pair shows the other.
-        $linked = $report->linkedReports
-            ->merge($report->linkedFromReports)
-            ->unique('report_id')
+        // Retrieve all duplicate reports in the cluster
+        $linked = CommunityReport::whereIn('report_id', $report->allLinkedReportIds())
+            ->get()
             ->map(fn (CommunityReport $r) => [
                 'report_id' => $r->report_id,
                 'reference' => self::reference($r),

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 
 #[ObservedBy(CommunityReportObserver::class)]
 class CommunityReport extends Model
@@ -80,6 +81,53 @@ class CommunityReport extends Model
     public function dispatches(): HasMany
     {
         return $this->hasMany(IncidentDispatch::class, 'report_id', 'report_id');
+    }
+
+    /**
+     * Get all report IDs that belong to the same duplicate cluster (connected graph)
+     * as this report, including the report itself.
+     *
+     * @return array<int>
+     */
+    public static function getClusterReportIds(int $reportId): array
+    {
+        $cluster = [$reportId];
+        $added = true;
+
+        while ($added) {
+            $newNeighbors = DB::table('report_link')
+                ->where(function ($q) use ($cluster) {
+                    $q->whereIn('main_report_id', $cluster)
+                        ->orWhereIn('related_report_id', $cluster);
+                })
+                ->get()
+                ->flatMap(fn ($row) => [(int) $row->main_report_id, (int) $row->related_report_id])
+                ->unique()
+                ->diff($cluster)
+                ->values()
+                ->all();
+
+            if (! empty($newNeighbors)) {
+                $cluster = array_values(array_unique(array_merge($cluster, $newNeighbors)));
+            } else {
+                $added = false;
+            }
+        }
+
+        return $cluster;
+    }
+
+    /**
+     * Get all other report IDs linked to this report within the duplicate cluster.
+     *
+     * @return array<int>
+     */
+    public function allLinkedReportIds(): array
+    {
+        return array_values(array_filter(
+            self::getClusterReportIds($this->report_id),
+            fn ($id) => $id !== (int) $this->report_id
+        ));
     }
 
     /**
