@@ -28,7 +28,7 @@ class AnalyticsController extends Controller
     public function index(Request $request): Response
     {
         $input = $request->validate([
-            'period' => ['nullable', Rule::in(['this_month', 'last_3_months', 'this_year', 'custom'])],
+            'period' => ['nullable', Rule::in(['all_time', 'this_month', 'last_3_months', 'this_year', 'custom'])],
             'date_from' => ['required_if:period,custom', 'nullable', 'date_format:Y-m-d'],
             'date_to' => ['required_if:period,custom', 'nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             'incident_type' => ['nullable', Rule::in([...array_keys(self::TYPE_LABELS), 'unclassified'])],
@@ -42,9 +42,16 @@ class AnalyticsController extends Controller
         ]);
 
         $now = Date::now();
-        $period = $input['period'] ?? 'this_year';
+        $period = $input['period'] ?? 'all_time';
         $type = $input['incident_type'] ?? $input['supporting_type'] ?? '';
         [$start, $end] = DateRange::resolve($period, $input['date_from'] ?? '', $input['date_to'] ?? '', $now);
+        if ($period === 'all_time') {
+            $bounds = IncidentRecord::query()
+                ->selectRaw('MIN(incident_datetime) as earliest, MAX(incident_datetime) as latest')
+                ->first();
+            $start = Date::parse($bounds?->earliest ?? $now)->startOfYear();
+            $end = Date::parse($bounds?->latest ?? $now)->max($now)->endOfDay();
+        }
 
         $filters = [
             'period' => $period,
@@ -57,7 +64,10 @@ class AnalyticsController extends Controller
             'supporting_alarm_level' => $input['supporting_alarm_level'] ?? '',
         ];
 
-        $allTypesQuery = IncidentRecord::query()->whereBetween('incident_datetime', [$start, $end]);
+        $allTypesQuery = IncidentRecord::query();
+        if ($period !== 'all_time') {
+            $allTypesQuery->whereBetween('incident_datetime', [$start, $end]);
+        }
         $query = $this->filterType(clone $allTypesQuery, $type);
 
         $counts = (clone $query)
@@ -154,7 +164,7 @@ class AnalyticsController extends Controller
                 'color' => $level->color(),
             ]),
             'typeOptions' => collect(self::TYPE_LABELS)->map(fn (string $label, string $value): array => compact('value', 'label'))->values(),
-            'periodLabel' => $start->format($start->year === $end->year ? 'M j' : 'M j, Y').' – '.$end->format('M j, Y'),
+            'periodLabel' => $period === 'all_time' ? 'All time' : $start->format($start->year === $end->year ? 'M j' : 'M j, Y').' – '.$end->format('M j, Y'),
             'dateRange' => ['start' => $start->format('Y-m-d'), 'end' => $end->format('Y-m-d')],
             'filters' => $filters,
         ]);

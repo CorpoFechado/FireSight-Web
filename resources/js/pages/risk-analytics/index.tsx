@@ -147,7 +147,9 @@ export default function RiskAnalytics({
     }, [barangayGeo, riskByBarangayName, selectedLevel]);
 
     const sortedRanking = useMemo(() => {
-        const rows = [...ranking];
+        const rows = ranking.filter(
+            (row) => selectedLevel === null || row.risk_level === selectedLevel,
+        );
         rows.sort((a, b) =>
             sortBy === 'risk'
                 ? (b.score ?? -1) - (a.score ?? -1)
@@ -155,7 +157,7 @@ export default function RiskAnalytics({
         );
 
         return rows;
-    }, [ranking, sortBy]);
+    }, [ranking, sortBy, selectedLevel]);
 
     const maxCount = Math.max(1, ...ranking.map((r) => r.incidentCount));
 
@@ -164,7 +166,7 @@ export default function RiskAnalytics({
             <div className="space-y-4">
                 <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
                     {/* Heatmap */}
-                    <PortalCard className="flex flex-col overflow-hidden">
+                    <PortalCard className="flex flex-col self-start overflow-hidden">
                         <div
                             className="flex flex-wrap items-center gap-3 border-b px-4 py-3"
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
@@ -212,7 +214,15 @@ export default function RiskAnalytics({
                                                     RISK_CFG[level].color,
                                             }}
                                         />
-                                        {RISK_CFG[level].label}
+                                        {RISK_CFG[level].label} (
+                                        {
+                                            barangayRisk.filter(
+                                                (barangay) =>
+                                                    barangay.risk_level ===
+                                                    level,
+                                            ).length
+                                        }
+                                        )
                                     </button>
                                 ))}
                             </div>
@@ -332,19 +342,23 @@ export default function RiskAnalytics({
                     {/* Ranking */}
                     <PortalCard className="flex flex-col overflow-hidden">
                         <div
-                            className="flex items-center justify-between border-b px-4 py-3"
+                            className="flex items-center justify-between gap-2 border-b px-4 py-3"
                             style={{ borderColor: 'rgba(43,45,66,0.08)' }}
                         >
-                            <h2 className="text-sm font-bold text-brand-navy">
-                                Barangay Risk Ranking
+                            <h2 className="min-w-0 truncate text-sm font-bold text-brand-navy">
+                                {sortBy === 'count'
+                                    ? 'All-time incidents'
+                                    : 'Barangay Ranking'}
                             </h2>
                             <div
-                                className="flex rounded-lg border p-0.5"
+                                className="flex shrink-0 rounded-lg border p-0.5"
                                 style={{ borderColor: 'rgba(43,45,66,0.13)' }}
                             >
                                 {(['risk', 'count'] as const).map((key) => (
                                     <button
                                         key={key}
+                                        type="button"
+                                        aria-pressed={sortBy === key}
                                         onClick={() => setSortBy(key)}
                                         className="rounded-md px-2.5 py-1 text-xs font-semibold capitalize transition-colors"
                                         style={{
@@ -358,7 +372,9 @@ export default function RiskAnalytics({
                                                     : '#6B7A8D',
                                         }}
                                     >
-                                        {key}
+                                        {key === 'risk'
+                                            ? 'Risk Score'
+                                            : 'Count'}
                                     </button>
                                 ))}
                             </div>
@@ -409,16 +425,16 @@ export default function RiskAnalytics({
                                         <span className="text-sm font-bold text-brand-navy">
                                             {sortBy === 'risk'
                                                 ? (row.score ?? '—')
-                                                : row.incidentCount}
-                                        </span>
-                                        <span className="text-[11px] text-brand-muted">
-                                            {sortBy === 'risk'
-                                                ? `${row.incidentCount} ${row.incidentCount === 1 ? 'incident' : 'incidents'}`
-                                                : `Score: ${row.score ?? '—'}`}
+                                                : `${row.incidentCount} ${row.incidentCount === 1 ? 'incident' : 'incidents'}`}
                                         </span>
                                     </div>
                                 </div>
                             ))}
+                            {sortedRanking.length === 0 && (
+                                <p className="px-4 py-6 text-sm text-brand-muted">
+                                    No barangays at this risk level.
+                                </p>
+                            )}
                         </div>
                     </PortalCard>
                 </div>
@@ -430,7 +446,7 @@ export default function RiskAnalytics({
                         style={{ borderColor: 'rgba(43,45,66,0.08)' }}
                     >
                         <h2 className="text-sm font-bold text-brand-navy">
-                            Incident Frequency by Barangay
+                            Recorded incidents by barangay · All time
                         </h2>
                     </div>
                     <div className="p-5">

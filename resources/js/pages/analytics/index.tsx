@@ -31,7 +31,8 @@ import { show as showIncident } from '@/routes/incidents';
 import type { Paginated } from '@/types/pagination';
 
 type Filters = {
-    period: 'this_month' | 'last_3_months' | 'this_year' | 'custom';
+    period:
+        'all_time' | 'this_month' | 'last_3_months' | 'this_year' | 'custom';
     date_from: string;
     date_to: string;
     incident_type: string;
@@ -165,6 +166,7 @@ function AnalyticsFilters({
                                 )
                             }
                         >
+                            <option value="all_time">All Time</option>
                             <option value="this_month">This Month</option>
                             <option value="last_3_months">Last 3 Months</option>
                             <option value="this_year">This Year</option>

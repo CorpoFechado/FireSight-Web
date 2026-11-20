@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AlarmLevel;
 use App\Models\Barangay;
 use App\Models\CommunityReport;
 use App\Models\IncidentRecord;
@@ -42,11 +43,11 @@ test('bfp admin can view the prevention analytics overview', function () {
             ->has('monthlyTrend.0.incidents')
             ->missing('monthlyTrend.0.resolved')
             ->has('incidentsByAlarmLevel')
-            ->where('incidentsByAlarmLevel.0.level', \App\Enums\AlarmLevel::cases()[0]->value)
-            ->where('incidentsByAlarmLevel.0.label', \App\Enums\AlarmLevel::cases()[0]->label())
-            ->where('incidentsByAlarmLevel.0.color', \App\Enums\AlarmLevel::cases()[0]->color())
+            ->where('incidentsByAlarmLevel.0.level', AlarmLevel::cases()[0]->value)
+            ->where('incidentsByAlarmLevel.0.label', AlarmLevel::cases()[0]->label())
+            ->where('incidentsByAlarmLevel.0.color', AlarmLevel::cases()[0]->color())
             ->has('filters')
-            ->where('filters.period', 'this_year')
+            ->where('filters.period', 'all_time')
             ->where('filters.incident_type', '')
             ->where('filters.barangay_id', null)
             ->missing('filters.trend_year')
@@ -219,6 +220,29 @@ test('period presets bound every monthly bucket', function (string $period, int 
     'last three months' => ['last_3_months', 3],
     'year to date' => ['this_year', 4],
 ]);
+
+test('all time analytics matches risk analytics counts including undated records', function () {
+    $barangay = Barangay::create(['barangay_name' => 'Alpha']);
+    foreach (['2025-12-11 06:51:00', '2026-06-10 12:00:00', '2026-07-01 12:00:00', null] as $date) {
+        createAnalyticsIncident($barangay, ['incident_datetime' => $date]);
+    }
+
+    foreach ([[], ['period' => 'all_time']] as $filters) {
+        $this->get(route('analytics', $filters))->assertInertia(fn ($page) => $page
+            ->where('filters.period', 'all_time')
+            ->where('periodLabel', 'All time')
+            ->where('summary.total', 4)
+            ->where('barangayOverview.0.count', 4)
+            ->where('monthlyTrend', fn ($months) => collect($months)->sum('incidents') === 3));
+    }
+
+    $this->get(route('fireProne'))->assertInertia(fn ($page) => $page
+        ->where('ranking.0.incidentCount', 4));
+
+    $this->get(route('analytics', ['period' => 'this_year']))->assertInertia(fn ($page) => $page
+        ->where('summary.total', 1)
+        ->where('barangayOverview.0.count', 1));
+});
 
 test('custom ranges include boundary days and zero months across years', function () {
     $barangay = Barangay::create(['barangay_name' => 'Alpha']);
