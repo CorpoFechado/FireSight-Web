@@ -329,4 +329,35 @@ class MobileNotificationService
             channelId: 'firesight-cctv-alerts-v1'
         );
     }
+
+    /**
+     * Notify resident reporter that their report was linked as a duplicate of an active incident.
+     */
+    public function notifyReportLinked(CommunityReport $relatedReport, CommunityReport $mainReport): void
+    {
+        if (! $relatedReport->user_id) {
+            return;
+        }
+
+        $title = 'Report Linked to Incident';
+        $message = "Your fire report (#{$relatedReport->report_id}) has been linked with active Incident #{$mainReport->report_id}. Responding BFP units are already on scene or en route.";
+
+        Notification::create([
+            'user_id' => $relatedReport->user_id,
+            'report_id' => $relatedReport->report_id,
+            'title' => $title,
+            'message' => $message,
+            'notification_type' => 'status_update',
+            'is_read' => false,
+        ]);
+
+        $this->pushService->sendToUsers(
+            $relatedReport->user_id,
+            $title,
+            $message,
+            ['report_id' => $relatedReport->report_id, 'type' => 'status_update'],
+            priority: 'normal',
+            channelId: 'firesight-standard-alerts-v1'
+        );
+    }
 }

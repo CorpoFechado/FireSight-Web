@@ -21,10 +21,10 @@ class AdminNotifier
     ) {}
 
     /** Reports within this radius of an active report are flagged as possible duplicates. */
-    public const DUPLICATE_RADIUS_METERS = 300;
+    public const DUPLICATE_RADIUS_METERS = 200;
 
     /** Only active reports submitted within this many hours are considered for duplicates. */
-    public const DUPLICATE_WINDOW_HOURS = 3;
+    public const DUPLICATE_WINDOW_HOURS = 1;
 
     /** @var array<string, string> */
     private const STATUS_LABELS = [

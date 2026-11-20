@@ -108,6 +108,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/incidents/{id}/history', [IncidentController::class, 'statusHistory'])->whereNumber('id')->name('api.v1.incidents.history');
         Route::post('/incidents/{id}/invalid', [IncidentController::class, 'markInvalid'])->whereNumber('id')->name('api.v1.incidents.invalid');
         Route::post('/incidents/{id}/evidence', [IncidentController::class, 'addEvidence'])->whereNumber('id')->name('api.v1.incidents.evidence');
+        Route::post('/incidents/{id}/link', [IncidentController::class, 'linkReports'])->whereNumber('id')->name('api.v1.incidents.link');
+        Route::post('/incidents/{id}/unlink', [IncidentController::class, 'unlinkReport'])->whereNumber('id')->name('api.v1.incidents.unlink');
         Route::post('/incidents/{id}/location', [IncidentController::class, 'updateLocation'])->whereNumber('id')->name('api.v1.incidents.location');
         Route::get('/incidents/{id}/location', [IncidentController::class, 'getLocation'])->whereNumber('id')->name('api.v1.incidents.get_location');
         Route::post('/incidents/manual', [IncidentController::class, 'createManual'])->name('api.v1.incidents.manual');
@@ -122,6 +124,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/incidents/status_history.php', [IncidentController::class, 'statusHistory']);
         Route::post('/incidents/mark_invalid.php', [IncidentController::class, 'markInvalid']);
         Route::post('/incidents/add_evidence.php', [IncidentController::class, 'addEvidence']);
+        Route::post('/incidents/link.php', [IncidentController::class, 'linkReports']);
+        Route::post('/incidents/unlink.php', [IncidentController::class, 'unlinkReport']);
         Route::post('/incidents/update_location.php', [IncidentController::class, 'updateLocation']);
         Route::get('/incidents/get_location.php', [IncidentController::class, 'getLocation']);
         Route::post('/incidents/create_manual.php', [IncidentController::class, 'createManual']);
@@ -237,6 +241,10 @@ Route::middleware('auth.mobile')->group(function (): void {
     Route::post('/incidents/mark_invalid.php', [IncidentController::class, 'markInvalid']);
     Route::post('/incidents/add_evidence.php', [IncidentController::class, 'addEvidence']);
     Route::post('/incidents/create_manual.php', [IncidentController::class, 'createManual']);
+    Route::post('/incidents/{id}/link', [IncidentController::class, 'linkReports'])->whereNumber('id');
+    Route::post('/incidents/{id}/unlink', [IncidentController::class, 'unlinkReport'])->whereNumber('id');
+    Route::post('/incidents/link.php', [IncidentController::class, 'linkReports']);
+    Route::post('/incidents/unlink.php', [IncidentController::class, 'unlinkReport']);
 
     // Profile legacy routes
     Route::get('/profile/get.php', [ProfileController::class, 'show']);
