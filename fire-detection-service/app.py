@@ -184,20 +184,6 @@ class AsynchronousCameraStream:
                 with self.frame_lock:
                     self.raw_frame = frame
 
-                # Draw YOLO bounding boxes
-                annotated = frame.copy()
-                if self.latest_result is not None:
-                    annotated = detector.draw_hud(annotated, self.latest_result)
-                else:
-                    annotated = detector.draw_hud(annotated)
-
-                ret, buffer = cv2.imencode('.jpg', annotated, [int(cv2.IMWRITE_JPEG_QUALITY), self.quality])
-                if ret:
-                    with self.output_lock:
-                        self.annotated_jpeg = buffer.tobytes()
-
-                time.sleep(0.005)
-
             self.connected = False
             self.last_frame_time = 0.0
             with self.frame_lock:
@@ -281,10 +267,16 @@ class AsynchronousCameraStream:
         if not self.connected or (self.last_frame_time > 0 and (now - self.last_frame_time > 4.5)):
             return create_offline_frame()
 
-        with self.output_lock:
-            if self.annotated_jpeg is not None:
-                return self.annotated_jpeg
-        return create_offline_frame()
+        with self.frame_lock:
+            frame = self.raw_frame.copy() if self.raw_frame is not None else None
+
+        if frame is None:
+            return create_offline_frame()
+
+        res = self.latest_result
+        annotated = detector.draw_hud(frame, res) if res is not None else detector.draw_hud(frame)
+        ret, buffer = cv2.imencode('.jpg', annotated, [int(cv2.IMWRITE_JPEG_QUALITY), self.quality])
+        return buffer.tobytes() if ret else create_offline_frame()
 
     def stop(self):
         self.running = False
