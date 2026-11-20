@@ -12,6 +12,7 @@ class MobileNotificationService
     public function __construct(
         protected GeoBoundaryService $geoService,
         protected ExpoPushService $pushService,
+        protected WebPushService $webPushService,
     ) {}
 
     /**
@@ -62,7 +63,9 @@ class MobileNotificationService
                 $report->user_id,
                 'Report Status Updated',
                 $residentMessage,
-                ['report_id' => $reportId, 'type' => 'status_update']
+                ['report_id' => $reportId, 'type' => 'status_update'],
+                priority: 'normal',
+                channelId: 'firesight-standard-alerts-v1'
             );
         }
 
@@ -100,7 +103,9 @@ class MobileNotificationService
                 $personnelIds->all(),
                 $personnelTitle,
                 $personnelMessage,
-                ['report_id' => $reportId, 'type' => 'status_update']
+                ['report_id' => $reportId, 'type' => 'status_update'],
+                priority: 'normal',
+                channelId: 'firesight-standard-alerts-v1'
             );
         }
     }
@@ -150,7 +155,21 @@ class MobileNotificationService
                 $adminUsers->pluck('user_id')->all(),
                 $title,
                 $message,
-                ['report_id' => $reportId, 'type' => 'status_update']
+                ['report_id' => $reportId, 'type' => 'status_update'],
+                priority: 'normal',
+                channelId: 'firesight-standard-alerts-v1'
+            );
+
+            $this->webPushService->sendToUsers(
+                $adminUsers->pluck('user_id')->all(),
+                $title,
+                $message,
+                [
+                    'report_id' => $reportId,
+                    'url' => "/incidents/{$reportId}",
+                    'type' => 'status_update',
+                    'requireInteraction' => false,
+                ],
             );
         }
     }
@@ -178,7 +197,9 @@ class MobileNotificationService
             $userId,
             'Report Submitted',
             $message,
-            ['report_id' => $reportId, 'type' => 'report_submitted']
+            ['report_id' => $reportId, 'type' => 'report_submitted'],
+            priority: 'normal',
+            channelId: 'firesight-standard-alerts-v1'
         );
     }
 
@@ -277,6 +298,35 @@ class MobileNotificationService
             ['report_id' => $reportId, 'type' => 'new_report'],
             priority: 'high',
             channelId: 'firesight-emergency-alerts-v5'
+        );
+    }
+
+    /**
+     * Notify resident when fire or smoke is detected on their registered CCTV camera.
+     */
+    public function notifyResidentCctvAlert(int $userId, string $cameraName, string $alertType = 'fire', float $confidence = 0.0): void
+    {
+        $isFire = strtolower($alertType) === 'fire';
+        $title = $isFire ? 'Fire Detected on CCTV!' : 'Smoke Detected on CCTV!';
+        $message = $isFire
+            ? "Flames were detected on your camera [{$cameraName}]. Check your live stream immediately."
+            : "Smoke plumes were detected on your camera [{$cameraName}]. Check your live stream.";
+
+        Notification::create([
+            'user_id' => $userId,
+            'title' => $title,
+            'message' => $message,
+            'notification_type' => 'cctv_alert',
+            'is_read' => false,
+        ]);
+
+        $this->pushService->sendToUsers(
+            $userId,
+            $title,
+            $message,
+            ['type' => 'cctv_fire_alert'],
+            priority: 'high',
+            channelId: 'firesight-cctv-alerts-v1'
         );
     }
 }

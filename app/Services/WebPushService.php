@@ -55,7 +55,7 @@ class WebPushService
             'url' => $data['url'] ?? ($reportId !== null ? "/incidents/{$reportId}" : '/notifications'),
             'report_id' => $reportId,
             'type' => $data['type'] ?? 'new_report',
-            'requireInteraction' => (bool) ($data['requireInteraction'] ?? true),
+            'requireInteraction' => (bool) ($data['requireInteraction'] ?? false),
         ], JSON_THROW_ON_ERROR);
 
         $auth = [
@@ -91,6 +91,10 @@ class WebPushService
 
                 if ($report->isSubscriptionExpired()) {
                     $expiredEndpoints[] = $report->getEndpoint();
+                    Log::info('[WebPushService] Subscription expired or rejected by provider.', [
+                        'endpoint' => $report->getEndpoint(),
+                        'reason' => $report->getReason(),
+                    ]);
 
                     continue;
                 }

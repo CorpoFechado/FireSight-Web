@@ -33,7 +33,7 @@ self.addEventListener('push', (event) => {
         badge: payload.badge || '/favicon.png?v=3',
         tag: payload.tag || (payload.report_id ? `firesight-report-${payload.report_id}` : 'firesight-alert'),
         renotify: true,
-        requireInteraction: payload.requireInteraction ?? true,
+        requireInteraction: payload.requireInteraction ?? false,
         vibrate: [200, 100, 200],
         data: {
             url: targetUrl,

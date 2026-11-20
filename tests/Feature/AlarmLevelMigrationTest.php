@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 test('alarm level enum has all canonical levels in escalation order with official colors', function () {
     $expected = [
-        'verification' => ['Verification', '#A9B8D0', '#1F2937'],
         '1st_alarm' => ['1st Alarm', '#4FA3E0', '#FFFFFF'],
         '2nd_alarm' => ['2nd Alarm', '#4CAF50', '#FFFFFF'],
         '3rd_alarm' => ['3rd Alarm', '#F2C94C', '#1F2937'],
@@ -51,13 +50,12 @@ test('alarm level critical values helper includes 5th alarm, all task force stag
     ]);
 
     expect($criticals)->not->toContain('1st_alarm')
-        ->and($criticals)->not->toContain('verification')
         ->and($criticals)->not->toContain('2nd_alarm')
         ->and($criticals)->not->toContain('3rd_alarm')
         ->and($criticals)->not->toContain('4th_alarm');
 });
 
-test('verification enum migration rolls both alarm level columns backward safely', function () {
+test('remove verification migration safely cleans any verification alarm level values', function () {
     $user = User::factory()->create();
     $report = CommunityReport::create([
         'user_id' => $user->getKey(),
@@ -73,35 +71,21 @@ test('verification enum migration rolls both alarm level columns backward safely
         'report_id' => $report->report_id,
         'incident_datetime' => now(),
         'incident_type' => 'residential_fire',
-        'alarm_level' => AlarmLevel::Verification,
+        'alarm_level' => '1st_alarm',
     ]);
 
     $aforReport = AforReport::create([
         'incident_id' => $record->incident_id,
-        'alarm_level' => AlarmLevel::Verification,
+        'alarm_level' => '1st_alarm',
     ]);
 
-    $migration = require database_path('migrations/2026_11_04_092454_add_verification_to_alarm_level_enums.php');
-    $migration->down();
+    $migration = require database_path('migrations/2026_11_20_100000_remove_verification_from_alarm_level_enums.php');
+    $migration->up();
 
     expect(DB::table('incident_record')->where('incident_id', $record->incident_id)->value('alarm_level'))
         ->toBe(AlarmLevel::FirstAlarm->value)
         ->and(DB::table('afor_report')->where('afor_id', $aforReport->afor_id)->value('alarm_level'))
         ->toBe(AlarmLevel::FirstAlarm->value);
-
-    $migration->up();
-
-    DB::table('incident_record')->where('incident_id', $record->incident_id)->update([
-        'alarm_level' => AlarmLevel::Verification->value,
-    ]);
-    DB::table('afor_report')->where('afor_id', $aforReport->afor_id)->update([
-        'alarm_level' => AlarmLevel::Verification->value,
-    ]);
-
-    expect(DB::table('incident_record')->where('incident_id', $record->incident_id)->value('alarm_level'))
-        ->toBe(AlarmLevel::Verification->value)
-        ->and(DB::table('afor_report')->where('afor_id', $aforReport->afor_id)->value('alarm_level'))
-        ->toBe(AlarmLevel::Verification->value);
 });
 
 test('incident record and afor report cast alarm_level to AlarmLevel enum', function () {

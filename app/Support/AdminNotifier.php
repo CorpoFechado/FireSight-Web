@@ -63,7 +63,7 @@ class AdminNotifier
                     'report_id' => (int) $report->report_id,
                     'url' => "/incidents/{$report->report_id}",
                     'type' => 'new_report',
-                    'requireInteraction' => true,
+                    'requireInteraction' => false,
                 ],
             );
         }
@@ -110,7 +110,7 @@ class AdminNotifier
         $actorId = $actor?->getKey();
 
         // 1. Notify BFP Admins (excluding the actor if they are an admin)
-        $this->sendToRoles(
+        $adminIds = $this->sendToRoles(
             $title,
             $staffMessage,
             'status_update',
@@ -119,6 +119,20 @@ class AdminNotifier
             $at,
             $reportId,
         );
+
+        if ($adminIds->isNotEmpty()) {
+            $this->webPushService->sendToUsers(
+                $adminIds->values()->all(),
+                $title,
+                $staffMessage,
+                [
+                    'report_id' => $reportId,
+                    'url' => "/incidents/{$reportId}",
+                    'type' => 'status_update',
+                    'requireInteraction' => false,
+                ],
+            );
+        }
 
         // 2. If action originated from Web Admin or System, fan out to Personnel and Resident
         $isPersonnelActor = $actor && $actor->role === User::ROLE_BFP_PERSONNEL;

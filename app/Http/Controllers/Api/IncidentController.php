@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\AlarmLevel;
+use App\Models\AuthToken;
 use App\Models\BarangayContact;
 use App\Models\CommunityReport;
 use App\Models\IncidentDispatch;
@@ -16,6 +17,7 @@ use App\Services\MobileNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -72,6 +74,7 @@ class IncidentController extends ApiController
                 'incident_record.notes',
                 DB::raw('COALESCE(incident_record.barangay_id, community_report.barangay_id) as barangay_id'),
                 'barangay.barangay_name',
+                DB::raw('(SELECT dispatched_by FROM incident_dispatch WHERE incident_dispatch.report_id = community_report.report_id ORDER BY dispatched_at DESC LIMIT 1) as dispatched_by'),
             ])
             ->first();
 
@@ -141,6 +144,7 @@ class IncidentController extends ApiController
                 'incident_record.time_fire_out',
                 'incident_record.notes',
                 'barangay.barangay_name',
+                DB::raw('(SELECT dispatched_by FROM incident_dispatch WHERE incident_dispatch.report_id = community_report.report_id ORDER BY dispatched_at DESC LIMIT 1) as dispatched_by'),
             ]);
 
         if ($request->filled('status')) {
@@ -910,5 +914,85 @@ class IncidentController extends ApiController
         ];
 
         return $map[$clean] ?? $clean;
+    }
+
+    /**
+     * Update live GPS coordinates of a responding unit.
+     */
+    public function updateLocation(Request $request, int|string|null $id = null): JsonResponse
+    {
+        $reportId = (int) ($id ?? $request->input('report_id') ?? $request->input('id'));
+        if ($reportId <= 0) {
+            return $this->sendError('Valid report ID is required', 422);
+        }
+
+        $report = CommunityReport::find($reportId);
+        if (! $report) {
+            return $this->sendError('Incident report not found', 404);
+        }
+
+        $user = $request->user();
+        if (! $user && ($token = $request->bearerToken())) {
+            $authToken = AuthToken::with('user.personnelDetails')
+                ->where('token', $token)
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                        ->orWhere('expires_at', '>', now());
+                })
+                ->first();
+            $user = $authToken?->user;
+        }
+
+        if ($user && ! in_array($user->role, [User::ROLE_BFP_PERSONNEL, User::ROLE_BFP_ADMIN], true)) {
+            return $this->sendError('Unauthorized.', 403);
+        }
+
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'heading' => ['nullable', 'numeric', 'between:0,360'],
+            'speed' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $userName = $user?->name ?? (string) ($request->input('responder_name') ?: 'Responding Unit');
+        $rank = self::abbreviateRank($user?->personnelDetails?->rank);
+
+        $payload = [
+            'report_id' => $reportId,
+            'user_id' => $user?->getKey(),
+            'user_name' => $userName,
+            'responder_name' => $userName,
+            'rank' => $rank,
+            'latitude' => (float) $validated['latitude'],
+            'longitude' => (float) $validated['longitude'],
+            'heading' => isset($validated['heading']) ? (float) $validated['heading'] : null,
+            'speed' => isset($validated['speed']) ? (float) $validated['speed'] : null,
+            'updated_at' => now()->toIso8601String(),
+            'timestamp' => now()->timestamp,
+        ];
+
+        // Keep live GPS active for 30s. If the responder turns off GPS or closes navigation,
+        // it automatically expires and the web map smoothly returns to the default station route.
+        Cache::put("incident:{$reportId}:responder_location", $payload, now()->addSeconds(30));
+
+        return $this->sendSuccess([
+            'success' => true,
+            'location' => $payload,
+        ]);
+    }
+
+    /**
+     * Get the latest live GPS coordinates of a responding unit.
+     */
+    public function getLocation(Request $request, int|string|null $id = null): JsonResponse
+    {
+        $reportId = (int) ($id ?? $request->input('report_id') ?? $request->input('id'));
+        if ($reportId <= 0) {
+            return $this->sendError('Valid report ID is required', 422);
+        }
+
+        $location = Cache::get("incident:{$reportId}:responder_location");
+
+        return $this->sendSuccess(['location' => $location]);
     }
 }

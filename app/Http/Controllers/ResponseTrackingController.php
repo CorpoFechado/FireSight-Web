@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\CommunityReport;
 use App\Support\Geo;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -74,13 +76,31 @@ class ResponseTrackingController extends Controller
             'alarm_level' => $r->incidentRecord?->alarm_level?->value ?? $r->incidentRecord?->alarm_level,
         ])->values()->all();
 
+        $initialResponderLocation = ($selectedReport && $selectedReport->report_id)
+            ? Cache::get("incident:{$selectedReport->report_id}:responder_location")
+            : null;
+
         return Inertia::render('response-tracking/index', [
             'incident' => $incident,
             'dispatchedIncidents' => $allDispatched,
             'routeSummary' => $routeSummary,
+            'initialResponderLocation' => $initialResponderLocation,
             'station' => [
                 'name' => 'BFP Lian Station',
             ],
+        ]);
+    }
+
+    /**
+     * Polling endpoint for live responder GPS coordinates.
+     */
+    public function location(int $id): JsonResponse
+    {
+        $location = Cache::get("incident:{$id}:responder_location");
+
+        return response()->json([
+            'success' => true,
+            'location' => $location,
         ]);
     }
 }
