@@ -36,9 +36,9 @@
     "semantic_hash": ""
   },
   "app/Http/Controllers/AnalyticsController.php": {
-    "mtime": 1794937076.5411694,
-    "seen": 1794937317.6077669,
-    "ast_hash": "5fcc4562be4100da3cea2515022e4751",
+    "mtime": 1795104033.2193995,
+    "seen": 1795104241.5523665,
+    "ast_hash": "fec73600327ace4df855c9c211c4c642",
     "semantic_hash": ""
   },
   "app/Http/Controllers/AnnouncementController.php": {
@@ -990,9 +990,9 @@
     "semantic_hash": ""
   },
   "resources/js/layouts/portal/nav-config.ts": {
-    "mtime": 1794842434.4482863,
-    "seen": 1794848296.6876338,
-    "ast_hash": "7820695a823003e07286cea0779a00e1",
+    "mtime": 1795068656.6464717,
+    "seen": 1795104241.5824466,
+    "ast_hash": "51522a93283dd1e5ec6614e1da90526a",
     "semantic_hash": ""
   },
   "resources/js/layouts/portal/portal-sidebar.tsx": {
@@ -1044,9 +1044,9 @@
     "semantic_hash": "124815982d54f0f237a784890b464a1b"
   },
   "resources/js/pages/analytics/index.tsx": {
-    "mtime": 1794938198.850743,
-    "seen": 1794938262.6590416,
-    "ast_hash": "f3f8bc07b3629b0436ac4ae450ff76d4",
+    "mtime": 1795104122.655426,
+    "seen": 1795104241.5834577,
+    "ast_hash": "3011ea582094364916a784cf26993449",
     "semantic_hash": ""
   },
   "resources/js/pages/announcements/index.tsx": {
@@ -1758,9 +1758,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/AnalyticsTest.php": {
-    "mtime": 1794936037.0301907,
-    "seen": 1794936228.7573822,
-    "ast_hash": "0ad900d61c3279b2eba02be3c7a29dd0",
+    "mtime": 1795104135.756402,
+    "seen": 1795104241.5877419,
+    "ast_hash": "8ceb1ea4b8e778ce8f35909970fa2479",
     "semantic_hash": ""
   },
   "tests/Feature/IncidentWorkflowTest.php": {
@@ -2874,9 +2874,9 @@
     "semantic_hash": ""
   },
   "app/Services/SpotReport/PhpWordSpotReportGenerator.php": {
-    "mtime": 1794635910.7928603,
-    "seen": 1794637131.8724856,
-    "ast_hash": "7db27b099cbec6126bbbb0faf3f5faa9",
+    "mtime": 1795088721.435991,
+    "seen": 1795104241.5603852,
+    "ast_hash": "4454a4ba78a8af9086bca9f1df492fa8",
     "semantic_hash": ""
   },
   "app/Services/SpotReport/SpotReportGenerator.php": {
@@ -2898,9 +2898,9 @@
     "semantic_hash": ""
   },
   "tests/Feature/SpotReportExportTest.php": {
-    "mtime": 1794842435.9256816,
-    "seen": 1794848296.701581,
-    "ast_hash": "ebd59da1c9a0e7a256254eb268a1afd6",
+    "mtime": 1795069403.433655,
+    "seen": 1795104241.5907016,
+    "ast_hash": "69ab42944f5f28e8119b611f37e9bda8",
     "semantic_hash": ""
   },
   "resources/js/components/incidents/create-manual-report-modal.tsx": {
@@ -3021,6 +3021,24 @@
     "mtime": 1794843928.7663312,
     "seen": 1794848296.7127066,
     "ast_hash": "5dec7038773bf2c7287862468f06b2ff",
+    "semantic_hash": ""
+  },
+  "resources/images/bfp/bagong-pilipinas.png": {
+    "mtime": 1795069173.8569467,
+    "seen": 1795104241.5970585,
+    "ast_hash": "10cad98db0ffd8ca2410436964c54bc2",
+    "semantic_hash": ""
+  },
+  "resources/images/bfp/bfp-seal.png": {
+    "mtime": 1795069173.114857,
+    "seen": 1795104241.5970607,
+    "ast_hash": "b09ba9099e6465f9ab49ffe17eac71a0",
+    "semantic_hash": ""
+  },
+  "resources/images/bfp/lian-fs.png": {
+    "mtime": 1795069174.058303,
+    "seen": 1795104241.597062,
+    "ast_hash": "44ed14e4534edd7e4b6c583a56098e4b",
     "semantic_hash": ""
   }
 }
